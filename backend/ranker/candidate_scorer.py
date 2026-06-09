@@ -65,9 +65,9 @@ def years_ago(value: Any) -> float:
 
 
 PROFICIENCY_MAP = {
-    "beginner": 0.2,
-    "intermediate": 0.5,
-    "advanced": 0.8,
+    "beginner": 0.1,
+    "intermediate": 0.3,
+    "advanced": 0.6,
     "expert": 1.0
 }
 
