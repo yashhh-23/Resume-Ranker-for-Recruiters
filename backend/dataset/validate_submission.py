@@ -12,7 +12,7 @@ from pathlib import Path
 REQUIRED_HEADER = ["candidate_id", "rank", "score", "reasoning"]
 CANDIDATE_ID_PATTERN = re.compile(r"^CAND_[0-9]{7}$")
 DATA_ROW_START = 2
-EXPECTED_DATA_ROWS = 100
+EXPECTED_DATA_ROWS = 50
 
 
 def validate_submission(csv_path):
@@ -99,14 +99,14 @@ def validate_submission(csv_path):
             rank = int(rank_s)
             if str(rank) != rank_s:
                 raise ValueError
-            if not 1 <= rank <= 100:
-                errors.append(f"Row {row_num}: rank must be between 1 and 100.")
+            if not 1 <= rank <= EXPECTED_DATA_ROWS:
+                errors.append(f"Row {row_num}: rank must be between 1 and {EXPECTED_DATA_ROWS}.")
             elif rank in seen_ranks:
                 errors.append(f"Row {row_num}: duplicate rank {rank}.")
             else:
                 seen_ranks.add(rank)
         except ValueError:
-            errors.append(f"Row {row_num}: rank must be an integer (1–100).")
+            errors.append(f"Row {row_num}: rank must be an integer (1–{EXPECTED_DATA_ROWS}).")
             rank = None
 
         try:
@@ -118,10 +118,10 @@ def validate_submission(csv_path):
         if rank is not None and score is not None and cid:
             by_rank.append((rank, score, cid))
 
-    missing = set(range(1, 101)) - seen_ranks
+    missing = set(range(1, EXPECTED_DATA_ROWS + 1)) - seen_ranks
     if missing:
         errors.append(
-            f"Each rank 1–100 must appear exactly once; missing: {sorted(missing)}"
+            f"Each rank 1–{EXPECTED_DATA_ROWS} must appear exactly once; missing: {sorted(missing)}"
         )
 
     by_rank.sort(key=lambda x: x[0])
