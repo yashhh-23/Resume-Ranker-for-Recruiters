@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import CandidateCard from "./CandidateCard";
+import CompareModal from "./CompareModal";
 import { detectTimelineAnomaly } from "../utils/scoreUtils";
 import { exportPdfReport, exportWordReport } from "../utils/reportGenerator";
+import { exportSubmissionCsv } from "../utils/exportCsv";
 
 const ResultsPanel = ({
   rankedResults,
@@ -22,6 +24,33 @@ const ResultsPanel = ({
   const [githubOnly, setGithubOnly] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [viewMode, setViewMode] = useState("list"); // "list" | "podium"
+
+  // Compare mode
+  const [compareIds, setCompareIds] = useState([]); // up to 2 candidate_ids
+  const [showCompareModal, setShowCompareModal] = useState(false);
+
+  // Staged loading messages
+  const [loadingPhase, setLoadingPhase] = useState(0);
+  const LOADING_PHASES = [
+    "🔍 Embedding candidates against JD...",
+    "⚡ Scoring across 5 dimensions...",
+    "📊 Sorting top 100 by fit index...",
+  ];
+
+  useEffect(() => {
+    if (!isLoading) { setLoadingPhase(0); return; }
+    const t1 = setTimeout(() => setLoadingPhase(1), 1800);
+    const t2 = setTimeout(() => setLoadingPhase(2), 3600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [isLoading]);
+
+  const handleToggleCompare = (candidateId) => {
+    setCompareIds((prev) => {
+      if (prev.includes(candidateId)) return prev.filter((id) => id !== candidateId);
+      if (prev.length >= 2) return [prev[1], candidateId]; // shift out oldest
+      return [...prev, candidateId];
+    });
+  };
 
   // Talent Pool UI states
   const [activeTab, setActiveTab] = useState("shortlist"); // "shortlist" | "pools"
@@ -296,45 +325,85 @@ const ResultsPanel = ({
               </button>
             </div>
 
-            {/* Export buttons */}
-            {((activeTab === "shortlist" && rankedResults.length > 0) || 
-              (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
-              <div className="flex items-center gap-1.5">
-                <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs rounded-none">
-                  {activeList.length} matching
+            {/* Export buttons + Compare button */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Compare button — appears when 2 candidates selected */}
+              {compareIds.length === 2 && activeTab === "shortlist" && (
+                <button
+                  type="button"
+                  onClick={() => setShowCompareModal(true)}
+                  className="text-[11px] bg-amber/10 border border-amber/40 hover:bg-amber/20 text-amber font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono animate-pulse"
+                  title="Compare 2 selected candidates side-by-side"
+                >
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Compare 2
+                </button>
+              )}
+              {compareIds.length > 0 && compareIds.length < 2 && activeTab === "shortlist" && (
+                <span className="text-[10px] font-mono text-amber border border-amber/20 px-2 py-1 rounded-none bg-amber/5">
+                  Select {2 - compareIds.length} more to compare
                 </span>
-                
-                <button
-                  type="button"
-                  disabled={isExportingPdf || activeList.length === 0}
-                  onClick={handleExportPdf}
-                  className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
-                  title="Export current filtered results as PDF"
-                >
-                  <svg className="h-3.5 w-3.5 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <path d="M9 12h1.5a1.5 1.5 0 0 0 0-3H9v6" />
-                  </svg>
-                  <span>{isExportingPdf ? "PDF..." : "PDF"}</span>
-                </button>
-                
-                <button
-                  type="button"
-                  disabled={activeList.length === 0}
-                  onClick={handleExportWord}
-                  className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
-                  title="Export current filtered results as Word Document"
-                >
-                  <svg className="h-3.5 w-3.5 text-cobalt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <path d="M8 12l2 4 2-4 2 4 2-4" />
-                  </svg>
-                  <span>Word</span>
-                </button>
-              </div>
-            )}
+              )}
+
+              {((activeTab === "shortlist" && rankedResults.length > 0) ||
+                (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
+                <>
+                  <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs rounded-none">
+                    {activeList.length} matching
+                  </span>
+
+                  {/* CSV Export — hackathon submission format */}
+                  {activeTab === "shortlist" && (
+                    <button
+                      type="button"
+                      disabled={rankedResults.length === 0}
+                      onClick={() => exportSubmissionCsv(rankedResults)}
+                      className="text-[11px] bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
+                      title="Download submission.csv (hackathon format: candidate_id, rank, score, reasoning)"
+                    >
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      <span>CSV</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={isExportingPdf || activeList.length === 0}
+                    onClick={handleExportPdf}
+                    className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
+                    title="Export current filtered results as PDF"
+                  >
+                    <svg className="h-3.5 w-3.5 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <path d="M9 12h1.5a1.5 1.5 0 0 0 0-3H9v6" />
+                    </svg>
+                    <span>{isExportingPdf ? "PDF..." : "PDF"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={activeList.length === 0}
+                    onClick={handleExportWord}
+                    className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
+                    title="Export current filtered results as Word Document"
+                  >
+                    <svg className="h-3.5 w-3.5 text-cobalt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <path d="M8 12l2 4 2-4 2 4 2-4" />
+                    </svg>
+                    <span>Word</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -534,11 +603,54 @@ const ResultsPanel = ({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20">
-        {/* Loading state for shortlist */}
+        {/* Loading state for shortlist — staged messages + skeleton cards */}
         {isLoading && activeTab === "shortlist" && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="h-8 w-8 rounded-full border-2 border-emerald/20 border-t-emerald animate-spin"></div>
-            <p className="text-sm font-mono text-slate-400 tracking-wide">Executing ranking matrix algorithms...</p>
+          <div className="flex flex-col">
+            {/* Staged status message */}
+            <div className="flex flex-col items-center justify-center py-8 gap-4">
+              <div className="relative h-10 w-10">
+                <div className="absolute inset-0 rounded-full border-2 border-emerald/10 border-t-emerald animate-spin" />
+                <div className="absolute inset-1.5 rounded-full border border-emerald/20 border-b-emerald/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-mono text-emerald tracking-wide font-semibold">
+                  {LOADING_PHASES[loadingPhase]}
+                </p>
+                <p className="text-xs font-mono text-slate-600 mt-1">CPU-only · offline-capable · up to 5,000 candidates</p>
+              </div>
+              {/* Phase dots */}
+              <div className="flex gap-2">
+                {LOADING_PHASES.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      i === loadingPhase ? "w-6 bg-emerald" : i < loadingPhase ? "w-3 bg-emerald/40" : "w-3 bg-slate-800"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            {/* Skeleton cards */}
+            <div className="divide-y divide-slate-900/60 px-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="px-6 py-5" style={{ opacity: 1 - i * 0.15 }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <div className="h-5 w-8 bg-slate-900 rounded-none animate-pulse" />
+                        <div className="h-5 w-36 bg-slate-800 rounded-none animate-pulse" />
+                        <div className="h-4 w-20 bg-slate-900 rounded-none animate-pulse" />
+                      </div>
+                      <div className="h-3.5 w-64 bg-slate-900 rounded-none animate-pulse" />
+                      <div className="h-3 w-48 bg-slate-900/60 rounded-none animate-pulse" />
+                    </div>
+                    <div className="h-10 w-16 bg-slate-900 rounded-none animate-pulse shrink-0" />
+                  </div>
+                  <div className="mt-4 h-3 w-full bg-slate-900 rounded-none animate-pulse" />
+                  <div className="mt-2 h-8 w-full bg-slate-900/60 rounded-none animate-pulse" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -637,6 +749,7 @@ const ResultsPanel = ({
         {!isLoading && activeList.length > 0 && (activeTab === "shortlist" || selectedPoolId !== null) && (
           viewMode === "podium" ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start max-w-5xl mx-auto py-8 px-6 font-mono">
+
               
               {/* Silver Column: Rank #2 (flanked left) */}
               <div className="md:order-1 md:pt-6">
@@ -657,6 +770,9 @@ const ResultsPanel = ({
                       inPoolView={activeTab === "pools"}
                       poolId={selectedPoolId}
                       onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                      jobDescription={jobDescription}
+                      isCompareSelected={compareIds.includes(activeList[1].result.candidate_id)}
+                      onToggleCompare={handleToggleCompare}
                     />
                   </div>
                 ) : (
@@ -685,6 +801,9 @@ const ResultsPanel = ({
                       inPoolView={activeTab === "pools"}
                       poolId={selectedPoolId}
                       onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                      jobDescription={jobDescription}
+                      isCompareSelected={compareIds.includes(activeList[0].result.candidate_id)}
+                      onToggleCompare={handleToggleCompare}
                     />
                   </div>
                 ) : (
@@ -713,6 +832,9 @@ const ResultsPanel = ({
                       inPoolView={activeTab === "pools"}
                       poolId={selectedPoolId}
                       onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                      jobDescription={jobDescription}
+                      isCompareSelected={compareIds.includes(activeList[2].result.candidate_id)}
+                      onToggleCompare={handleToggleCompare}
                     />
                   </div>
                 ) : (
@@ -736,12 +858,35 @@ const ResultsPanel = ({
                   inPoolView={activeTab === "pools"}
                   poolId={selectedPoolId}
                   onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                  jobDescription={jobDescription}
+                  isCompareSelected={compareIds.includes(result.candidate_id)}
+                  onToggleCompare={handleToggleCompare}
                 />
               ))}
             </div>
           )
         )}
       </div>
+
+      {/* Compare Modal */}
+      {showCompareModal && compareIds.length === 2 && (() => {
+        const candidateMap = new Map(candidates.map((c) => [c.candidate_id, c]));
+        const rankMap = new Map(rankedResults.map((r) => [r.candidate_id, r]));
+        const cA = candidateMap.get(compareIds[0]);
+        const rA = rankMap.get(compareIds[0]);
+        const cB = candidateMap.get(compareIds[1]);
+        const rB = rankMap.get(compareIds[1]);
+        if (!cA || !cB) return null;
+        return (
+          <CompareModal
+            candidateA={cA}
+            resultA={rA}
+            candidateB={cB}
+            resultB={rB}
+            onClose={() => setShowCompareModal(false)}
+          />
+        );
+      })()}
     </div>
   );
 };
