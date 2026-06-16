@@ -1,9 +1,10 @@
 team_name: "Team Chanakya"
-sandbox_url: "https://rrr-resume-ranker-recruiter-fronten.vercel.app"
-backend_url: "https://rrr-resume-ranker-backend.onrender.com"
+demo_url: "https://rrr-resume-ranker-recruiter-fronten.vercel.app"
+api_url: "https://rrr-resume-ranker-backend.onrender.com"
 reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
 uses_gpu: false
 runtime_minutes_estimate: 2
+submission_ready: true
 
 primary_contact:
   name: "Yash"
