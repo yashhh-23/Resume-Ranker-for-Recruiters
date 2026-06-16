@@ -1,0 +1,6 @@
+submission.csv
+.embedding_cache.pkl
+__pycache__/
+*.pyc
+.env
+.venv/
