@@ -12,7 +12,12 @@ DEFAULT_JD = {
     "target_industry": "Any",
     "target_field": "Computer Science",
     "skills_text": "",
+    "salary_min": 0.0,
+    "salary_max": 0.0,
 }
+
+REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
+PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desired"]
 
 KNOWN_SKILLS = [
     "Python",
@@ -251,11 +256,21 @@ def _extract_field(text: str) -> str:
     return DEFAULT_JD["target_field"]
 
 
+def _extract_salary_range(text: str) -> tuple[float, float]:
+    match = re.search(r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text)
+    if match:
+        min_val = float(match.group(1))
+        max_val = float(match.group(2))
+        return (min_val * 1000 if min_val < 1000 else min_val,
+                max_val * 1000 if max_val < 1000 else max_val)
+    return 0.0, 0.0
+
+
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = text or ""
-    required = _split_skill_lines(_extract_section_lines(text, ["required", "must have", "key qualification"]))
-    preferred = _split_skill_lines(_extract_section_lines(text, ["preferred", "nice to have", "good to have"]))
+    required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
+    preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
 
     raw_required = list(required)
 
@@ -274,6 +289,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
     skills_text = " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
+    salary_min, salary_max = _extract_salary_range(text)
 
     return {
         "required_skills": required,
@@ -284,6 +300,8 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         "target_industry": target_industry,
         "target_field": _extract_field(text),
         "skills_text": skills_text.strip() or text,
+        "salary_min": salary_min,
+        "salary_max": salary_max,
     }
 
 
