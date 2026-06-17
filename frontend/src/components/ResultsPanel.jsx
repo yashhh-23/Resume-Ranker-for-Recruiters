@@ -1,54 +1,13 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import CandidateCard from "./CandidateCard";
-import CompareModal from "./CompareModal";
 import { detectTimelineAnomaly } from "../utils/scoreUtils";
 import { exportPdfReport, exportWordReport } from "../utils/reportGenerator";
 import { exportSubmissionCsv } from "../utils/exportCsv";
+import { SearchIcon, LightningIcon, BarChartIcon } from "./icons";
 
-const SearchIcon = ({ className = "h-4 w-4" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-);
+const CompareModal = lazy(() => import("./CompareModal"));
 
-const LightningIcon = ({ className = "h-4 w-4" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-  </svg>
-);
 
-const BarChartIcon = ({ className = "h-4 w-4" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-);
 
 const ResultsPanel = ({
   rankedResults,
@@ -674,7 +633,7 @@ const ResultsPanel = ({
               <div className="text-center">
                 <div className="text-sm font-mono text-emerald tracking-wide font-semibold flex items-center justify-center gap-2">
                   {(() => {
-                    const phase = LOADING_PHASES[loadingPhase] || LOADING_PHASES[0];
+                    const phase = LOADING_PHASES[Math.min(loadingPhase, LOADING_PHASES.length - 1)];
                     const IconComponent = phase.Icon;
                     return (
                       <>
@@ -960,10 +919,12 @@ const ResultsPanel = ({
 
         if (selectedCandidates.length < 2) return null;
         return (
-          <CompareModal
-            selectedCandidates={selectedCandidates}
-            onClose={() => setShowCompareModal(false)}
-          />
+          <Suspense fallback={null}>
+            <CompareModal
+              selectedCandidates={selectedCandidates}
+              onClose={() => setShowCompareModal(false)}
+            />
+          </Suspense>
         );
       })()}
     </div>
