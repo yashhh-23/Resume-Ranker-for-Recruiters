@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
 // ─── Lock Icon SVG ────────────────────────────────────────────────────────────
-const LockIcon = ({ unlocked = false }) => (
+const LockIcon = ({ unlocked = false, className = "w-8 h-8" }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -9,7 +9,7 @@ const LockIcon = ({ unlocked = false }) => (
     strokeWidth={1.5}
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="w-8 h-8"
+    className={className}
   >
     {unlocked ? (
       <>
@@ -159,8 +159,9 @@ const PassphraseGate = ({ onAuthenticate }) => {
             <p className="text-slate-500 text-xs mt-0.5 font-mono uppercase tracking-widest">
               Resume Ranker · Recruiter
             </p>
-            <div className="mt-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald animate-pulse">
-              <span>🔒 Encrypted Locally (AES-256)</span>
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald animate-pulse">
+              <LockIcon className="w-2.5 h-2.5 shrink-0" />
+              <span>Encrypted Locally (AES-256)</span>
             </div>
           </div>
         </div>
@@ -241,10 +242,12 @@ const PassphraseGate = ({ onAuthenticate }) => {
         </div>
 
         {/* Warning note */}
-        <p className="text-center text-[10px] text-slate-600 leading-snug">
-          ⚠️ If you forget your passphrase, your pools cannot be recovered — by
-          design.
-        </p>
+        <div className="text-center text-[10px] text-slate-600 leading-snug flex items-start justify-center gap-1.5 px-4">
+          <svg className="h-3.5 w-3.5 shrink-0 text-slate-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="text-left font-mono">If you forget your passphrase, your pools cannot be recovered — by design.</span>
+        </div>
       </div>
 
       {/* shake keyframe injected inline so we don't need a CSS file change */}
