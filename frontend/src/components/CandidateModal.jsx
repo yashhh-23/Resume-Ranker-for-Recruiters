@@ -1,5 +1,6 @@
 import { formatDate, formatNumber, formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
+import { extractJdSkills, isSkillMatchedInJd, getMissingSkills } from "../utils/jdUtils";
 
 const formatBool = (value) => {
   if (value === true) return "Yes";
@@ -118,6 +119,7 @@ const CandidateModal = ({
   onClose,
   talentPools = [],
   onOpenPoolManager,
+  jobDescription = "",
 }) => {
   const profile = candidate.profile || {};
   const signals = candidate.redrob_signals || {};
@@ -125,6 +127,21 @@ const CandidateModal = ({
   const reasoning = deriveReasoning(result, candidate);
   const skillScores = signals.skill_assessment_scores || {};
   const skills = candidate.skills || [];
+
+  // JD skill gap analysis
+  const jdSkillTokens = extractJdSkills(jobDescription);
+  const hasJd = jdSkillTokens.length > 0;
+  // Top 15 JD tokens as "required" (heuristic — those > 3 chars likely skills)
+  const jdRequiredSkills = jdSkillTokens.filter((t) => t.length > 3).slice(0, 15);
+  const missingSkills = hasJd ? getMissingSkills(jdRequiredSkills, skills) : [];
+  const matchedJdSkills = hasJd
+    ? jdRequiredSkills.filter((jdSkill) =>
+        skills.some((s) => isSkillMatchedInJd(s.name, [jdSkill]))
+      )
+    : [];
+  const coveragePct = jdRequiredSkills.length > 0
+    ? Math.round((matchedJdSkills.length / jdRequiredSkills.length) * 100)
+    : null;
 
   const isInAnyPool = talentPools.some((p) =>
     p.candidates.some((c) => c.candidate_id === candidate.candidate_id)
@@ -455,6 +472,62 @@ const CandidateModal = ({
                   </div>
                 </div>
               </div>
+
+              {/* Skill Gap Analysis Section */}
+              {hasJd && (
+                <div className="border border-slate-900 bg-slate-900/10 p-5 rounded-none">
+                  <div className="flex items-center justify-between border-b border-slate-900 pb-3 mb-4">
+                    <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono">
+                      JD Skill Gap Analysis
+                    </h4>
+                    {coveragePct !== null && (
+                      <span className={`text-xs font-mono font-bold px-2 py-0.5 border rounded-none ${
+                        coveragePct >= 70 ? "bg-emerald/10 border-emerald/30 text-emerald" :
+                        coveragePct >= 40 ? "bg-cobalt/10 border-cobalt/30 text-cobalt" :
+                        "bg-rose-900/20 border-rose-800/40 text-rose-400"
+                      }`}>
+                        {coveragePct}% coverage
+                      </span>
+                    )}
+                  </div>
+
+                  {matchedJdSkills.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[9px] uppercase tracking-wider text-emerald font-mono mb-2 font-bold">✓ Matched JD Skills</p>
+                      <div className="flex flex-wrap gap-1">
+                        {matchedJdSkills.map((s) => (
+                          <span key={s} className="px-1.5 py-0.5 bg-emerald/10 text-emerald text-[10px] rounded-none border border-emerald/30 font-mono">
+                            ✓ {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {missingSkills.length > 0 ? (
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-rose-400 font-mono mb-2 font-bold">✗ Missing / Skill Gaps</p>
+                      <div className="flex flex-wrap gap-1">
+                        {missingSkills.map((s) => (
+                          <span key={s} className="px-1.5 py-0.5 bg-red-900/20 text-rose-400 text-[10px] rounded-none border border-red-800/30 font-mono">
+                            ✗ {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs font-mono text-emerald italic">
+                      No skill gaps detected — candidate covers all extracted JD requirements.
+                    </p>
+                  )}
+
+                  {!hasJd && (
+                    <p className="text-xs font-mono text-slate-500 italic">
+                      Paste a Job Description in the input panel to enable gap analysis.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="border border-slate-900 bg-slate-900/10 p-5 rounded-none">
                 <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4">
