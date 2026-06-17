@@ -13,7 +13,7 @@ from starlette.requests import Request
 
 from ranker import parse_jd_text, rank_candidates
 from ranker.candidate_scorer import WEIGHTS
-from ranker.embedding_utils import get_embedder
+from ranker.embedding_utils import load_model
 from ranker.validators import sanitize_candidates
 
 _START_TIME = time.time()
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     # Warm up model on startup
     import asyncio
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, get_embedder)
+    await loop.run_in_executor(None, load_model)
     print("[RRR] Model loaded and ready.")
     yield
 
