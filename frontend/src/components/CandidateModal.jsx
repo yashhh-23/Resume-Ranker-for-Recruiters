@@ -2,6 +2,35 @@ import { formatDate, formatNumber, formatPercent, formatScore } from "../utils/f
 import { deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { extractJdSkills, isSkillMatchedInJd, getMissingSkills } from "../utils/jdUtils";
 
+const CheckIcon = ({ className = "h-3 w-3" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={3}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const XIcon = ({ className = "h-3 w-3" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const formatBool = (value) => {
   if (value === true) return "Yes";
   if (value === false) return "No";
@@ -234,7 +263,7 @@ const CandidateModal = ({
             <svg className="h-3.5 w-3.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            ⚠️ Suspicious Profile: High-Risk Logical Contradictions Flagged
+            Suspicious Profile: High-Risk Logical Contradictions Flagged
           </div>
         )}
 
@@ -498,11 +527,15 @@ const CandidateModal = ({
 
                   {matchedJdSkills.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-[9px] uppercase tracking-wider text-emerald font-mono mb-2 font-bold">✓ Matched JD Skills</p>
+                      <p className="text-[9px] uppercase tracking-wider text-emerald font-mono mb-2 font-bold flex items-center gap-1.5">
+                        <CheckIcon className="h-3 w-3 shrink-0" />
+                        <span>Matched JD Skills</span>
+                      </p>
                       <div className="flex flex-wrap gap-1">
                         {matchedJdSkills.map((skill) => (
                           <span key={skill.name} className="px-2 py-0.5 bg-emerald/10 text-emerald text-[10px] rounded-none border border-emerald/30 font-mono inline-flex items-center gap-1.5">
-                            ✓ {skill.name}
+                            <CheckIcon className="h-2.5 w-2.5 shrink-0" />
+                            <span>{skill.name}</span>
                             <span className={`text-[8px] font-bold uppercase tracking-wider px-1 bg-slate-900 border ${
                               skill.proficiency === 'expert' ? 'text-emerald border-emerald/20 bg-emerald/5' :
                               skill.proficiency === 'advanced' ? 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' :
@@ -518,11 +551,15 @@ const CandidateModal = ({
 
                   {missingSkills.length > 0 ? (
                     <div>
-                      <p className="text-[9px] uppercase tracking-wider text-rose-400 font-mono mb-2 font-bold">✗ Missing / Skill Gaps</p>
+                      <p className="text-[9px] uppercase tracking-wider text-rose-400 font-mono mb-2 font-bold flex items-center gap-1.5">
+                        <XIcon className="h-3 w-3 shrink-0" />
+                        <span>Missing / Skill Gaps</span>
+                      </p>
                       <div className="flex flex-wrap gap-1">
                         {missingSkills.map((s) => (
-                          <span key={s} className="px-1.5 py-0.5 bg-red-900/20 text-rose-400 text-[10px] rounded-none border border-red-800/30 font-mono">
-                            ✗ {s}
+                          <span key={s} className="px-1.5 py-0.5 bg-red-900/20 text-rose-400 text-[10px] rounded-none border border-red-800/30 font-mono inline-flex items-center gap-1.5">
+                            <XIcon className="h-2.5 w-2.5 shrink-0" />
+                            <span>{s}</span>
                           </span>
                         ))}
                       </div>

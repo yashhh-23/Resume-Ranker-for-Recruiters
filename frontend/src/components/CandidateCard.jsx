@@ -4,6 +4,20 @@ import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../util
 import { formatScore, formatPercent } from "../utils/formatters";
 import { extractJdSkills, isSkillMatchedInJd } from "../utils/jdUtils";
 
+const CheckIcon = ({ className = "h-3 w-3" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={3}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
 const CandidateCard = ({
   result,
   candidate,
@@ -272,14 +286,14 @@ const CandidateCard = ({
               <span
                 key={skill.name}
                 title={matched ? `"${skill.name}" matches your JD` : skill.name}
-                className={`text-[10px] font-mono px-2.5 py-1 border rounded-none transition-colors font-semibold ${
+                className={`text-[10px] font-mono px-2.5 py-1 border rounded-none transition-colors font-semibold inline-flex items-center gap-1 ${
                   matched
                     ? "bg-emerald/10 border-emerald/40 text-emerald"
                     : "bg-slate-950 border-slate-800 text-slate-400"
                 }`}
               >
-                {matched && <span className="mr-0.5 text-emerald">✓</span>}
-                {skill.name}
+                {matched && <CheckIcon className="h-2.5 w-2.5 shrink-0" />}
+                <span>{skill.name}</span>
               </span>
             );
           })}

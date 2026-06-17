@@ -5,6 +5,51 @@ import { detectTimelineAnomaly } from "../utils/scoreUtils";
 import { exportPdfReport, exportWordReport } from "../utils/reportGenerator";
 import { exportSubmissionCsv } from "../utils/exportCsv";
 
+const SearchIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const LightningIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+
+const BarChartIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
+
 const ResultsPanel = ({
   rankedResults,
   candidates,
@@ -32,9 +77,9 @@ const ResultsPanel = ({
   // Staged loading messages
   const [loadingPhase, setLoadingPhase] = useState(0);
   const LOADING_PHASES = [
-    "🔍 Embedding candidates against JD...",
-    "⚡ Scoring across 5 dimensions...",
-    "📊 Sorting top 100 by fit index...",
+    { text: "Embedding candidates against JD...", Icon: SearchIcon },
+    { text: "Scoring across 5 dimensions...", Icon: LightningIcon },
+    { text: "Sorting top 100 by fit index...", Icon: BarChartIcon },
   ];
 
   useEffect(() => {
@@ -627,9 +672,18 @@ const ResultsPanel = ({
                 <div className="absolute inset-1.5 rounded-full border border-emerald/20 border-b-emerald/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
               </div>
               <div className="text-center">
-                <p className="text-sm font-mono text-emerald tracking-wide font-semibold">
-                  {LOADING_PHASES[loadingPhase]}
-                </p>
+                <div className="text-sm font-mono text-emerald tracking-wide font-semibold flex items-center justify-center gap-2">
+                  {(() => {
+                    const phase = LOADING_PHASES[loadingPhase] || LOADING_PHASES[0];
+                    const IconComponent = phase.Icon;
+                    return (
+                      <>
+                        <IconComponent className="h-4 w-4 shrink-0 text-emerald animate-pulse" />
+                        <span>{phase.text}</span>
+                      </>
+                    );
+                  })()}
+                </div>
                 <p className="text-xs font-mono text-slate-600 mt-1">CPU-only · offline-capable · up to 5,000 candidates</p>
               </div>
               {/* Phase dots */}
