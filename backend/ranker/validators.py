@@ -13,5 +13,7 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
         if not c.get("candidate_id"):
             skipped.append("(missing candidate_id)")
             continue
+        if not c.get("name"):
+            c["name"] = c.get("candidate_id", "Unknown Candidate")
         valid.append(c)
     return valid, skipped
