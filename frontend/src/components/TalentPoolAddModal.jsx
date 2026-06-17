@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { XIcon } from "./icons";
 
 const TalentPoolAddModal = ({
   poolCandidate,
@@ -47,9 +48,9 @@ const TalentPoolAddModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-200 text-xs transition-colors"
+            className="text-slate-500 hover:text-slate-200 text-xs transition-colors flex items-center justify-center p-1"
           >
-            ✕
+            <XIcon className="h-3.5 w-3.5" />
           </button>
         </div>
 
