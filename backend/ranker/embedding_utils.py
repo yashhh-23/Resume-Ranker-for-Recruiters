@@ -16,11 +16,11 @@ def load_model(model_name: str = MODEL_NAME):
     return SentenceTransformer(model_name)
 
 
-PROF_WEIGHTS = {
-    "expert": 1.0,
-    "advanced": 0.85,
-    "intermediate": 0.65,
-    "beginner": 0.4,
+PROFICIENCY_WEIGHT = {
+    "expert": 3,
+    "advanced": 2,
+    "intermediate": 1,
+    "beginner": 0.5,
 }
 
 
@@ -30,10 +30,9 @@ def candidate_embedding_text(candidate: Dict) -> str:
         name = str(skill.get("name") or "").strip()
         if not name:
             continue
-        proficiency = str(skill.get("proficiency") or "").lower().strip()
-        weight = PROF_WEIGHTS.get(proficiency, 0.5)
-        repeat = max(1, int(weight * 3))
-        skill_tokens.append(f"{name} " * repeat)
+        level = str(skill.get("proficiency") or "intermediate").lower().strip()
+        weight = PROFICIENCY_WEIGHT.get(level, 1)
+        skill_tokens.extend([name] * int(weight))
 
     profile = candidate.get("profile") or {}
     profile_text = " ".join(
