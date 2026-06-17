@@ -71,7 +71,8 @@ def score_skill_match(
     else:
         endorsement_boost = 0.5
 
-    return clamp(base * endorsement_boost * 2.0)
+    blended = 0.7 * base + 0.3 * endorsement_boost
+    return clamp(blended)
 
 
 def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -123,9 +124,12 @@ def build_reasoning(candidate: Dict[str, Any], breakdown: Dict[str, float], jd: 
     response_rate = safe_float(signals.get("recruiter_response_rate"))
     top_component = max(breakdown, key=breakdown.get).replace("_", " ")
 
+    domain = jd.get("target_title", "core") or "core"
+    domain_label = domain.split()[0] if domain else "core"
+
     return (
         f"{title} with {years:.1f} yrs; "
-        f"{matched_skills} AI core skills matched; "
+        f"{matched_skills} {domain_label} skills matched; "
         f"top signal {top_component}; "
         f"response rate {response_rate:.2f}."
     )
