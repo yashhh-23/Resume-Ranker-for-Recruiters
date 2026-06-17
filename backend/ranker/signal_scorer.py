@@ -21,8 +21,30 @@ def mean(values):
     return sum(values) / len(values)
 
 
-def score_signal_modifier(signals: Dict[str, Any]) -> float:
+def score_salary_fit(signals: dict, jd: dict) -> float:
+    """Returns 1.0 if salary expectation is within JD range, else decays."""
+    jd_min = safe_float(jd.get("salary_min"), 0)
+    jd_max = safe_float(jd.get("salary_max"), 0)
+    if jd_min == 0 and jd_max == 0:
+        return 0.5  # JD doesn't specify salary → neutral
+    
+    c_min = safe_float(signals.get("salary_expectation_min"), 0)
+    c_max = safe_float(signals.get("salary_expectation_max"), 0)
+    
+    if c_min == 0:
+        return 0.5
+    
+    # Overlap ratio
+    overlap_start = max(jd_min, c_min)
+    overlap_end = min(jd_max, c_max) if jd_max > 0 else c_max
+    if overlap_end < overlap_start:
+        return 0.2  # no overlap → poor fit
+    return clamp((overlap_end - overlap_start) / max(jd_max - jd_min, 1))
+
+
+def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) -> float:
     signals = signals or {}
+    jd = jd or {}
 
     github = safe_float(signals.get("github_activity_score"), -1.0)
     github_score = 0.0 if github < 0 else clamp(github / 100.0)
@@ -42,7 +64,9 @@ def score_signal_modifier(signals: Dict[str, Any]) -> float:
     completeness = safe_float(signals.get("profile_completeness_score"), 0.0)
     completeness_score = clamp(completeness / 100.0)
 
-    return clamp(mean([github_score, response_rate, interview_completion, assessment_score, offer_score, completeness_score]))
+    salary_fit = score_salary_fit(signals, jd)
+
+    return clamp(mean([github_score, response_rate, interview_completion, assessment_score, offer_score, completeness_score, salary_fit]))
 
 
 def score_availability(signals: Dict[str, Any]) -> float:
