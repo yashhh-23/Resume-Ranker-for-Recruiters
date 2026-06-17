@@ -265,17 +265,7 @@ uses_gpu: false
 runtime_minutes_estimate: 2
 ```
 
-### 4.3 Add a `DEMO.md` to Both Repos
-
-A single markdown file at the root of each repo that tells judges:
-1. What the project does (2 sentences)
-2. How to run it locally (copy-paste commands)
-3. How to test the API (`curl` example)
-4. Live demo link
-
-Judges who can run your project in 2 minutes are happier judges.
-
-### 4.4 Handle the Render Cold Start
+### 4.3 Handle the Render Cold Start
 
 Add a keep-alive ping in the frontend so the backend doesn't sleep during the demo:
 
@@ -289,7 +279,7 @@ useEffect(() => {
 }, []);
 ```
 
-### 4.5 Add Skill Gap Analysis to the Candidate Modal
+### 4.4 Add Skill Gap Analysis to the Candidate Modal
 
 In `CandidateModal`, add a "Skill Gap" section showing which required JD skills the candidate is **missing**. This is something no basic ATS does and directly answers the hackathon requirement for "beyond keyword matching":
 
@@ -315,29 +305,5 @@ const missingSkills = jdRequiredSkills.filter(
 
 ---
 
-## Execution Timeline
 
-| Day | Tasks |
-|-----|-------|
-| **Day 1** | Fix endorsement multiplier bug (1.2), fix reasoning string (1.3), add proficiency weighting (2.1) |
-| **Day 2** | Add required skill coverage score (2.2), fix JD parser (2.4), add score mini-bars to cards (3.1) |
-| **Day 3** | Add matched skill chips (3.2), export CSV button (3.4), skill gap analysis in modal (4.5) |
-| **Day 4** | Add keep-alive ping (4.4), fill `submission_metadata.yaml` (4.2), write `DEMO.md` (4.3) |
-| **Day 5** | Record demo video (1.4), update PPT to remove Faiss claim (1.1), final end-to-end test |
 
----
-
-## What Will Make Judges Pick You First
-
-| Judging Criterion | What Others Will Do | What You'll Do |
-|---|---|---|
-| **Ranking Quality** | Basic keyword or TF-IDF | Semantic embeddings + 5 signals + proficiency weighting + required skill coverage |
-| **Explainability** | A score number | Score breakdown bar, reasoning string, skill gap analysis, ComplianceTray |
-| **Innovation** | One ranking method | Talent Pools (Spotify-style watchlist), AES-encrypted private lists, local fallback ranker |
-| **UI/UX** | Plain table | Resizable panels, candidate modal, score visualization, export to CSV |
-| **Demo** | Slides | Live working product + video walkthrough + passphrase login wow moment |
-| **Code Quality** | Monolith | Modular ranker/, typed FastAPI, Dockerfile, validate_submission.py |
-
----
-
-*Generated from live codebase audit — Frontend commit `2941e3a` (Jun 8) and Backend commit `f6e9396` (Jun 7)*
