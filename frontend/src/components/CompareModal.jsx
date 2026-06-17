@@ -1,6 +1,6 @@
 import { formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown } from "../utils/scoreUtils";
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 /**
  * CompareModal — Side-by-side comparison of up to 3 candidates.
@@ -89,6 +89,16 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }} />
                     <PolarRadiusAxis domain={[0, 1.0]} tick={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0f172a',
+                        border: '1px solid #1e293b',
+                        borderRadius: '0',
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                      }}
+                      formatter={(value, name) => [`${(value * 100).toFixed(1)}%`, name]}
+                    />
                     {selectedCandidates.map((item, idx) => (
                       <Radar
                         key={item.candidate_id}
