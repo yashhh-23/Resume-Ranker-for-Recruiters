@@ -1,155 +1,34 @@
 import { formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown } from "../utils/scoreUtils";
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
 
 /**
- * CompareModal — Side-by-side comparison of exactly 2 candidates.
- * Shows score breakdown as a custom SVG radar/pentagon chart plus tabular diff.
+ * CompareModal — Side-by-side comparison of up to 3 candidates.
+ * Uses Recharts RadarChart for dynamic polygon overlays.
  */
 
 const SCORE_AXES = [
-  { key: "skill_match", label: "Skill Match", weight: "35%", color: "#10B981" },
-  { key: "career_fit", label: "Career Fit", weight: "25%", color: "#3B82F6" },
+  { key: "skill_match", label: "Skills", weight: "35%", color: "#10B981" },
+  { key: "career_fit", label: "Career", weight: "25%", color: "#3B82F6" },
   { key: "signal_modifier", label: "Signals", weight: "15%", color: "#6366F1" },
   { key: "education", label: "Education", weight: "15%", color: "#14B8A6" },
   { key: "availability", label: "Availability", weight: "10%", color: "#D97706" },
 ];
 
-// SVG Pentagon Radar Chart
-const RadarChart = ({ breakdownA, breakdownB, nameA, nameB }) => {
-  const size = 220;
-  const cx = size / 2;
-  const cy = size / 2;
-  const maxR = 85;
-  const n = SCORE_AXES.length;
+const COLORS = ["#10B981", "#3B82F6", "#D97706"];
 
-  // Calculate points for a regular pentagon
-  const angleOf = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
+const CompareModal = ({ selectedCandidates = [], onClose }) => {
+  if (selectedCandidates.length === 0) return null;
 
-  const pointOnAxis = (i, r) => ({
-    x: cx + r * Math.cos(angleOf(i)),
-    y: cy + r * Math.sin(angleOf(i)),
+  // Prepare data for Recharts RadarChart
+  const radarData = SCORE_AXES.map((axis) => {
+    const dataPoint = { subject: axis.label, fullMark: 1.0 };
+    selectedCandidates.forEach((item, index) => {
+      const breakdown = deriveBreakdown(item.result, item.candidate);
+      dataPoint[`cand${index}`] = breakdown[axis.key] ?? 0;
+    });
+    return dataPoint;
   });
-
-  const toPath = (values) =>
-    values
-      .map((v, i) => {
-        const r = maxR * v;
-        const p = pointOnAxis(i, r);
-        return `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`;
-      })
-      .join(" ") + " Z";
-
-  const axisPoints = SCORE_AXES.map((_, i) => pointOnAxis(i, maxR));
-
-  const valuesA = SCORE_AXES.map((ax) => breakdownA[ax.key] ?? 0);
-  const valuesB = SCORE_AXES.map((ax) => breakdownB[ax.key] ?? 0);
-
-  // Grid rings
-  const rings = [0.25, 0.5, 0.75, 1.0];
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
-      {/* Grid rings */}
-      {rings.map((r) => (
-        <polygon
-          key={r}
-          points={SCORE_AXES.map((_, i) => {
-            const p = pointOnAxis(i, maxR * r);
-            return `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
-          }).join(" ")}
-          fill="none"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth="1"
-        />
-      ))}
-
-      {/* Axis lines */}
-      {axisPoints.map((p, i) => (
-        <line
-          key={i}
-          x1={cx}
-          y1={cy}
-          x2={p.x}
-          y2={p.y}
-          stroke="rgba(255,255,255,0.07)"
-          strokeWidth="1"
-        />
-      ))}
-
-      {/* Candidate A area */}
-      <path
-        d={toPath(valuesA)}
-        fill="rgba(16,185,129,0.15)"
-        stroke="#10B981"
-        strokeWidth="1.5"
-      />
-
-      {/* Candidate B area */}
-      <path
-        d={toPath(valuesB)}
-        fill="rgba(59,130,246,0.15)"
-        stroke="#3B82F6"
-        strokeWidth="1.5"
-        strokeDasharray="4 2"
-      />
-
-      {/* Axis labels */}
-      {SCORE_AXES.map((ax, i) => {
-        const p = pointOnAxis(i, maxR + 18);
-        return (
-          <text
-            key={ax.key}
-            x={p.x}
-            y={p.y}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="9"
-            fill="#94a3b8"
-            fontFamily="JetBrains Mono, monospace"
-          >
-            {ax.label}
-          </text>
-        );
-      })}
-    </svg>
-  );
-};
-
-const ScoreRow = ({ label, color, valueA, valueB, weight }) => {
-  const diff = valueA - valueB;
-  const winner = diff > 0.01 ? "A" : diff < -0.01 ? "B" : null;
-  return (
-    <div className="grid grid-cols-7 items-center gap-2 py-1.5 border-b border-slate-900/50 font-mono text-xs">
-      <div className="col-span-2 flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: color }} />
-        <span className="text-slate-400 truncate">{label}</span>
-        <span className="text-slate-600 text-[9px]">({weight})</span>
-      </div>
-      <div className="col-span-2 text-right">
-        <span className={`font-bold ${winner === "A" ? "text-emerald" : "text-slate-300"}`}>
-          {formatPercent(valueA)}
-        </span>
-        {winner === "A" && <span className="text-emerald text-[9px] ml-1">▲</span>}
-      </div>
-      <div className="col-span-1 text-center text-slate-700">|</div>
-      <div className="col-span-2 text-left">
-        <span className={`font-bold ${winner === "B" ? "text-cobalt" : "text-slate-300"}`}>
-          {formatPercent(valueB)}
-        </span>
-        {winner === "B" && <span className="text-cobalt text-[9px] ml-1">▲</span>}
-      </div>
-    </div>
-  );
-};
-
-const CompareModal = ({ candidateA, resultA, candidateB, resultB, onClose }) => {
-  const profileA = candidateA?.profile || {};
-  const profileB = candidateB?.profile || {};
-  const breakdownA = deriveBreakdown(resultA, candidateA);
-  const breakdownB = deriveBreakdown(resultB, candidateB);
-
-  const signalsA = candidateA?.redrob_signals || {};
-  const signalsB = candidateB?.redrob_signals || {};
 
   return (
     <div
@@ -174,101 +53,128 @@ const CompareModal = ({ candidateA, resultA, candidateB, resultB, onClose }) => 
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
           {/* Candidate Name Headers */}
-          <div className="grid grid-cols-7 gap-2 font-mono">
-            <div className="col-span-2" />
-            <div className="col-span-2 text-center border border-emerald/30 bg-emerald/5 py-3 px-2 rounded-none">
-              <p className="text-[9px] uppercase tracking-widest text-emerald mb-1 font-bold">Candidate A</p>
-              <p className="text-sm font-bold text-slate-100 truncate">{profileA.anonymized_name || resultA?.candidate_id}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">{profileA.current_title || "—"}</p>
-              <p className="text-lg font-bold text-emerald mt-2">{formatScore(resultA?.score)}</p>
-              <p className="text-[9px] text-slate-500">Rank #{resultA?.rank}</p>
-            </div>
-            <div className="col-span-1" />
-            <div className="col-span-2 text-center border border-cobalt/30 bg-cobalt/5 py-3 px-2 rounded-none">
-              <p className="text-[9px] uppercase tracking-widest text-cobalt mb-1 font-bold">Candidate B</p>
-              <p className="text-sm font-bold text-slate-100 truncate">{profileB.anonymized_name || resultB?.candidate_id}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">{profileB.current_title || "—"}</p>
-              <p className="text-lg font-bold text-cobalt mt-2">{formatScore(resultB?.score)}</p>
-              <p className="text-[9px] text-slate-500">Rank #{resultB?.rank}</p>
-            </div>
+          <div className="grid gap-4 font-mono" style={{ gridTemplateColumns: `repeat(${selectedCandidates.length}, minmax(0, 1fr))` }}>
+            {selectedCandidates.map((item, idx) => {
+              const profile = item.candidate?.profile || {};
+              const borderColors = [
+                "border-emerald/30 bg-emerald/5",
+                "border-cobalt/30 bg-cobalt/5",
+                "border-amber/30 bg-amber/5"
+              ];
+              const textColors = [
+                "text-emerald",
+                "text-cobalt",
+                "text-amber"
+              ];
+              return (
+                <div key={item.candidate_id} className={`text-center border py-3 px-2 rounded-none ${borderColors[idx]}`}>
+                  <p className={`text-[9px] uppercase tracking-widest mb-1 font-bold ${textColors[idx]}`}>Candidate {String.fromCharCode(65 + idx)}</p>
+                  <p className="text-sm font-bold text-slate-100 truncate">{profile.anonymized_name || item.result?.candidate_id}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">{profile.current_title || "—"}</p>
+                  <p className={`text-lg font-bold mt-2 ${textColors[idx]}`}>{formatScore(item.result?.score)}</p>
+                  <p className="text-[9px] text-slate-500">Rank #{item.result?.rank}</p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Radar chart + score rows */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            {/* Pentagon Radar */}
+            {/* Pentagon Radar Chart using Recharts */}
             <div className="border border-slate-900 bg-slate-900/20 p-4 rounded-none">
               <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-3 text-center">Score Radar Overlay</p>
-              <RadarChart
-                breakdownA={breakdownA}
-                breakdownB={breakdownB}
-                nameA={profileA.anonymized_name}
-                nameB={profileB.anonymized_name}
-              />
-              <div className="flex justify-center gap-6 mt-3 font-mono text-[10px]">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-4 h-0.5 bg-emerald inline-block" />
-                  <span className="text-slate-400">Candidate A</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-4 h-0.5 bg-cobalt inline-block border-b border-dashed border-cobalt" style={{borderStyle:'dashed'}} />
-                  <span className="text-slate-400">Candidate B</span>
-                </span>
+              <div className="h-[250px] w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }} />
+                    <PolarRadiusAxis domain={[0, 1.0]} tick={false} axisLine={false} />
+                    {selectedCandidates.map((item, idx) => (
+                      <Radar
+                        key={item.candidate_id}
+                        name={`Candidate ${String.fromCharCode(65 + idx)}`}
+                        dataKey={`cand${idx}`}
+                        stroke={COLORS[idx]}
+                        fill={COLORS[idx]}
+                        fillOpacity={0.15}
+                        strokeWidth={1.5}
+                      />
+                    ))}
+                    <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace', paddingTop: 10 }} />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
             {/* Score breakdown table */}
-            <div className="border border-slate-900 bg-slate-900/20 p-4 rounded-none">
+            <div className="border border-slate-900 bg-slate-900/20 p-4 rounded-none overflow-x-auto">
               <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-3">Score Breakdown Diff</p>
-              <div className="grid grid-cols-7 text-[9px] font-mono text-slate-600 uppercase tracking-wider mb-2 gap-2">
-                <span className="col-span-2">Signal</span>
-                <span className="col-span-2 text-right text-emerald">Cand A</span>
-                <span className="col-span-1" />
-                <span className="col-span-2 text-left text-cobalt">Cand B</span>
-              </div>
-              {SCORE_AXES.map((ax) => (
-                <ScoreRow
-                  key={ax.key}
-                  label={ax.label}
-                  color={ax.color}
-                  weight={ax.weight}
-                  valueA={breakdownA[ax.key] ?? 0}
-                  valueB={breakdownB[ax.key] ?? 0}
-                />
-              ))}
-              {/* Overall */}
-              <div className="grid grid-cols-7 items-center gap-2 pt-2 font-mono text-xs border-t border-slate-800 mt-1">
-                <div className="col-span-2 text-slate-300 font-bold uppercase text-[10px] tracking-wider">Overall</div>
-                <div className="col-span-2 text-right">
-                  <span className={`font-bold text-sm ${(resultA?.score ?? 0) >= (resultB?.score ?? 0) ? "text-emerald" : "text-slate-400"}`}>
-                    {formatScore(resultA?.score)}
-                  </span>
-                </div>
-                <div className="col-span-1 text-center text-slate-700">|</div>
-                <div className="col-span-2 text-left">
-                  <span className={`font-bold text-sm ${(resultB?.score ?? 0) > (resultA?.score ?? 0) ? "text-cobalt" : "text-slate-400"}`}>
-                    {formatScore(resultB?.score)}
-                  </span>
-                </div>
-              </div>
+              <table className="w-full font-mono text-xs text-left">
+                <thead>
+                  <tr className="border-b border-slate-900 text-[9px] uppercase tracking-wider text-slate-600">
+                    <th className="py-2 pr-4">Signal</th>
+                    {selectedCandidates.map((item, idx) => (
+                      <th key={idx} className="py-2 text-right" style={{ color: COLORS[idx] }}>
+                        Cand {String.fromCharCode(65 + idx)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-900/50">
+                  {SCORE_AXES.map((ax) => (
+                    <tr key={ax.key} className="hover:bg-slate-900/10">
+                      <td className="py-2 pr-4 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: ax.color }} />
+                        <span className="text-slate-400">{ax.label}</span>
+                        <span className="text-slate-600 text-[9px]">({ax.weight})</span>
+                      </td>
+                      {selectedCandidates.map((item, idx) => {
+                        const breakdown = deriveBreakdown(item.result, item.candidate);
+                        const val = breakdown[ax.key] ?? 0;
+                        return (
+                          <td key={idx} className="py-2 text-right font-bold text-slate-200">
+                            {formatPercent(val)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  {/* Overall */}
+                  <tr className="border-t border-slate-800 font-bold">
+                    <td className="py-3 pr-4 text-slate-300 uppercase text-[10px] tracking-wider">Overall Fit</td>
+                    {selectedCandidates.map((item, idx) => (
+                      <td key={idx} className="py-3 text-right text-sm" style={{ color: COLORS[idx] }}>
+                        {formatScore(item.result?.score)}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
           {/* Quick facts comparison */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
             {[
-              ["Experience", `${profileA.years_of_experience ?? "—"} yrs`, `${profileB.years_of_experience ?? "—"} yrs`],
-              ["Skills Count", candidateA?.skills?.length ?? 0, candidateB?.skills?.length ?? 0],
-              ["Notice Period", `${signalsA.notice_period_days ?? "—"} days`, `${signalsB.notice_period_days ?? "—"} days`],
-              ["Open to Work", signalsA.open_to_work_flag ? "Yes" : "No", signalsB.open_to_work_flag ? "Yes" : "No"],
-              ["Recruiter Resp.", formatPercent(signalsA.recruiter_response_rate), formatPercent(signalsB.recruiter_response_rate)],
-              ["GitHub Score", signalsA.github_activity_score === -1 ? "N/A" : (signalsA.github_activity_score ?? "—"), signalsB.github_activity_score === -1 ? "N/A" : (signalsB.github_activity_score ?? "—")],
-            ].map(([label, valA, valB]) => (
+              ["Experience", (item) => `${item.candidate?.profile?.years_of_experience ?? "—"} yrs`],
+              ["Skills Count", (item) => item.candidate?.skills?.length ?? 0],
+              ["Notice Period", (item) => `${item.candidate?.redrob_signals?.notice_period_days ?? "—"} days`],
+              ["Open to Work", (item) => item.candidate?.redrob_signals?.open_to_work_flag ? "Yes" : "No"],
+              ["Recruiter Resp.", (item) => formatPercent(item.candidate?.redrob_signals?.recruiter_response_rate)],
+              ["GitHub Score", (item) => {
+                const gh = item.candidate?.redrob_signals?.github_activity_score;
+                return gh === -1 ? "N/A" : (gh ?? "—");
+              }],
+            ].map(([label, getValue]) => (
               <div key={label} className="border border-slate-900 bg-slate-900/10 p-3 rounded-none">
                 <p className="text-[9px] uppercase tracking-wider text-slate-500 mb-2">{label}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-200 font-bold">{valA}</span>
-                  <span className="text-slate-700 text-[10px]">vs</span>
-                  <span className="text-slate-200 font-bold">{valB}</span>
+                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${selectedCandidates.length}, minmax(0, 1fr))` }}>
+                  {selectedCandidates.map((item, idx) => (
+                    <div key={item.candidate_id} className="text-left border-r border-slate-900 last:border-r-0 pr-2 last:pr-0">
+                      <span className="text-[9px] uppercase text-slate-600 block mb-0.5">Cand {String.fromCharCode(65 + idx)}</span>
+                      <span className="text-slate-200 font-bold">{getValue(item)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
