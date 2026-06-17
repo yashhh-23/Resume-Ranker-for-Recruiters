@@ -20,6 +20,30 @@ const STOPWORDS = new Set([
   "requirements", "qualifications", "bonus", "nice", "proficiency",
 ]);
 
+// Technology / skill alias mapping
+const SKILL_ALIASES = {
+  'ml': 'machinelearning',
+  'ai': 'artificialintelligence',
+  'reactjs': 'react',
+  'react.js': 'react',
+  'node.js': 'nodejs',
+  'nodejs': 'nodejs',
+  'k8s': 'kubernetes',
+  'js': 'javascript',
+  'ts': 'typescript',
+  'py': 'python',
+};
+
+/**
+ * Normalize a skill name by lowercase, stripping spaces/extra punctuation,
+ * and resolving typical aliases.
+ */
+export function normalizeSkill(skill) {
+  if (!skill) return "";
+  const s = skill.toLowerCase().trim().replace(/[^a-z0-9.+#]/g, '');
+  return SKILL_ALIASES[s] ?? s;
+}
+
 /**
  * Extract a deduplicated list of probable skill tokens from JD text.
  * Returns tokens of 2+ chars that are not stopwords.
@@ -53,14 +77,14 @@ export const extractJdSkills = (jdText) => {
 
 /**
  * Given a candidate skill name and the extracted JD skill tokens,
- * returns true if the skill matches any JD token.
+ * returns true if the skill matches any JD token after normalization.
  */
 export const isSkillMatchedInJd = (skillName, jdSkillTokens) => {
   if (!skillName || !jdSkillTokens || jdSkillTokens.length === 0) return false;
-  const lower = skillName.toLowerCase();
+  const normalizedSkill = normalizeSkill(skillName);
   return jdSkillTokens.some((token) => {
-    const t = token.toLowerCase();
-    return lower.includes(t) || t.includes(lower);
+    const normalizedToken = normalizeSkill(token);
+    return normalizedSkill.includes(normalizedToken) || normalizedToken.includes(normalizedSkill);
   });
 };
 
@@ -71,12 +95,12 @@ export const isSkillMatchedInJd = (skillName, jdSkillTokens) => {
 export const getMissingSkills = (jdRequiredSkills, candidateSkills) => {
   if (!jdRequiredSkills || jdRequiredSkills.length === 0) return [];
   const candidateSkillNames = (candidateSkills || []).map((s) =>
-    (s.name || "").toLowerCase()
+    normalizeSkill(s.name || "")
   );
   return jdRequiredSkills.filter((jdSkill) => {
-    const jdLower = jdSkill.toLowerCase();
+    const normalizedJd = normalizeSkill(jdSkill);
     return !candidateSkillNames.some(
-      (cs) => cs.includes(jdLower) || jdLower.includes(cs)
+      (cs) => cs.includes(normalizedJd) || normalizedJd.includes(cs)
     );
   });
 };

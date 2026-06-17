@@ -135,9 +135,14 @@ const CandidateModal = ({
   const jdRequiredSkills = jdSkillTokens.filter((t) => t.length > 3).slice(0, 15);
   const missingSkills = hasJd ? getMissingSkills(jdRequiredSkills, skills) : [];
   const matchedJdSkills = hasJd
-    ? jdRequiredSkills.filter((jdSkill) =>
-        skills.some((s) => isSkillMatchedInJd(s.name, [jdSkill]))
-      )
+    ? jdRequiredSkills.map((jdSkill) => {
+        const matchingSkill = skills.find((s) => isSkillMatchedInJd(s.name, [jdSkill]));
+        if (!matchingSkill) return null;
+        return {
+          name: matchingSkill.name,
+          proficiency: matchingSkill.proficiency || "intermediate",
+        };
+      }).filter(Boolean)
     : [];
   const coveragePct = jdRequiredSkills.length > 0
     ? Math.round((matchedJdSkills.length / jdRequiredSkills.length) * 100)
@@ -495,9 +500,16 @@ const CandidateModal = ({
                     <div className="mb-3">
                       <p className="text-[9px] uppercase tracking-wider text-emerald font-mono mb-2 font-bold">✓ Matched JD Skills</p>
                       <div className="flex flex-wrap gap-1">
-                        {matchedJdSkills.map((s) => (
-                          <span key={s} className="px-1.5 py-0.5 bg-emerald/10 text-emerald text-[10px] rounded-none border border-emerald/30 font-mono">
-                            ✓ {s}
+                        {matchedJdSkills.map((skill) => (
+                          <span key={skill.name} className="px-2 py-0.5 bg-emerald/10 text-emerald text-[10px] rounded-none border border-emerald/30 font-mono inline-flex items-center gap-1.5">
+                            ✓ {skill.name}
+                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1 bg-slate-900 border ${
+                              skill.proficiency === 'expert' ? 'text-emerald border-emerald/20 bg-emerald/5' :
+                              skill.proficiency === 'advanced' ? 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' :
+                              skill.proficiency === 'intermediate' ? 'text-amber border-amber/20 bg-amber/5' : 'text-slate-400 border-slate-700'
+                            }`}>
+                              {skill.proficiency}
+                            </span>
                           </span>
                         ))}
                       </div>
