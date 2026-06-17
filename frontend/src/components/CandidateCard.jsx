@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import ScoreBar from "./ScoreBar";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
+import { extractJdSkills, isSkillMatchedInJd } from "../utils/jdUtils";
 
 const CandidateCard = ({
   result,
@@ -12,12 +13,20 @@ const CandidateCard = ({
   inPoolView = false,
   poolId = null,
   onRemoveCandidateFromTalentPool,
+  jobDescription = "",
+  // Compare mode props
+  isCompareSelected = false,
+  onToggleCompare = null,
 }) => {
   const profile = candidate?.profile || {};
   const breakdown = deriveBreakdown(result, candidate);
   const reasoning = deriveReasoning(result, candidate);
   const anomaly = detectTimelineAnomaly(candidate);
-  const topSkills = (candidate?.skills || []).slice(0, 4);
+  const topSkills = (candidate?.skills || []).slice(0, 5);
+
+  // Extract JD skill tokens for matching
+  const jdSkillTokens = extractJdSkills(jobDescription);
+  const hasJdSkills = jdSkillTokens.length > 0;
 
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipCoords, setTooltipCoords] = useState({ top: 0, left: 0, placeBelow: false });
@@ -26,9 +35,8 @@ const CandidateCard = ({
   const updateTooltipPosition = () => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const tooltipHeight = 190; // estimated height of tooltip
+    const tooltipHeight = 190;
     const placeBelow = rect.top - tooltipHeight < 10;
-    
     setTooltipCoords({
       top: placeBelow ? rect.bottom + 8 : rect.top - 8,
       left: rect.left + rect.width / 2,
@@ -36,24 +44,13 @@ const CandidateCard = ({
     });
   };
 
-  const handleMouseEnter = () => {
-    updateTooltipPosition();
-    setShowTooltip(true);
-  };
-
-  const handleMouseMove = () => {
-    updateTooltipPosition();
-  };
-
-  const handleMouseLeave = () => {
-    setShowTooltip(false);
-  };
+  const handleMouseEnter = () => { updateTooltipPosition(); setShowTooltip(true); };
+  const handleMouseMove = () => { updateTooltipPosition(); };
+  const handleMouseLeave = () => { setShowTooltip(false); };
 
   useEffect(() => {
     if (!showTooltip) return;
-    const handleScroll = () => {
-      updateTooltipPosition();
-    };
+    const handleScroll = () => updateTooltipPosition();
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleScroll);
     return () => {
@@ -73,14 +70,42 @@ const CandidateCard = ({
     p.candidates.some((c) => c.candidate_id === result.candidate_id)
   );
 
+  // Count matched JD skills for this candidate
+  const matchedSkillCount = hasJdSkills
+    ? topSkills.filter((s) => isSkillMatchedInJd(s.name, jdSkillTokens)).length
+    : 0;
+
   return (
     <div
       onClick={onSelect}
-      className="w-full text-left px-6 py-5 hover:bg-slate-900/30 border-l-2 border-l-transparent hover:border-l-emerald/70 transition-all duration-300 ease-in-out bg-canvas rounded-none cursor-pointer"
+      className={`w-full text-left px-6 py-5 hover:bg-slate-900/30 border-l-2 transition-all duration-300 ease-in-out bg-canvas rounded-none cursor-pointer ${
+        isCompareSelected
+          ? "border-l-amber bg-amber/5"
+          : "border-l-transparent hover:border-l-emerald/70"
+      }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Compare checkbox */}
+            {onToggleCompare && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleCompare(result.candidate_id); }}
+                title={isCompareSelected ? "Deselect from comparison" : "Select for comparison"}
+                className={`h-4 w-4 shrink-0 border transition-all duration-200 flex items-center justify-center rounded-none ${
+                  isCompareSelected
+                    ? "border-amber bg-amber/20 text-amber"
+                    : "border-slate-700 bg-slate-950 text-transparent hover:border-slate-500"
+                }`}
+              >
+                {isCompareSelected && (
+                  <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+            )}
             <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-none bg-slate-900 border border-slate-800 text-[10px] font-bold font-mono text-slate-400">
               #{result.rank}
             </span>
@@ -90,6 +115,15 @@ const CandidateCard = ({
             <span className="text-[10px] text-slate-600 font-mono">
               {result.candidate_id}
             </span>
+            {/* JD skill match indicator badge */}
+            {hasJdSkills && matchedSkillCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-mono rounded-none">
+                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {matchedSkillCount} JD match{matchedSkillCount !== 1 ? "es" : ""}
+              </span>
+            )}
           </div>
           <p className="text-xs font-medium text-slate-300 mt-1.5 line-clamp-1">{profile.headline}</p>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -117,10 +151,7 @@ const CandidateCard = ({
           {inPoolView && onRemoveCandidateFromTalentPool && poolId && (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveCandidateFromTalentPool(poolId, result.candidate_id);
-              }}
+              onClick={(e) => { e.stopPropagation(); onRemoveCandidateFromTalentPool(poolId, result.candidate_id); }}
               className="p-1.5 border border-rose-900/40 bg-rose-950/20 text-rose-400 hover:bg-rose-950/50 hover:border-rose-700 transition-all duration-200 rounded-none"
               title="Remove from Talent Pool"
             >
@@ -179,51 +210,21 @@ const CandidateCard = ({
               <span className="text-xs font-bold text-slate-100">SCORE BREAKDOWN COMPOSITION</span>
             </div>
             <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: "#10B981" }} />
-                  Skill Match (35%):
-                </span>
-                <span>
-                  <strong className="text-[#10B981]">{formatPercent(breakdown.skill_match * 0.35)}</strong>
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: "#3B82F6" }} />
-                  Career Fit (25%):
-                </span>
-                <span>
-                  <strong className="text-[#3B82F6]">{formatPercent(breakdown.career_fit * 0.25)}</strong>
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: "#6366F1" }} />
-                  Signal Mod (15%):
-                </span>
-                <span>
-                  <strong className="text-[#6366F1]">{formatPercent(breakdown.signal_modifier * 0.15)}</strong>
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: "#14B8A6" }} />
-                  Education (15%):
-                </span>
-                <span>
-                  <strong className="text-[#14B8A6]">{formatPercent(breakdown.education * 0.15)}</strong>
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: "#D97706" }} />
-                  Availability (10%):
-                </span>
-                <span>
-                  <strong className="text-[#D97706]">{formatPercent(breakdown.availability * 0.10)}</strong>
-                </span>
-              </div>
+              {[
+                { label: "Skill Match (35%)", color: "#10B981", val: breakdown.skill_match * 0.35 },
+                { label: "Career Fit (25%)", color: "#3B82F6", val: breakdown.career_fit * 0.25 },
+                { label: "Signal Mod (15%)", color: "#6366F1", val: breakdown.signal_modifier * 0.15 },
+                { label: "Education (15%)", color: "#14B8A6", val: breakdown.education * 0.15 },
+                { label: "Availability (10%)", color: "#D97706", val: breakdown.availability * 0.10 },
+              ].map(({ label, color, val }) => (
+                <div key={label} className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: color }} />
+                    {label}:
+                  </span>
+                  <strong style={{ color }}>{formatPercent(val)}</strong>
+                </div>
+              ))}
             </div>
             <div className="border-t border-slate-800 pt-2 mt-2 flex justify-between items-center font-bold text-slate-100">
               <span>Overall Fit Index:</span>
@@ -237,13 +238,26 @@ const CandidateCard = ({
         {reasoning}
       </p>
 
+      {/* Skills chips — JD-matched highlighted in green */}
       {topSkills.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
-          {topSkills.map((skill) => (
-            <span key={skill.name} className="text-[10px] font-mono px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 rounded-none">
-              {skill.name}
-            </span>
-          ))}
+          {topSkills.map((skill) => {
+            const matched = hasJdSkills && isSkillMatchedInJd(skill.name, jdSkillTokens);
+            return (
+              <span
+                key={skill.name}
+                title={matched ? `"${skill.name}" matches your JD` : skill.name}
+                className={`text-[10px] font-mono px-2 py-0.5 border rounded-none transition-colors ${
+                  matched
+                    ? "bg-emerald/10 border-emerald/40 text-emerald"
+                    : "bg-slate-950 border-slate-800 text-slate-400"
+                }`}
+              >
+                {matched && <span className="mr-0.5 text-emerald">✓</span>}
+                {skill.name}
+              </span>
+            );
+          })}
         </div>
       )}
 
