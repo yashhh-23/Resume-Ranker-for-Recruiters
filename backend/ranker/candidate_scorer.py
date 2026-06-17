@@ -52,11 +52,25 @@ def years_ago(value: Any) -> float:
     return months / 12.0
 
 
+def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
+    required = [s.lower() for s in jd.get("required_skills", [])]
+    if not required:
+        return 1.0  # no hard requirements = full score
+    
+    candidate_skills = set(
+        s.get("name", "").lower() 
+        for s in (candidate.get("skills") or [])
+    )
+    matched = sum(1 for r in required if any(r in cs or cs in r for cs in candidate_skills))
+    return clamp(matched / len(required))
+
+
 def score_skill_match(
     candidate_id: str,
     jd_embedding: np.ndarray,
     candidate_embeddings: Dict[str, np.ndarray],
     candidate: Dict[str, Any] = None,
+    jd: Dict[str, Any] = None,
 ) -> float:
     base = clamp((cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) + 1.0) / 2.0)
 
@@ -71,8 +85,9 @@ def score_skill_match(
     else:
         endorsement_boost = 0.5
 
-    blended = 0.7 * base + 0.3 * endorsement_boost
-    return clamp(blended)
+    coverage_score = score_required_skill_coverage(candidate or {}, jd or {})
+    blended_skill = 0.65 * base + 0.20 * coverage_score + 0.15 * endorsement_boost
+    return clamp(blended_skill)
 
 
 def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -145,9 +160,9 @@ def score_candidate(
     signals = candidate.get("redrob_signals") or {}
 
     breakdown = {
-        "skill_match": score_skill_match(candidate_id, jd_embedding, candidate_embeddings, candidate),
+        "skill_match": score_skill_match(candidate_id, jd_embedding, candidate_embeddings, candidate, jd),
         "career_fit": score_career_fit(candidate, jd),
-        "signal_modifier": score_signal_modifier(signals),
+        "signal_modifier": score_signal_modifier(signals, jd),
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
