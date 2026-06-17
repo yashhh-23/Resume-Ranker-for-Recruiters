@@ -78,7 +78,7 @@ const CandidateCard = ({
   return (
     <div
       onClick={onSelect}
-      className={`w-full text-left px-6 py-5 hover:bg-slate-900/30 border-l-2 transition-all duration-300 ease-in-out bg-canvas rounded-none cursor-pointer ${
+      className={`w-full text-left px-6 py-5 hover:bg-slate-900/30 border-l-2 active:scale-[0.995] active:bg-slate-900/40 transition-all duration-150 ease-in-out bg-canvas rounded-none cursor-pointer ${
         isCompareSelected
           ? "border-l-amber bg-amber/5"
           : "border-l-transparent hover:border-l-emerald/70"
@@ -186,13 +186,6 @@ const CandidateCard = ({
             { label: "Availability", value: breakdown.availability, weight: 0.10, colorCode: "#D97706" }
           ]}
         />
-        <div className="grid grid-cols-5 text-[9px] text-slate-500 mt-2 font-mono gap-1">
-          <span className="text-left truncate" title={`Skill Match: ${formatPercent(breakdown.skill_match)}`}>Skill: <strong className="text-[#10B981]">{formatPercent(breakdown.skill_match)}</strong></span>
-          <span className="text-center truncate" title={`Career Fit: ${formatPercent(breakdown.career_fit)}`}>Career: <strong className="text-[#3B82F6]">{formatPercent(breakdown.career_fit)}</strong></span>
-          <span className="text-center truncate" title={`Signal Modifier: ${formatPercent(breakdown.signal_modifier)}`}>Signal: <strong className="text-[#6366F1]">{formatPercent(breakdown.signal_modifier)}</strong></span>
-          <span className="text-center truncate" title={`Education: ${formatPercent(breakdown.education)}`}>Edu: <strong className="text-[#14B8A6]">{formatPercent(breakdown.education)}</strong></span>
-          <span className="text-right truncate" title={`Availability: ${formatPercent(breakdown.availability)}`}>Avail: <strong className="text-[#D97706]">{formatPercent(breakdown.availability)}</strong></span>
-        </div>
 
         {/* Hover Tooltip Frame */}
         {showTooltip && (
