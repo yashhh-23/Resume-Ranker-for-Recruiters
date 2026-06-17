@@ -3,20 +3,7 @@ import ScoreBar from "./ScoreBar";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
 import { extractJdSkills, isSkillMatchedInJd } from "../utils/jdUtils";
-
-const CheckIcon = ({ className = "h-3 w-3" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={3}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-);
+import { CheckIcon } from "./icons";
 
 const CandidateCard = ({
   result,
