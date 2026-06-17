@@ -161,31 +161,59 @@ const CandidateCard = ({
             </button>
           )}
 
-          <div className="flex flex-col items-end">
-            <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500">Fit Index</span>
-            <span className={`inline-flex items-center px-2 py-1 rounded-none border font-mono text-base font-bold mt-1.5 shadow-sm ${getScoreColor(result.score)}`}>
-              {formatScore(result.score)}
-            </span>
-          </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500">Fit Index</span>
+          <span
+            className={`inline-flex items-center px-3 py-1.5 rounded-none border-2 font-mono text-xl font-bold shadow-lg ${getScoreColor(result.score)}`}
+            style={{
+              boxShadow: result.score >= 0.8
+                ? '0 0 16px rgba(16,185,129,0.25)'
+                : result.score >= 0.6
+                ? '0 0 12px rgba(59,130,246,0.2)'
+                : 'none',
+            }}
+          >
+            {formatScore(result.score)}
+          </span>
+        </div>
         </div>
       </div>
 
+      {/* ═══ ANALYSIS PANEL — the main result ═══ */}
       <div
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative group/score mt-4 bg-slate-950/20 border border-slate-900/60 rounded-none p-3 hover:bg-slate-900/10 transition-all duration-300"
+        className="relative mt-4 rounded-none border border-slate-700/60 bg-slate-950/60 overflow-hidden"
+        style={{
+          borderLeft: '3px solid rgba(16,185,129,0.5)',
+          boxShadow: '0 2px 20px rgba(0,0,0,0.3), inset 0 0 40px rgba(16,185,129,0.02)',
+        }}
       >
-        <ScoreBar
-          segments={[
-            { label: "Skill Match", value: breakdown.skill_match, weight: 0.35, colorCode: "#10B981" },
-            { label: "Career Fit", value: breakdown.career_fit, weight: 0.25, colorCode: "#3B82F6" },
-            { label: "Signal Modifier", value: breakdown.signal_modifier, weight: 0.15, colorCode: "#6366F1" },
-            { label: "Education", value: breakdown.education, weight: 0.15, colorCode: "#14B8A6" },
-            { label: "Availability", value: breakdown.availability, weight: 0.10, colorCode: "#D97706" }
-          ]}
-        />
+        {/* Section header */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-slate-800/60">
+          <span className="text-[9px] uppercase tracking-[0.25em] font-mono font-bold text-slate-500">
+            Score Breakdown
+          </span>
+          <span className="text-[9px] font-mono text-slate-600 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald/60 animate-pulse inline-block" />
+            hover for weighted contribution
+          </span>
+        </div>
+
+        {/* Bars */}
+        <div className="px-4 py-3">
+          <ScoreBar
+            segments={[
+              { label: "Skill Match", value: breakdown.skill_match, weight: 0.35, colorCode: "#10B981" },
+              { label: "Career Fit", value: breakdown.career_fit, weight: 0.25, colorCode: "#3B82F6" },
+              { label: "Signal Mod.", value: breakdown.signal_modifier, weight: 0.15, colorCode: "#6366F1" },
+              { label: "Education", value: breakdown.education, weight: 0.15, colorCode: "#14B8A6" },
+              { label: "Availability", value: breakdown.availability, weight: 0.10, colorCode: "#D97706" }
+            ]}
+          />
+        </div>
 
         {/* Hover Tooltip Frame */}
         {showTooltip && (
@@ -227,20 +255,21 @@ const CandidateCard = ({
         )}
       </div>
 
-      <p className="mt-3 text-xs font-mono text-slate-400 bg-slate-950/40 border border-slate-900/80 rounded-none p-2.5 line-clamp-2 leading-relaxed">
+      {/* Reasoning text — bigger and more visible */}
+      <p className="mt-3 text-[11px] font-mono text-slate-300 bg-slate-950/60 border border-slate-800/70 rounded-none px-4 py-3 line-clamp-2 leading-relaxed italic">
         {reasoning}
       </p>
 
       {/* Skills chips — JD-matched highlighted in green */}
       {topSkills.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-3">
+        <div className="flex flex-wrap gap-1.5 mt-3">
           {topSkills.map((skill) => {
             const matched = hasJdSkills && isSkillMatchedInJd(skill.name, jdSkillTokens);
             return (
               <span
                 key={skill.name}
                 title={matched ? `"${skill.name}" matches your JD` : skill.name}
-                className={`text-[10px] font-mono px-2 py-0.5 border rounded-none transition-colors ${
+                className={`text-[10px] font-mono px-2.5 py-1 border rounded-none transition-colors font-semibold ${
                   matched
                     ? "bg-emerald/10 border-emerald/40 text-emerald"
                     : "bg-slate-950 border-slate-800 text-slate-400"
