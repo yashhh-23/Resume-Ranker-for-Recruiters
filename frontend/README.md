@@ -133,6 +133,13 @@ public/
 |---|---|
 | `VITE_API_URL` | Base URL for the FastAPI backend, for example `http://localhost:8000` |
 
-## Deployment
+## Local Production Preview
 
-Deploy the frontend as a Vite app. Set `VITE_API_URL` to the deployed FastAPI backend URL.
+To build and preview the app locally:
+
+```powershell
+npm run build
+npm run preview
+```
+
+By default, the app is configured to talk to your local backend at `http://localhost:8000`. You can also configure `VITE_API_URL` to point to a demo deployment like a Hugging Face Space.

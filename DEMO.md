@@ -2,10 +2,10 @@
 
 Welcome to **Resume Ranker for Recruiters (RRR)**, the Rank #1 recruitment optimization platform. RRR uses local semantic embeddings, multi-signal candidate scoring, and visual explanation mechanics to find the best talent.
 
-## Live Demo Links
+## Links & Setup
 - 🔗 **GitHub Repository**: [https://github.com/yashhh-23/Resume-Ranker-for-Recruiters](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
-- 🔗 **Frontend Workspace**: Deploy to [Vercel](https://vercel.com) by connecting the `/frontend` directory
-- 🔗 **Backend API**: Deploy to [Render](https://render.com) using `uvicorn app.main:app --port 8000` in the `/backend` directory
+- 🚀 **Demo Deployment (Hugging Face Space)**: [https://yashhh-23-redrob-ranker.hf.space](https://yashhh-23-redrob-ranker.hf.space)
+- 💻 **Canonical Run**: Local offline setup on `http://localhost:5173` (frontend) and `http://localhost:8000` (backend)
 
 ---
 

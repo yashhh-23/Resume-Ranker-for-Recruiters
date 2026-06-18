@@ -4,8 +4,7 @@
 
 **AI-powered candidate discovery and ranking platform — RedRob Hackathon 2026**
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Vercel-4f46e5?style=for-the-badge&logo=vercel&logoColor=white)](https://rrr-resume-ranker-recruiter-fronten.vercel.app)
-[![Backend API](https://img.shields.io/badge/⚡_Backend_API-Render-22c55e?style=for-the-badge&logo=render&logoColor=white)](https://rrr-resume-ranker-backend.onrender.com/health)
+[![Local Run](https://img.shields.io/badge/💻_Local_Run-Canonical-4f46e5?style=for-the-badge)](http://localhost:5173)
 [![GitHub](https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
 [![CI](https://img.shields.io/github/actions/workflow/status/yashhh-23/Resume-Ranker-for-Recruiters/test-rank.yml?label=CI&style=for-the-badge&logo=github-actions)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters/actions)
 [![Language](https://img.shields.io/badge/Language-Python%20%7C%20JS-blue?style=for-the-badge)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
@@ -22,7 +21,7 @@
 ## 📖 Table of Contents
 
 - [What It Does](#-what-it-does)
-- [Live Links](#-live-links)
+- [Endpoints & Demo](#-endpoints--demo)
 - [Architecture Overview](#-architecture-overview)
 - [Repository Structure](#-repository-structure)
 - [Scoring Model](#-scoring-model)
@@ -59,18 +58,19 @@ RRR is a full-stack recruitment tool that scores and ranks candidates against a 
 
 ---
 
-## 🔗 Live Links
+## 🔗 Endpoints & Demo
 
-| Resource | URL |
-|----------|-----|
-| 🖥️ **Frontend (Vercel)** | [https://rrr-resume-ranker-recruiter-fronten.vercel.app](https://rrr-resume-ranker-recruiter-fronten.vercel.app) |
-| ⚡ **Backend API (Render)** | [https://rrr-resume-ranker-backend.onrender.com](https://rrr-resume-ranker-backend.onrender.com) |
-| 🩺 **Health Check** | [https://rrr-resume-ranker-backend.onrender.com/health](https://rrr-resume-ranker-backend.onrender.com/health) |
-| ⚖️ **Scoring Weights** | [https://rrr-resume-ranker-backend.onrender.com/weights](https://rrr-resume-ranker-backend.onrender.com/weights) |
-| 📚 **Swagger UI** | [https://rrr-resume-ranker-backend.onrender.com/docs](https://rrr-resume-ranker-backend.onrender.com/docs) |
-| 💻 **Source Code** | [https://github.com/yashhh-23/Resume-Ranker-for-Recruiters](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters) |
+The application is designed to run entirely locally and offline, ensuring data privacy and zero API dependencies.
 
-> **⚠️ Cold Start Warning:** The backend runs on Render's free tier and may take **15–30 seconds** to wake from sleep. The frontend automatically sends a keep-alive ping on load. If the first `/rank` call is slow, wait a few seconds and retry.
+### 💻 Local Run Endpoints (Canonical)
+- 🖥️ **Frontend App**: [http://localhost:5173](http://localhost:5173)
+- ⚡ **Backend API**: [http://localhost:8000](http://localhost:8000)
+- 🩺 **API Health**: [http://localhost:8000/health](http://localhost:8000/health)
+- ⚖️ **Scoring Weights**: [http://localhost:8000/weights](http://localhost:8000/weights)
+- 📚 **Swagger UI (Interactive API Docs)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### 🚀 Optional Demo Deployment
+- 🔗 **Hugging Face Space**: [https://yashhh-23-redrob-ranker.hf.space](https://yashhh-23-redrob-ranker.hf.space) (runs on a remote container for quick preview)
 
 ---
 
@@ -78,7 +78,7 @@ RRR is a full-stack recruitment tool that scores and ranks candidates against a 
 
 ```mermaid
 graph TD
-    subgraph Browser ["Browser (Vercel CDN)"]
+    subgraph Browser ["Local Browser"]
         PG["PassphraseGate"] -->|AES-256 decrypt / localStorage| TP["TalentPoolSidebar"]
         PG --> IP["InputPanel"]
         IP -->|JD Textarea & JSON Upload| RP["ResultsPanel"]
@@ -88,7 +88,7 @@ graph TD
         RP --> CT["ComplianceTray"]
     end
 
-    subgraph Backend ["FastAPI Backend (Render)"]
+    subgraph Backend ["Local FastAPI Backend"]
         M["main.py"] -->|sanitize_candidates| V["validators.py"]
         M -->|parse_jd_text| JP["jd_parser.py"]
         M -->|rank_candidates| CS["candidate_scorer.py"]
@@ -117,7 +117,7 @@ Resume-Ranker-for-Recruiters/
 ├── backend/
 │   ├── rank.py                        ← CLI entry point (hackathon ranking script)
 │   ├── requirements.txt               ← All Python dependencies (pinned)
-│   ├── Dockerfile                     ← Container definition for Render
+│   ├── Dockerfile                     ← Container definition (optional containerized run)
 │   ├── app/
 │   │   └── main.py                    ← FastAPI app, routes, middleware, rate-limiting
 │   ├── ranker/
@@ -280,7 +280,8 @@ cd frontend
 # 1. Install dependencies
 npm install
 
-# 2. (Optional) Point to local backend — defaults to the Render URL
+# 2. Configure API endpoint (defaults to http://localhost:8000 in .env)
+# Create .env.local if you want to override it (e.g. to use Hugging Face Space demo)
 echo "VITE_API_URL=http://localhost:8000" > .env.local
 
 # 3. Start the dev server
@@ -300,7 +301,7 @@ npm run preview  # preview the production build locally
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VITE_API_URL` | `https://rrr-resume-ranker-backend.onrender.com` | Backend API base URL |
+| `VITE_API_URL` | `http://localhost:8000` | Backend API base URL (can point to local server or HF Space demo) |
 
 ---
 
@@ -435,7 +436,7 @@ Ranks a list of candidates against a job description.
 ## 🎬 3-Minute Judge Walkthrough
 
 * **Step 1 — Open the app**  
-  Navigate to [https://rrr-resume-ranker-recruiter-fronten.vercel.app](https://rrr-resume-ranker-recruiter-fronten.vercel.app).  
+  Navigate to **http://localhost:5173** (or use the Hugging Face Space demo deployment).  
   Enter passphrase **`hackathon2026`** — this unlocks the AES-256 encrypted talent pool storage.
 * **Step 2 — Load demo data**  
   Click **"Load Hackathon Demo"** in the Input Panel. This populates both the JD textarea and the candidate JSON array with a realistic Backend / Data Engineer scenario.
@@ -488,8 +489,8 @@ Ranks a list of candidates against a job description.
 
 | Service | Purpose |
 |---------|---------|
-| **Render** (free tier) | Backend API hosting with auto-deploy |
-| **Vercel** | Frontend hosting + global CDN |
+| **Local Host** | Canonical local offline run environment for frontend and backend |
+| **Hugging Face Spaces** | Optional demo deployment container hosting |
 | **GitHub Actions** | CI — `pytest tests/ -v` on every push to `main` |
 
 ---
@@ -548,6 +549,6 @@ python rank.py \
 
 Built with ❤️ by **Team Chanakya** for **RedRob Hackathon 2026**
 
-[🚀 Live Demo](https://rrr-resume-ranker-recruiter-fronten.vercel.app) · [⚡ API Health](https://rrr-resume-ranker-backend.onrender.com/health) · [📚 Swagger](https://rrr-resume-ranker-backend.onrender.com/docs) · [💻 GitHub](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
+[🚀 Demo Deployment](https://yashhh-23-redrob-ranker.hf.space) · [💻 GitHub](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
 
 </div>
