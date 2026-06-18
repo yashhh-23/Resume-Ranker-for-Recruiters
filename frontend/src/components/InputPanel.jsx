@@ -12,6 +12,7 @@ const InputPanel = ({
   isLoading,
   error,
   setError,
+  jdParsed = null, // parsed JD from backend after first run
 }) => {
   const fileInputRef = useRef(null);
   const [fileName, setFileName] = useState("");
@@ -195,47 +196,119 @@ const InputPanel = ({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
                 Parsed JD Preview
+                {jdParsed && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-[#14B8A6]/10 border border-[#14B8A6]/30 text-[9px] rounded font-bold text-[#14B8A6]">
+                    Backend ✓
+                  </span>
+                )}
               </span>
               <span className="text-[10px] text-slate-500 group-open:rotate-180 transition-transform duration-200">▼</span>
             </summary>
             <div className="px-4 pb-4 pt-1 text-xs font-mono text-slate-400 space-y-3 border-t border-slate-900/50 mt-1">
-              <div className="flex justify-between items-center text-[11px] border-b border-slate-900/50 pb-2">
-                <span>Seniority Level:</span>
-                <span className="text-white font-bold uppercase">
-                  {jobDescription.toLowerCase().includes("senior") || jobDescription.toLowerCase().includes("lead") || jobDescription.toLowerCase().includes("principal")
-                    ? "Senior / Lead"
-                    : jobDescription.toLowerCase().includes("junior")
-                    ? "Junior"
-                    : "Mid-Senior"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-[11px] border-b border-slate-900/50 pb-2">
-                <span>Domain Focus:</span>
-                <span className="text-white font-bold capitalize">
-                  {(() => {
-                    const text = jobDescription.toLowerCase();
-                    const domains = [];
-                    if (text.includes("backend")) domains.push("Backend");
-                    if (text.includes("frontend")) domains.push("Frontend");
-                    if (text.includes("data engineer") || text.includes("spark") || text.includes("pipeline")) domains.push("Data Engineering");
-                    if (text.includes("machine learning") || text.includes("ml") || text.includes("nlp") || text.includes("vision")) domains.push("AI/ML");
-                    return domains.join(" / ") || "General Engineering";
-                  })()}
-                </span>
-              </div>
-              <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-500 block">Extracted Skill Tokens:</span>
-                <div className="flex flex-wrap gap-1">
-                  {extractJdSkills(jobDescription).slice(0, 10).map((token) => (
-                    <span key={token} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 rounded font-semibold">
-                      {token}
-                    </span>
-                  ))}
-                  {extractJdSkills(jobDescription).length > 10 && (
-                    <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{extractJdSkills(jobDescription).length - 10} more</span>
+              {jdParsed ? (
+                /* Backend-parsed JD data */
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] text-slate-500">Seniority</span>
+                      <span className="text-white font-bold uppercase text-[11px]">{jdParsed.seniority_level || "Mid-Senior"}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] text-slate-500">Min Experience</span>
+                      <span className="text-white font-bold text-[11px]">{jdParsed.min_experience_years ? `${jdParsed.min_experience_years}+ yrs` : "Not specified"}</span>
+                    </div>
+                    {jdParsed.target_title && (
+                      <div className="flex flex-col gap-0.5 col-span-2">
+                        <span className="text-[10px] text-slate-500">Target Title</span>
+                        <span className="text-white font-bold text-[11px]">{jdParsed.target_title}</span>
+                      </div>
+                    )}
+                    {(jdParsed.target_industry || jdParsed.target_field) && (
+                      <div className="flex flex-col gap-0.5 col-span-2">
+                        <span className="text-[10px] text-slate-500">Domain / Field</span>
+                        <span className="text-white font-bold text-[11px]">{[jdParsed.target_field, jdParsed.target_industry].filter(Boolean).join(" / ")}</span>
+                      </div>
+                    )}
+                  </div>
+                  {jdParsed.required_skills?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] text-emerald font-bold block flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald inline-block" />
+                        Required Skills ({jdParsed.required_skills.length})
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {jdParsed.required_skills.slice(0, 10).map((token) => (
+                          <span key={token} className="px-2 py-0.5 bg-emerald/10 border border-emerald/30 text-[10px] text-emerald rounded font-semibold">
+                            {token}
+                          </span>
+                        ))}
+                        {jdParsed.required_skills.length > 10 && (
+                          <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{jdParsed.required_skills.length - 10} more</span>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
+                  {jdParsed.preferred_skills?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] text-cobalt font-bold block flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cobalt inline-block" />
+                        Preferred Skills ({jdParsed.preferred_skills.length})
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {jdParsed.preferred_skills.slice(0, 8).map((token) => (
+                          <span key={token} className="px-2 py-0.5 bg-cobalt/10 border border-cobalt/30 text-[10px] text-cobalt rounded font-semibold">
+                            {token}
+                          </span>
+                        ))}
+                        {jdParsed.preferred_skills.length > 8 && (
+                          <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{jdParsed.preferred_skills.length - 8} more</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Heuristic pre-run preview */
+                <>
+                  <div className="flex justify-between items-center text-[11px] border-b border-slate-900/50 pb-2">
+                    <span>Seniority Level:</span>
+                    <span className="text-white font-bold uppercase">
+                      {jobDescription.toLowerCase().includes("senior") || jobDescription.toLowerCase().includes("lead") || jobDescription.toLowerCase().includes("principal")
+                        ? "Senior / Lead"
+                        : jobDescription.toLowerCase().includes("junior")
+                        ? "Junior"
+                        : "Mid-Senior"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] border-b border-slate-900/50 pb-2">
+                    <span>Domain Focus:</span>
+                    <span className="text-white font-bold capitalize">
+                      {(() => {
+                        const text = jobDescription.toLowerCase();
+                        const domains = [];
+                        if (text.includes("backend")) domains.push("Backend");
+                        if (text.includes("frontend")) domains.push("Frontend");
+                        if (text.includes("data engineer") || text.includes("spark") || text.includes("pipeline")) domains.push("Data Engineering");
+                        if (text.includes("machine learning") || text.includes("ml") || text.includes("nlp") || text.includes("vision")) domains.push("AI/ML");
+                        return domains.join(" / ") || "General Engineering";
+                      })()}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-slate-500 block">Extracted Skill Tokens (heuristic — run for precise parsing):</span>
+                    <div className="flex flex-wrap gap-1">
+                      {extractJdSkills(jobDescription).slice(0, 10).map((token) => (
+                        <span key={token} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 rounded font-semibold">
+                          {token}
+                        </span>
+                      ))}
+                      {extractJdSkills(jobDescription).length > 10 && (
+                        <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{extractJdSkills(jobDescription).length - 10} more</span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </details>
         )}

@@ -168,6 +168,14 @@ const ComplianceTray = ({ rankedResults, trayHeight }) => {
           <p className={validation.errors.length === 0 ? "text-emerald font-bold" : "text-amber font-bold"}>
             {validation.errors.length === 0 ? "No structural errors" : `${validation.errors.length} alerts`}
           </p>
+          {(() => {
+            const flagged = rankedResults.filter(r => r.compliance_flags?.length > 0).length;
+            return flagged > 0 ? (
+              <p className="text-rose-400 text-[10px] mt-0.5">{flagged} candidates flagged by backend</p>
+            ) : rankedResults.length > 0 ? (
+              <p className="text-emerald/70 text-[10px] mt-0.5">0 data quality flags</p>
+            ) : null;
+          })()}
         </div>
       </div>
 

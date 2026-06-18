@@ -208,6 +208,11 @@ export const normalizeRankedResults = (results, candidates) => {
       score: Number(result.score ?? result.total_score ?? result.final_score ?? 0),
       reasoning: deriveReasoning(result, candidate),
       breakdown,
+      // Preserve rich API fields
+      signal_reasoning: result.signal_reasoning || null,
+      compliance_flags: result.compliance_flags || [],
+      is_suspicious: result.is_suspicious ?? false,
+      profile_completeness: result.profile_completeness ?? null,
     };
   });
 };
