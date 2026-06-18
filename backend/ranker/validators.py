@@ -52,7 +52,7 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
     return valid, skipped
 
 
-def validate_candidate(c: dict) -> list:
+def validate_candidate(c: dict) -> tuple[list, list | None]:
     flags = []
     profile = c.get("profile") or {}
     skills = c.get("skills") or []
@@ -112,14 +112,15 @@ def validate_candidate(c: dict) -> list:
     # Duplicate skill names and deduplication
     seen_skills = set()
     deduped_skills = []
+    skills_changed = False
     for sk in c.get("skills") or []:
         name = str(sk.get("name", "")).strip().lower()
         if name and name not in seen_skills:
             seen_skills.add(name)
             deduped_skills.append(sk)
         elif name in seen_skills:
+            skills_changed = True
             flags.append(f"Duplicate skill: {sk.get('name')}")
-    c["skills"] = deduped_skills
 
     # Implausibly high endorsements (>500 on a single skill = suspicious)
     for s in skills:
@@ -179,4 +180,4 @@ def validate_candidate(c: dict) -> list:
     except (TypeError, ValueError):
         pass
 
-    return flags
+    return flags, (deduped_skills if skills_changed else None)

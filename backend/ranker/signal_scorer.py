@@ -78,7 +78,7 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
     assessments = signals.get("skill_assessment_scores") or {}
     if assessments:
         assessment_score = clamp(
-            mean(safe_float(value) for value in assessments.values()) / 100.0
+            mean([safe_float(value) for value in assessments.values()]) / 100.0
         )
     else:
         assessment_score = 0.5
