@@ -131,6 +131,13 @@ KNOWN_SKILLS = [
     "YOLO",
     "dbt",
     "gRPC",
+    "GitHub Actions",
+    "Polars",
+    "DuckDB",
+    "OpenAI API",
+    "Prisma",
+    "Ray",
+    "LlamaIndex",
 ]
 
 TITLE_PATTERNS = [
@@ -313,3 +320,18 @@ def parse_jd_docx(path: str) -> Dict[str, object]:
     for key, value in DEFAULT_JD.items():
         parsed.setdefault(key, value)
     return parsed
+
+
+def parse_jd(path: str) -> Dict[str, object]:
+    """Parse a JD from .docx or .txt fallback."""
+    jd_path = Path(path)
+    if jd_path.suffix.lower() == ".txt":
+        try:
+            text = jd_path.read_text(encoding="utf-8") if jd_path.exists() else ""
+        except Exception:
+            text = ""
+        parsed = parse_jd_text(text)
+        for key, value in DEFAULT_JD.items():
+            parsed.setdefault(key, value)
+        return parsed
+    return parse_jd_docx(path)
