@@ -19,6 +19,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 from ranker import parse_jd_text, rank_candidates
 from ranker.candidate_scorer import WEIGHTS
+from ranker.signal_scorer import SIGNAL_WEIGHTS
 from ranker.embedding_utils import load_model
 from ranker.validators import sanitize_candidates
 
@@ -103,6 +104,13 @@ async def root():
         "message": "Use GET /health, POST /rank, or open /docs for the API explorer.",
     }
 
+
+@app.get("/weights")
+async def get_weights():
+    return {
+        "overall_weights": WEIGHTS,
+        "signal_weights": SIGNAL_WEIGHTS,
+    }
 
 @app.get("/health")
 async def health():
