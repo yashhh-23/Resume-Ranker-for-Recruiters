@@ -1,13 +1,17 @@
+import os
+
 import asyncio
 import json
 import logging
-import os
 import time
 import traceback
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 from contextlib import asynccontextmanager
+
+import torch
+from threadpoolctl import threadpool_limits
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
@@ -39,6 +43,12 @@ async def lifespan(app: FastAPI):
     global _MODEL_READY
     loop = asyncio.get_running_loop()
     try:
+        torch.set_num_threads(4)
+        try:
+            from threadpoolctl import ThreadpoolController
+            ThreadpoolController().limit(limits=4)
+        except Exception:
+            pass
         await loop.run_in_executor(None, load_model)
         _MODEL_READY = True
         print(f"[RRR] Model loaded and ready. Commit SHA: {_GIT_SHA}")
@@ -125,6 +135,7 @@ app.add_middleware(
 
 
 class RankRequest(BaseModel):
+    model_config = {"extra": "ignore"}
     job_description: str
     candidates: List[Dict[str, Any]]
 

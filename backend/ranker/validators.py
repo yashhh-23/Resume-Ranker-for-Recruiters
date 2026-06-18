@@ -79,15 +79,10 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
                     if not start_str:
                         continue
                     try:
-                        clean_start = (
-                            start_str[:-1] if start_str.endswith("Z") else start_str
-                        )
-                        start_d = datetime.fromisoformat(clean_start[:10]).date()
+                        from dateutil.parser import parse as parse_date
+                        start_d = parse_date(start_str).date()
                         if end_str and end_str.lower() != "present":
-                            clean_end = (
-                                end_str[:-1] if end_str.endswith("Z") else end_str
-                            )
-                            end_d = datetime.fromisoformat(clean_end[:10]).date()
+                            end_d = parse_date(end_str).date()
                         else:
                             end_d = date.today()
                         total_months += max(
@@ -95,7 +90,7 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
                             (end_d.year - start_d.year) * 12
                             + (end_d.month - start_d.month),
                         )
-                    except ValueError:
+                    except (ValueError, OverflowError, TypeError):
                         pass
                 computed_years = total_months / 12
                 # Flag if declared years exceed computed by more than 5 years
@@ -137,17 +132,12 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
         start = str(role.get("start_date") or "")
         if start:
             try:
-                # Clean up if ISO format might end with Z or timezone offset
-                clean_start = start
-                if clean_start.endswith("Z"):
-                    clean_start = clean_start[:-1]
-                # Try handling date strings
-                if len(clean_start) >= 10:
-                    dt = datetime.fromisoformat(clean_start[:10]).date()
-                    if dt > today:
-                        flags.append(f"Future start_date in career history: {start}")
-                        break
-            except ValueError:
+                from dateutil.parser import parse as parse_date
+                dt = parse_date(start).date()
+                if dt > today:
+                    flags.append(f"Future start_date in career history: {start}")
+                    break
+            except (ValueError, OverflowError, TypeError):
                 pass
 
     # End date before start date in any role
@@ -156,14 +146,13 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
         end_str = str(role.get("end_date") or "")
         if start_str and end_str and end_str.lower() != "present":
             try:
-                clean_start = start_str[:-1] if start_str.endswith("Z") else start_str
-                clean_end = end_str[:-1] if end_str.endswith("Z") else end_str
-                s_date = datetime.fromisoformat(clean_start[:10]).date()
-                e_date = datetime.fromisoformat(clean_end[:10]).date()
+                from dateutil.parser import parse as parse_date
+                s_date = parse_date(start_str).date()
+                e_date = parse_date(end_str).date()
                 if e_date < s_date:
                     flags.append("Career history has end_date before start_date")
                     break
-            except ValueError:
+            except (ValueError, OverflowError, TypeError):
                 pass
 
     # Profile missing name/headline
