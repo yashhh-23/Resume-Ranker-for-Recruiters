@@ -266,7 +266,7 @@ const App = () => {
         setIsLoading(false);
       }, 60);
     }
-  }, [candidates, jobDescription, passphrase, isDesktop]);
+  }, [candidates, jobDescription, passphrase, isAuthenticated, isDesktop]);
 
   // Global Ctrl+Shift+R shortcut to trigger rank run
   useEffect(() => {
@@ -388,7 +388,7 @@ const App = () => {
       )}
 
       {passphraseWarning && (
-        <div role="alert" className="bg-amber/10 border-b border-amber/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber font-mono shrink-0">
+        <div role="alert" aria-live="assertive" className="bg-amber/10 border-b border-amber/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber font-mono shrink-0">
           <div className="flex items-center gap-2">
             <span aria-hidden="true">⚠️</span>
             <span>
