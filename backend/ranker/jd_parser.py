@@ -323,15 +323,21 @@ def parse_jd_docx(path: str) -> Dict[str, object]:
 
 
 def parse_jd(path: str) -> Dict[str, object]:
-    """Parse a JD from .docx or .txt fallback."""
+    """Parse a JD from .docx, .txt, or raw string fallback."""
     jd_path = Path(path)
-    if jd_path.suffix.lower() == ".txt":
+    
+    if jd_path.exists():
+        if jd_path.suffix.lower() == ".docx":
+            return parse_jd_docx(path)
         try:
-            text = jd_path.read_text(encoding="utf-8") if jd_path.exists() else ""
+            text = jd_path.read_text(encoding="utf-8")
         except Exception:
             text = ""
-        parsed = parse_jd_text(text)
-        for key, value in DEFAULT_JD.items():
-            parsed.setdefault(key, value)
-        return parsed
-    return parse_jd_docx(path)
+    else:
+        # If path doesn't exist, treat it as raw text
+        text = str(path)
+        
+    parsed = parse_jd_text(text)
+    for key, value in DEFAULT_JD.items():
+        parsed.setdefault(key, value)
+    return parsed
