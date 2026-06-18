@@ -150,7 +150,11 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
             years_exp = float(profile.get("years_of_experience") or 0.0)
         except (ValueError, TypeError):
             years_exp = 0.0
-        return 0.5 if years_exp >= 10 else 0.0
+        if years_exp >= 10:
+            return 0.5
+        elif years_exp >= 5:
+            return 0.3
+        return 0.0
 
     best = 0.0
     DEGREE_WEIGHT = {"phd": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
