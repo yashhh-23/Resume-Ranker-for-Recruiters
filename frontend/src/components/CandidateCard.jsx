@@ -1,5 +1,5 @@
 import { memo } from "react";
-import ScoreBar from "./ScoreBar";
+import ScoreBar, { getBarColor } from "./ScoreBar";
 import { SCORE_TIERS } from "../constants/scoreThresholds";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
@@ -36,12 +36,8 @@ const CandidateCard = memo(({
     ? topSkills.filter((s) => isSkillMatchedInJd(s.name, jdSkillTokens)).length
     : 0;
 
-  const getScoreColor = (score) => {
-    const val = score <= 1 ? score : score / 100;
-    if (val >= SCORE_TIERS.HIGH)   return "text-emerald border-emerald/20 bg-emerald/5";
-    if (val >= SCORE_TIERS.MEDIUM) return "text-amber border-amber/20 bg-amber/5";
-    return "text-rose-400 border-rose-500/20 bg-rose-500/5";
-  };
+  const scoreColor = getBarColor(result.score);
+  const normalizedScoreVal = result.score <= 1 ? result.score : result.score / 100;
 
   const isInAnyPool = talentPools.some((p) =>
     p.candidates.some((c) => c.candidate_id === result.candidate_id)
@@ -188,12 +184,15 @@ const CandidateCard = memo(({
         <div className="flex flex-col items-end gap-1 shrink-0">
           <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500">Fit Index</span>
           <span
-            className={`inline-flex items-center px-3 py-1.5 rounded-none border-2 font-mono text-xl font-bold shadow-lg ${getScoreColor(result.score)}`}
+            className="inline-flex items-center px-3 py-1.5 rounded-none border-2 font-mono text-xl font-bold shadow-lg"
             style={{
-              boxShadow: result.score >= 0.8
-                ? '0 0 16px rgba(16,185,129,0.25)'
-                : result.score >= 0.6
-                ? '0 0 12px rgba(59,130,246,0.2)'
+              color: scoreColor,
+              borderColor: `${scoreColor}33`,
+              backgroundColor: `${scoreColor}0d`,
+              boxShadow: normalizedScoreVal >= SCORE_TIERS.HIGH
+                ? `0 0 16px ${scoreColor}40`
+                : normalizedScoreVal >= SCORE_TIERS.MEDIUM
+                ? `0 0 12px ${scoreColor}33`
                 : 'none',
             }}
           >
