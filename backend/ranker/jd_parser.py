@@ -50,7 +50,12 @@ SOFT_SKILLS = [
 
 TITLE_PATTERNS = [
     r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist))",
-    r"\b(ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|Product Manager)\b",
+    r"\b(ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
+    r"Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|"
+    r"Product Manager|SDE-I|SDE-II|SDE-III|SDE I|SDE II|SDE III|"
+    r"Technical Program Manager|Associate Consultant|Founding Engineer|"
+    r"DevOps Engineer|Platform Engineer|Site Reliability Engineer|"
+    r"Research Engineer|Applied Scientist)\b",
 ]
 
 
@@ -223,7 +228,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     preferred = _dedupe([skill for skill in preferred if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}])
 
     if not required:
-        required = tech_hits[:8]
+        required = tech_hits[:8] if tech_hits else soft_hits[:6]
     else:
         preferred = _dedupe(preferred + [skill for skill in tech_hits if skill.lower() not in {item.lower() for item in required}])
 
@@ -232,6 +237,9 @@ def parse_jd_text(text: str) -> Dict[str, object]:
 
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
+    # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
+    # (Sales, Finance, Design), semantic cosine scores will be lower on average.
+    # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.
     skills_text = " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
     salary_min, salary_max = _extract_salary_range(text)
 

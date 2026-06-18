@@ -125,7 +125,13 @@ def get_candidate_embeddings(
             cache.set(key, vector)
         save_cache(cache, cache_path)
 
-    return {str(candidate.get("candidate_id") or candidate.get("id") or ""): cache.get(cache_key(candidate)) for candidate in candidates}
+    result = {}
+    for candidate in candidates:
+        cid = str(candidate.get("candidate_id") or candidate.get("id") or "")
+        vec = cache.get(cache_key(candidate))
+        if vec is not None:
+            result[cid] = vec
+    return result
 
 def get_jd_embedding(jd: dict, model, cache_path: str = ".embedding_cache.pkl") -> np.ndarray:
     skills_text = str(jd.get("skills_text") or "")
