@@ -6,6 +6,8 @@ import { exportSubmissionCsv } from "../utils/exportCsv";
 import LoadingPhaseDisplay from "./LoadingPhaseDisplay";
 import TalentPoolSidebar from "./TalentPoolSidebar";
 import ResultsControls from "./ResultsControls";
+import { sortResults } from "../utils/sortResults";
+import { SORT_KEYS } from "../constants/sortKeys";
 
 const CompareModal = lazy(() => import("./CompareModal"));
 
@@ -26,7 +28,7 @@ const ResultsPanel = ({
   onReset,
 }) => {
   const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("rank");
+  const [sortBy, setSortBy] = useState(SORT_KEYS.RANK);
   const [anomalyFilter, setAnomalyFilter] = useState("all"); // "all" | "only" | "exclude"
   const [availableOnly, setAvailableOnly] = useState(false);
   const [githubOnly, setGithubOnly] = useState(false);
@@ -514,7 +516,7 @@ const ResultsPanel = ({
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-24 rounded-none border border-slate-800 bg-slate-900/50 animate-pulse"
+                  className="h-36 rounded-none border border-slate-800 bg-slate-900/50 animate-pulse"
                   style={{ animationDelay: `${i * 80}ms` }}
                 />
               ))}

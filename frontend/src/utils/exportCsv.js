@@ -51,9 +51,11 @@ export const exportSubmissionCsv = (rankedResults) => {
   });
 
   // CRLF row separators (RFC 4180) + UTF-8 BOM so Excel opens it correctly on Windows
-  const BOM = "\uFEFF";
-  const csv  = BOM + [header, ...rows].join("\r\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const encoder = new TextEncoder();
+  const BOM     = new Uint8Array([0xEF, 0xBB, 0xBF]); // raw UTF-8 BOM bytes
+  const csvContent = [header, ...rows].join("\r\n");
+  const encoded = encoder.encode(csvContent);
+  const blob    = new Blob([BOM, encoded], { type: "text/csv;charset=utf-8;" });
   const url  = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href     = url;

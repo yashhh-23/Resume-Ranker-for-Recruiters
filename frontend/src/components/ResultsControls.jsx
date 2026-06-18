@@ -1,3 +1,5 @@
+import { SORT_KEYS } from "../constants/sortKeys";
+
 const ResultsControls = ({
   query,
   setQuery,
@@ -69,12 +71,13 @@ const ResultsControls = ({
           onChange={(e) => setSortBy(e.target.value)}
           className="rounded-none border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs font-mono text-slate-300 focus:border-cobalt focus:outline-none transition-all duration-200 h-[32px]"
         >
-          <option value="rank">Sort by Rank</option>
-          <option value="signal_modifier">Sort by Engagement (Signals)</option>
-          <option value="experience">Sort by Experience</option>
-          <option value="notice">Sort by Notice Period</option>
-          <option value="completeness">Sort by Profile Completeness</option>
-          <option value="skills">Sort by Skills Count</option>
+          <option value={SORT_KEYS.RANK}>Sort by Rank</option>
+          <option value={SORT_KEYS.SCORE}>Sort by Score</option>
+          <option value={SORT_KEYS.ENGAGEMENT}>Sort by Engagement (Signals)</option>
+          <option value={SORT_KEYS.EXPERIENCE}>Sort by Experience</option>
+          <option value={SORT_KEYS.NOTICE}>Sort by Notice Period</option>
+          <option value={SORT_KEYS.COMPLETENESS}>Sort by Profile Completeness</option>
+          <option value={SORT_KEYS.SKILLS}>Sort by Skills Count</option>
         </select>
       </div>
 
