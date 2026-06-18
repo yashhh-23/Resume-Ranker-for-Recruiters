@@ -203,9 +203,9 @@ def score_skill_match(
         endorsement_boost = 0.5
 
     coverage_score = score_required_skill_coverage(candidate or {}, jd or {})
-    # coverage_score is typically low (e.g. 0.3 for 3/10 skills). We boost it by 2.5x 
-    # to prevent score collapse, while keeping the max at 1.0.
-    blended_skill = 0.25 * base + 0.65 * clamp(coverage_score * 2.5) + 0.10 * endorsement_boost
+    # Removed the 2.5x artificial multiplier to prevent 1-skill and 3-skill candidates from getting inflated scores.
+    # Rebalanced weights so semantic base doesn't over-contribute.
+    blended_skill = 0.15 * base + 0.75 * coverage_score + 0.10 * endorsement_boost
     return clamp(blended_skill)
 
 
@@ -270,6 +270,11 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
         exp_score = clamp((years_exp + 2) / min_experience)
 
     gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
+    
+    # Penalize career_fit for completely irrelevant roles (Mobile/Java/etc for ML)
+    if role_score < 0.08:
+        role_score *= 0.1
+
     return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15 - it_penalty)
 
 
@@ -415,6 +420,10 @@ def score_candidate(
         final_score *= 0.4
     elif len(matched) == 2:
         final_score *= 0.75
+        
+    # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
+    if breakdown["career_fit"] < 0.08:
+        final_score *= 0.7
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
@@ -555,6 +564,10 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         elif matched_count == 2:
             final_score *= 0.75
         # 3 or more matches receive NO penalty (1.0x)
+
+    # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
+    if breakdown["career_fit"] < 0.08:
+        final_score *= 0.7
 
     trap_penalty = score_jd_specific_traps(candidate)
     final_score = max(0.0, final_score - trap_penalty)
