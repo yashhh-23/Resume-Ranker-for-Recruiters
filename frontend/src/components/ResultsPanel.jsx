@@ -124,6 +124,11 @@ const ResultsPanel = ({
     });
 
     itemsList.sort((a, b) => {
+      if (sortBy === "signal_modifier") {
+        const sigA = a.result?.breakdown?.signal_modifier ?? a.result?.signal_modifier ?? 0;
+        const sigB = b.result?.breakdown?.signal_modifier ?? b.result?.signal_modifier ?? 0;
+        return sigB - sigA;
+      }
       if (sortBy === "experience") {
         const expA = a.candidate?.profile?.years_of_experience || 0;
         const expB = b.candidate?.profile?.years_of_experience || 0;
@@ -176,6 +181,11 @@ const ResultsPanel = ({
     }
 
     list = [...list].sort((a, b) => {
+      if (sortBy === "signal_modifier") {
+        const sigA = a.result?.breakdown?.signal_modifier ?? a.result?.signal_modifier ?? 0;
+        const sigB = b.result?.breakdown?.signal_modifier ?? b.result?.signal_modifier ?? 0;
+        return sigB - sigA;
+      }
       if (sortBy === "experience") {
         const expA = a.candidate?.profile?.years_of_experience || 0;
         const expB = b.candidate?.profile?.years_of_experience || 0;

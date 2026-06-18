@@ -231,6 +231,13 @@ const CandidateModalReasoning = memo(({
                   <span className="text-slate-500 text-[10px]">{isOpen ? "▲" : "▼"}</span>
                 </div>
               </button>
+              {/* Always-visible 1-line preview of backend insight */}
+              {apiInsight && !isOpen && (
+                <div className="px-4 pb-2 text-[10px] font-mono text-emerald/70 flex items-start gap-1.5 border-t border-slate-900/30">
+                  <span className="shrink-0 text-emerald/40 mt-0.5">▶</span>
+                  <span className="truncate">{apiInsight}</span>
+                </div>
+              )}
               {isOpen && (
                 <div className="px-4 pb-4 pt-1 border-t border-slate-900/50 text-[11px] leading-relaxed text-slate-400 mt-1">
                   {apiInsight && (
