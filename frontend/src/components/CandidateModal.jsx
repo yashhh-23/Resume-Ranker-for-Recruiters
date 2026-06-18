@@ -3,6 +3,9 @@ import { formatDate, formatNumber, formatPercent, formatScore } from "../utils/f
 import { deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { extractJdSkills, isSkillMatchedInJd, getMissingSkills } from "../utils/jdUtils";
 import { CheckIcon, XIcon } from "./icons";
+import ExpandableTagList from "./ExpandableTagList";
+import CopyButton from "./CopyButton";
+import { buildSkillsTableCopy, buildSkillGapCopy } from "../utils/copyUtils";
 
 // Modular Sub-components
 import CandidateModalHeader from "./candidate-modal/CandidateModalHeader";
@@ -291,9 +294,16 @@ const CandidateModal = ({
               >
                 <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4 flex justify-between items-center">
                   <span>Skills Assessment Ledger</span>
-                  <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
-                    <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
-                    <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  <div className="flex items-center gap-2">
+                    <CopyButton
+                      plain={buildSkillsTableCopy(skillRows).plain}
+                      html={buildSkillsTableCopy(skillRows).html}
+                      label="Copy full skills ledger"
+                    />
+                    <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
+                      <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
+                      <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
                   </div>
                 </h4>
                 <div className="space-y-3.5">
@@ -318,7 +328,13 @@ const CandidateModal = ({
                       </div>
                     ))}
                     {skillRows.length > 4 && (
-                      <p className="text-slate-500 text-[10px] text-center italic mt-1 font-mono">+{skillRows.length - 4} more skills (click to expand ledger)</p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setExpandedBox("skills"); }}
+                        className="w-full mt-1 text-[10px] font-mono text-center italic text-slate-500 hover:text-emerald hover:shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all duration-200 cursor-pointer select-none py-0.5 border border-transparent hover:border-emerald/30 rounded-none"
+                      >
+                        +{skillRows.length - 4} more skills (click to expand ledger)
+                      </button>
                     )}
                   </div>
                 </div>
@@ -402,6 +418,11 @@ const CandidateModal = ({
                           {coveragePct}% coverage
                         </span>
                       )}
+                      <CopyButton
+                        plain={buildSkillGapCopy(matchedJdSkills, missingSkills).plain}
+                        html={buildSkillGapCopy(matchedJdSkills, missingSkills).html}
+                        label="Copy skill gap analysis"
+                      />
                       <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
                         <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
                         <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
@@ -416,15 +437,18 @@ const CandidateModal = ({
                         <span>Matched JD Skills</span>
                       </p>
                       <div className="flex flex-wrap gap-1">
-                        {matchedJdSkills.slice(0, 5).map((skill) => (
+                      <ExpandableTagList
+                        items={matchedJdSkills}
+                        limit={5}
+                        label="Matched JD Skills"
+                        accentColor="#10B981"
+                        renderItem={(skill) => (
                           <span key={skill.name} className="px-2 py-0.5 bg-emerald/10 text-emerald text-[10px] rounded-none border border-emerald/30 font-mono inline-flex items-center gap-1.5">
                             <CheckIcon className="h-2.5 w-2.5 shrink-0" />
                             <span>{skill.name}</span>
                           </span>
-                        ))}
-                        {matchedJdSkills.length > 5 && (
-                          <span className="text-[10px] text-slate-500 font-mono pt-0.5 font-bold">+{matchedJdSkills.length - 5} more</span>
                         )}
+                      />
                       </div>
                     </div>
                   )}
@@ -436,15 +460,18 @@ const CandidateModal = ({
                         <span>Missing / Skill Gaps</span>
                       </p>
                       <div className="flex flex-wrap gap-1">
-                        {missingSkills.slice(0, 5).map((s) => (
+                      <ExpandableTagList
+                        items={missingSkills}
+                        limit={5}
+                        label="Missing / Skill Gaps"
+                        accentColor="#f43f5e"
+                        renderItem={(s) => (
                           <span key={s} className="px-1.5 py-0.5 bg-red-900/20 text-rose-400 text-[10px] rounded-none border border-red-800/30 font-mono inline-flex items-center gap-1.5">
                             <XIcon className="h-2.5 w-2.5 shrink-0" />
                             <span>{s}</span>
                           </span>
-                        ))}
-                        {missingSkills.length > 5 && (
-                          <span className="text-[10px] text-slate-500 font-mono pt-0.5 font-bold">+{missingSkills.length - 5} more</span>
                         )}
+                      />
                       </div>
                     </div>
                   ) : (
