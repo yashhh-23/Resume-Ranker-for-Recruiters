@@ -109,7 +109,7 @@ body {
 
 @media (max-height: 900px) {
   .compliance-container {
-    height: 80px !important;
+    height: 48px !important;
   }
 }
 
