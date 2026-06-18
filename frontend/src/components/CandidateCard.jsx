@@ -260,7 +260,7 @@ const CandidateCard = ({
       </div>
 
       {/* Reasoning text — bigger and more visible */}
-      <p className="mt-3 text-[11px] font-mono text-slate-300 bg-slate-950/60 border border-slate-800/70 rounded-none px-4 py-3 line-clamp-2 leading-relaxed italic">
+      <p className="mt-3 text-[11px] font-mono text-slate-300 bg-slate-950/60 border border-slate-800/70 rounded-none px-4 py-3 leading-relaxed italic">
         {reasoning}
       </p>
 
