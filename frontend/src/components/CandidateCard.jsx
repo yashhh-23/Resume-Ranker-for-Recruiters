@@ -1,5 +1,6 @@
 import { memo } from "react";
 import ScoreBar from "./ScoreBar";
+import { SCORE_TIERS } from "../constants/scoreThresholds";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
 import { extractJdSkills, isSkillMatchedInJd } from "../utils/jdUtils";
@@ -37,8 +38,8 @@ const CandidateCard = memo(({
 
   const getScoreColor = (score) => {
     const val = score <= 1 ? score : score / 100;
-    if (val >= 0.75) return "text-emerald border-emerald/20 bg-emerald/5";
-    if (val >= 0.50) return "text-amber border-amber/20 bg-amber/5";
+    if (val >= SCORE_TIERS.HIGH)   return "text-emerald border-emerald/20 bg-emerald/5";
+    if (val >= SCORE_TIERS.MEDIUM) return "text-amber border-amber/20 bg-amber/5";
     return "text-rose-400 border-rose-500/20 bg-rose-500/5";
   };
 
