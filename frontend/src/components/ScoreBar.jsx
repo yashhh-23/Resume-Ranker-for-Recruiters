@@ -1,4 +1,12 @@
 import { memo } from "react";
+import { SCORE_TIERS } from "../constants/scoreThresholds";
+
+export const getBarColor = (score) => {
+  const val = score <= 1 ? score : score / 100;
+  if (val >= SCORE_TIERS.HIGH)   return "#10B981"; // emerald
+  if (val >= SCORE_TIERS.MEDIUM) return "#F59E0B"; // amber
+  return "#F43F5E"; // rose
+};
 
 const ScoreBar = memo(({ segments }) => {
   return (
@@ -6,12 +14,14 @@ const ScoreBar = memo(({ segments }) => {
       {segments.map((segment) => {
         const percent = Math.round((segment.value ?? 0) * 100);
         const weightPct = Math.round((segment.weight ?? 0) * 100);
+        const color = segment.colorCode || getBarColor(segment.value);
+
         return (
           <div key={segment.label} className="flex items-center gap-3 text-[11px] font-mono relative group/segment">
             {/* Label */}
             <span
               className="w-24 text-left shrink-0 truncate font-semibold"
-              style={{ color: segment.colorCode, opacity: 0.85 }}
+              style={{ color: color, opacity: 0.85 }}
               title={`${segment.label} (weight: ${weightPct}%)`}
             >
               {segment.label}
@@ -37,8 +47,8 @@ const ScoreBar = memo(({ segments }) => {
                 className="h-full transition-all duration-700 ease-out"
                 style={{
                   width: `${percent}%`,
-                  backgroundColor: segment.colorCode,
-                  boxShadow: `0 0 8px ${segment.colorCode}55`,
+                  backgroundColor: color,
+                  boxShadow: `0 0 8px ${color}55`,
                 }}
               />
             </div>
@@ -46,7 +56,7 @@ const ScoreBar = memo(({ segments }) => {
             {/* Percentage */}
             <span
               className="w-9 text-right font-bold text-sm shrink-0"
-              style={{ color: segment.colorCode }}
+              style={{ color: color }}
             >
               {percent}%
             </span>

@@ -1,3 +1,5 @@
+import { SORT_KEYS } from "../constants/sortKeys";
+
 /**
  * sortResults.js — Unified sort comparator for ranked result lists
  *
@@ -11,27 +13,34 @@
 export const sortResults = (list, sortBy) => {
   const sorted = [...list];
   sorted.sort((a, b) => {
-    if (sortBy === "signal_modifier") {
+    if (sortBy === SORT_KEYS.SCORE) {
+      const scoreA = a.result?.score ?? 0;
+      const scoreB = b.result?.score ?? 0;
+      const normA = scoreA > 1 ? scoreA / 100 : scoreA;
+      const normB = scoreB > 1 ? scoreB / 100 : scoreB;
+      return normB - normA;
+    }
+    if (sortBy === SORT_KEYS.ENGAGEMENT) {
       const sigA = a.result?.breakdown?.signal_modifier ?? a.result?.signal_modifier ?? 0;
       const sigB = b.result?.breakdown?.signal_modifier ?? b.result?.signal_modifier ?? 0;
       return sigB - sigA;
     }
-    if (sortBy === "experience") {
+    if (sortBy === SORT_KEYS.EXPERIENCE) {
       const expA = a.candidate?.profile?.years_of_experience || 0;
       const expB = b.candidate?.profile?.years_of_experience || 0;
       return expB - expA;
     }
-    if (sortBy === "notice") {
+    if (sortBy === SORT_KEYS.NOTICE) {
       const noticeA = a.candidate?.redrob_signals?.notice_period_days ?? 999;
       const noticeB = b.candidate?.redrob_signals?.notice_period_days ?? 999;
       return noticeA - noticeB;
     }
-    if (sortBy === "completeness") {
+    if (sortBy === SORT_KEYS.COMPLETENESS) {
       const compA = a.candidate?.redrob_signals?.profile_completeness_score || 0;
       const compB = b.candidate?.redrob_signals?.profile_completeness_score || 0;
       return compB - compA;
     }
-    if (sortBy === "skills") {
+    if (sortBy === SORT_KEYS.SKILLS) {
       const skillsA = a.candidate?.skills?.length || 0;
       const skillsB = b.candidate?.skills?.length || 0;
       return skillsB - skillsA;
