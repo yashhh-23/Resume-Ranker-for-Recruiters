@@ -1,0 +1,404 @@
+﻿2026-06-12T16:34:55.5023071Z Current runner version: '2.334.0'
+2026-06-12T16:34:55.5047493Z ##[group]Runner Image Provisioner
+2026-06-12T16:34:55.5048444Z Hosted Compute Agent
+2026-06-12T16:34:55.5048985Z Version: 20260527.539
+2026-06-12T16:34:55.5049851Z Commit: a891dd388383b896fa6ac04a82c0b75cec981078
+2026-06-12T16:34:55.5050537Z Build Date: 2026-05-27T21:39:57Z
+2026-06-12T16:34:55.5051146Z Worker ID: {59ee9395-478a-4e24-b5d4-2676059d633a}
+2026-06-12T16:34:55.5051829Z Azure Region: westus3
+2026-06-12T16:34:55.5052362Z ##[endgroup]
+2026-06-12T16:34:55.5053771Z ##[group]Operating System
+2026-06-12T16:34:55.5054448Z Ubuntu
+2026-06-12T16:34:55.5054935Z 24.04.4
+2026-06-12T16:34:55.5055465Z LTS
+2026-06-12T16:34:55.5055942Z ##[endgroup]
+2026-06-12T16:34:55.5056429Z ##[group]Runner Image
+2026-06-12T16:34:55.5057018Z Image: ubuntu-24.04
+2026-06-12T16:34:55.5057534Z Version: 20260607.184.1
+2026-06-12T16:34:55.5058714Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260607.184/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-12T16:34:55.5060365Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260607.184
+2026-06-12T16:34:55.5061303Z ##[endgroup]
+2026-06-12T16:34:55.5062415Z ##[group]GITHUB_TOKEN Permissions
+2026-06-12T16:34:55.5064663Z Contents: read
+2026-06-12T16:34:55.5065228Z Metadata: read
+2026-06-12T16:34:55.5065796Z Packages: read
+2026-06-12T16:34:55.5066317Z ##[endgroup]
+2026-06-12T16:34:55.5068555Z Secret source: Actions
+2026-06-12T16:34:55.5069291Z Prepare workflow directory
+2026-06-12T16:34:55.5388830Z Prepare all required actions
+2026-06-12T16:34:55.5428851Z Getting action download info
+2026-06-12T16:34:56.1215894Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-12T16:34:56.1864388Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-06-12T16:34:56.3446059Z Complete job name: rank-smoke-test
+2026-06-12T16:34:56.4140703Z ##[group]Run actions/checkout@v4
+2026-06-12T16:34:56.4141793Z with:
+2026-06-12T16:34:56.4142553Z   repository: yashhh-23/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:56.4147400Z   token: ***
+2026-06-12T16:34:56.4147941Z   ssh-strict: true
+2026-06-12T16:34:56.4148659Z   ssh-user: git
+2026-06-12T16:34:56.4149238Z   persist-credentials: true
+2026-06-12T16:34:56.4150432Z   clean: true
+2026-06-12T16:34:56.4151266Z   sparse-checkout-cone-mode: true
+2026-06-12T16:34:56.4151985Z   fetch-depth: 1
+2026-06-12T16:34:56.4152679Z   fetch-tags: false
+2026-06-12T16:34:56.4153287Z   show-progress: true
+2026-06-12T16:34:56.4153902Z   lfs: false
+2026-06-12T16:34:56.4154447Z   submodules: false
+2026-06-12T16:34:56.4155046Z   set-safe-directory: true
+2026-06-12T16:34:56.4156140Z ##[endgroup]
+2026-06-12T16:34:56.5442859Z Syncing repository: yashhh-23/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:56.5446791Z ##[group]Getting Git version info
+2026-06-12T16:34:56.5448880Z Working directory is '/home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters'
+2026-06-12T16:34:56.5452105Z [command]/usr/bin/git version
+2026-06-12T16:34:56.5452717Z git version 2.54.0
+2026-06-12T16:34:56.5454517Z ##[endgroup]
+2026-06-12T16:34:56.5460939Z Temporarily overriding HOME='/home/runner/work/_temp/96fb6ce5-451d-4ff6-8a00-fd7000607e67' before making global git config changes
+2026-06-12T16:34:56.5462441Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-12T16:34:56.5463867Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:56.5492623Z Deleting the contents of '/home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters'
+2026-06-12T16:34:56.5501803Z ##[group]Initializing the repository
+2026-06-12T16:34:56.5503398Z [command]/usr/bin/git init /home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:56.5585595Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-06-12T16:34:56.5588538Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-06-12T16:34:56.5590440Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-06-12T16:34:56.5591593Z hint: call:
+2026-06-12T16:34:56.5592347Z hint:
+2026-06-12T16:34:56.5593109Z hint: 	git config --global init.defaultBranch <name>
+2026-06-12T16:34:56.5593930Z hint:
+2026-06-12T16:34:56.5594855Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-06-12T16:34:56.5595884Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-06-12T16:34:56.5596695Z hint:
+2026-06-12T16:34:56.5597174Z hint: 	git branch -m <name>
+2026-06-12T16:34:56.5597749Z hint:
+2026-06-12T16:34:56.5598447Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-06-12T16:34:56.5600374Z Initialized empty Git repository in /home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters/.git/
+2026-06-12T16:34:56.5602870Z [command]/usr/bin/git remote add origin https://github.com/yashhh-23/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:56.5636883Z ##[endgroup]
+2026-06-12T16:34:56.5637831Z ##[group]Disabling automatic garbage collection
+2026-06-12T16:34:56.5640444Z [command]/usr/bin/git config --local gc.auto 0
+2026-06-12T16:34:56.5663743Z ##[endgroup]
+2026-06-12T16:34:56.5664545Z ##[group]Setting up auth
+2026-06-12T16:34:56.5669833Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-12T16:34:56.5701331Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-12T16:34:56.5999786Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-12T16:34:56.6028708Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-12T16:34:56.6213158Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-12T16:34:56.6248912Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-12T16:34:56.6435324Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-06-12T16:34:56.6463759Z ##[endgroup]
+2026-06-12T16:34:56.6465639Z ##[group]Fetching the repository
+2026-06-12T16:34:56.6473136Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d440d2d60d1b75ae441af690335b8db34a4c8819:refs/remotes/origin/main
+2026-06-12T16:34:57.3815010Z From https://github.com/yashhh-23/Resume-Ranker-for-Recruiters
+2026-06-12T16:34:57.3818487Z  * [new ref]         d440d2d60d1b75ae441af690335b8db34a4c8819 -> origin/main
+2026-06-12T16:34:57.3850023Z ##[endgroup]
+2026-06-12T16:34:57.3851974Z ##[group]Determining the checkout info
+2026-06-12T16:34:57.3853543Z ##[endgroup]
+2026-06-12T16:34:57.3854971Z [command]/usr/bin/git sparse-checkout disable
+2026-06-12T16:34:57.3890703Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-06-12T16:34:57.3911886Z ##[group]Checking out the ref
+2026-06-12T16:34:57.3913921Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-06-12T16:34:57.3996224Z Switched to a new branch 'main'
+2026-06-12T16:34:57.3999640Z branch 'main' set up to track 'origin/main'.
+2026-06-12T16:34:57.4006283Z ##[endgroup]
+2026-06-12T16:34:57.4036867Z [command]/usr/bin/git log -1 --format=%H
+2026-06-12T16:34:57.4054663Z d440d2d60d1b75ae441af690335b8db34a4c8819
+2026-06-12T16:34:57.4366591Z ##[group]Run actions/setup-python@v5
+2026-06-12T16:34:57.4367706Z with:
+2026-06-12T16:34:57.4368506Z   python-version: 3.11
+2026-06-12T16:34:57.4369541Z   check-latest: false
+2026-06-12T16:34:57.4380279Z   token: ***
+2026-06-12T16:34:57.4381355Z   update-environment: true
+2026-06-12T16:34:57.4382367Z   allow-prereleases: false
+2026-06-12T16:34:57.4383355Z   freethreaded: false
+2026-06-12T16:34:57.4384247Z ##[endgroup]
+2026-06-12T16:34:57.6024733Z ##[group]Installed versions
+2026-06-12T16:34:57.6122170Z Successfully set up CPython (3.11.15)
+2026-06-12T16:34:57.6125171Z ##[endgroup]
+2026-06-12T16:34:57.6262925Z ##[group]Run pip install -r backend/requirements.txt
+2026-06-12T16:34:57.6264608Z [36;1mpip install -r backend/requirements.txt[0m
+2026-06-12T16:34:57.6403321Z shell: /usr/bin/bash -e {0}
+2026-06-12T16:34:57.6404309Z env:
+2026-06-12T16:34:57.6405300Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:34:57.6406955Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+2026-06-12T16:34:57.6408607Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:34:57.6410380Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:34:57.6411906Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:34:57.6413511Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+2026-06-12T16:34:57.6414830Z ##[endgroup]
+2026-06-12T16:35:00.1484136Z Collecting annotated-doc==0.0.4 (from -r backend/requirements.txt (line 1))
+2026-06-12T16:35:00.2316715Z   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+2026-06-12T16:35:00.2489093Z Collecting annotated-types==0.7.0 (from -r backend/requirements.txt (line 2))
+2026-06-12T16:35:00.2588798Z   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+2026-06-12T16:35:00.2885266Z Collecting anyio==4.13.0 (from -r backend/requirements.txt (line 3))
+2026-06-12T16:35:00.2984808Z   Downloading anyio-4.13.0-py3-none-any.whl.metadata (4.5 kB)
+2026-06-12T16:35:00.3209962Z Collecting certifi==2026.5.20 (from -r backend/requirements.txt (line 4))
+2026-06-12T16:35:00.3308459Z   Downloading certifi-2026.5.20-py3-none-any.whl.metadata (2.5 kB)
+2026-06-12T16:35:00.4378981Z Collecting charset-normalizer==3.4.7 (from -r backend/requirements.txt (line 5))
+2026-06-12T16:35:00.4476975Z   Downloading charset_normalizer-3.4.7-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+2026-06-12T16:35:00.4757808Z Collecting click==8.4.1 (from -r backend/requirements.txt (line 6))
+2026-06-12T16:35:00.4857639Z   Downloading click-8.4.1-py3-none-any.whl.metadata (2.6 kB)
+2026-06-12T16:35:00.5050432Z Collecting colorama==0.4.6 (from -r backend/requirements.txt (line 7))
+2026-06-12T16:35:00.5148727Z   Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+2026-06-12T16:35:00.5504262Z Collecting fastapi==0.136.3 (from -r backend/requirements.txt (line 8))
+2026-06-12T16:35:00.5604779Z   Downloading fastapi-0.136.3-py3-none-any.whl.metadata (27 kB)
+2026-06-12T16:35:00.5850359Z Collecting filelock==3.29.3 (from -r backend/requirements.txt (line 9))
+2026-06-12T16:35:00.5955046Z   Downloading filelock-3.29.3-py3-none-any.whl.metadata (2.0 kB)
+2026-06-12T16:35:00.6170029Z Collecting fsspec==2026.4.0 (from -r backend/requirements.txt (line 10))
+2026-06-12T16:35:00.6269084Z   Downloading fsspec-2026.4.0-py3-none-any.whl.metadata (10 kB)
+2026-06-12T16:35:00.6571032Z Collecting h11==0.16.0 (from -r backend/requirements.txt (line 11))
+2026-06-12T16:35:00.6669013Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-06-12T16:35:00.7024838Z Collecting huggingface_hub==0.36.2 (from -r backend/requirements.txt (line 12))
+2026-06-12T16:35:00.7128335Z   Downloading huggingface_hub-0.36.2-py3-none-any.whl.metadata (15 kB)
+2026-06-12T16:35:00.7450079Z Collecting idna==3.18 (from -r backend/requirements.txt (line 13))
+2026-06-12T16:35:00.7549855Z   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+2026-06-12T16:35:00.7751181Z Collecting Jinja2==3.1.6 (from -r backend/requirements.txt (line 14))
+2026-06-12T16:35:00.7854824Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-06-12T16:35:00.8087844Z Collecting joblib==1.5.3 (from -r backend/requirements.txt (line 15))
+2026-06-12T16:35:00.8190606Z   Downloading joblib-1.5.3-py3-none-any.whl.metadata (5.5 kB)
+2026-06-12T16:35:00.8650821Z Collecting MarkupSafe==3.0.3 (from -r backend/requirements.txt (line 16))
+2026-06-12T16:35:00.8755154Z   Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-06-12T16:35:01.0571361Z Collecting numpy==2.4.6 (from -r backend/requirements.txt (line 17))
+2026-06-12T16:35:01.0672776Z   Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+2026-06-12T16:35:01.0889711Z Collecting packaging==26.2 (from -r backend/requirements.txt (line 18))
+2026-06-12T16:35:01.0988629Z   Downloading packaging-26.2-py3-none-any.whl.metadata (3.5 kB)
+2026-06-12T16:35:01.1884193Z Collecting pandas==3.0.3 (from -r backend/requirements.txt (line 19))
+2026-06-12T16:35:01.1984154Z   Downloading pandas-3.0.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+2026-06-12T16:35:01.3049692Z Collecting pydantic==2.13.4 (from -r backend/requirements.txt (line 20))
+2026-06-12T16:35:01.3152490Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+2026-06-12T16:35:01.8701578Z Collecting pydantic_core==2.46.4 (from -r backend/requirements.txt (line 21))
+2026-06-12T16:35:01.8807836Z   Downloading pydantic_core-2.46.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+2026-06-12T16:35:01.8995015Z Collecting python-dateutil==2.9.0.post0 (from -r backend/requirements.txt (line 22))
+2026-06-12T16:35:01.9100759Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-06-12T16:35:01.9280285Z Collecting python-docx==1.2.0 (from -r backend/requirements.txt (line 23))
+2026-06-12T16:35:01.9433543Z   Downloading python_docx-1.2.0-py3-none-any.whl.metadata (2.0 kB)
+2026-06-12T16:35:01.9783426Z Collecting PyYAML==6.0.3 (from -r backend/requirements.txt (line 24))
+2026-06-12T16:35:01.9887040Z   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-06-12T16:35:02.2497054Z Collecting regex==2026.5.9 (from -r backend/requirements.txt (line 25))
+2026-06-12T16:35:02.2602764Z   Downloading regex-2026.5.9-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+2026-06-12T16:35:02.3103767Z Collecting requests==2.34.2 (from -r backend/requirements.txt (line 26))
+2026-06-12T16:35:02.3206880Z   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-06-12T16:35:02.4158766Z Collecting safetensors==0.8.0 (from -r backend/requirements.txt (line 27))
+2026-06-12T16:35:02.4260046Z   Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)
+2026-06-12T16:35:02.4998023Z Collecting scikit-learn==1.9.0 (from -r backend/requirements.txt (line 28))
+2026-06-12T16:35:02.5098566Z   Downloading scikit_learn-1.9.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (11 kB)
+2026-06-12T16:35:02.6158974Z Collecting scipy==1.17.1 (from -r backend/requirements.txt (line 29))
+2026-06-12T16:35:02.6260738Z   Downloading scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+2026-06-12T16:35:02.6565657Z Collecting sentence-transformers==2.7.0 (from -r backend/requirements.txt (line 30))
+2026-06-12T16:35:02.6676070Z   Downloading sentence_transformers-2.7.0-py3-none-any.whl.metadata (11 kB)
+2026-06-12T16:35:02.7323155Z Collecting setuptools==81.0.0 (from -r backend/requirements.txt (line 31))
+2026-06-12T16:35:02.7421434Z   Downloading setuptools-81.0.0-py3-none-any.whl.metadata (6.6 kB)
+2026-06-12T16:35:02.7633747Z Collecting six==1.17.0 (from -r backend/requirements.txt (line 32))
+2026-06-12T16:35:02.7730359Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-06-12T16:35:02.7972919Z Collecting starlette==1.2.1 (from -r backend/requirements.txt (line 33))
+2026-06-12T16:35:02.8071048Z   Downloading starlette-1.2.1-py3-none-any.whl.metadata (6.3 kB)
+2026-06-12T16:35:02.8241884Z Collecting threadpoolctl==3.6.0 (from -r backend/requirements.txt (line 34))
+2026-06-12T16:35:02.8341923Z   Downloading threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+2026-06-12T16:35:02.9877011Z Collecting tokenizers==0.22.2 (from -r backend/requirements.txt (line 35))
+2026-06-12T16:35:02.9976811Z   Downloading tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+2026-06-12T16:35:03.0426038Z Collecting torch==2.12.0 (from -r backend/requirements.txt (line 36))
+2026-06-12T16:35:03.0529555Z   Downloading torch-2.12.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata (31 kB)
+2026-06-12T16:35:03.0819879Z Collecting tqdm==4.68.2 (from -r backend/requirements.txt (line 37))
+2026-06-12T16:35:03.0920703Z   Downloading tqdm-4.68.2-py3-none-any.whl.metadata (58 kB)
+2026-06-12T16:35:03.1277586Z Collecting transformers==4.57.6 (from -r backend/requirements.txt (line 38))
+2026-06-12T16:35:03.1389973Z   Downloading transformers-4.57.6-py3-none-any.whl.metadata (43 kB)
+2026-06-12T16:35:03.2384134Z Collecting typing-inspection==0.4.2 (from -r backend/requirements.txt (line 39))
+2026-06-12T16:35:03.2485696Z   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+2026-06-12T16:35:03.2681519Z Collecting typing_extensions==4.15.0 (from -r backend/requirements.txt (line 40))
+2026-06-12T16:35:03.2780170Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-06-12T16:35:03.2958635Z Collecting tzdata==2026.2 (from -r backend/requirements.txt (line 41))
+2026-06-12T16:35:03.3079959Z   Downloading tzdata-2026.2-py2.py3-none-any.whl.metadata (1.4 kB)
+2026-06-12T16:35:03.3306586Z Collecting urllib3==2.7.0 (from -r backend/requirements.txt (line 42))
+2026-06-12T16:35:03.3408938Z   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-06-12T16:35:03.3675226Z Collecting uvicorn==0.49.0 (from -r backend/requirements.txt (line 43))
+2026-06-12T16:35:03.3775716Z   Downloading uvicorn-0.49.0-py3-none-any.whl.metadata (6.7 kB)
+2026-06-12T16:35:03.4234707Z Collecting hf-xet<2.0.0,>=1.1.3 (from huggingface_hub==0.36.2->-r backend/requirements.txt (line 12))
+2026-06-12T16:35:03.4334992Z   Downloading hf_xet-1.5.1-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+2026-06-12T16:35:03.6462391Z Collecting lxml>=3.1.0 (from python-docx==1.2.0->-r backend/requirements.txt (line 23))
+2026-06-12T16:35:03.6568582Z   Downloading lxml-6.1.1-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.5 kB)
+2026-06-12T16:35:03.6963365Z Collecting narwhals>=2.0.1 (from scikit-learn==1.9.0->-r backend/requirements.txt (line 28))
+2026-06-12T16:35:03.7061755Z   Downloading narwhals-2.22.1-py3-none-any.whl.metadata (15 kB)
+2026-06-12T16:35:03.8440743Z Collecting Pillow (from sentence-transformers==2.7.0->-r backend/requirements.txt (line 30))
+2026-06-12T16:35:03.8540085Z   Downloading pillow-12.2.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+2026-06-12T16:35:03.8925325Z Collecting sympy>=1.13.3 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:03.9025407Z   Downloading sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+2026-06-12T16:35:03.9268375Z Collecting networkx>=2.5.1 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:03.9403660Z   Downloading networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+2026-06-12T16:35:03.9615813Z Collecting cuda-toolkit==13.0.2 (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:03.9712008Z   Downloading cuda_toolkit-13.0.2-py2.py3-none-any.whl.metadata (9.4 kB)
+2026-06-12T16:35:03.9944283Z Collecting nvidia-cublas<=13.1.1.3,>=13.1.0.3 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.0040560Z   Downloading nvidia_cublas-13.1.1.3-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+2026-06-12T16:35:04.0321364Z Collecting cuda-bindings<14,>=13.0.3 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.0419317Z   Downloading cuda_bindings-13.3.1-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (2.5 kB)
+2026-06-12T16:35:04.0598162Z Collecting nvidia-cudnn-cu13==9.20.0.48 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.0696738Z   Downloading nvidia_cudnn_cu13-9.20.0.48-py3-none-manylinux_2_27_x86_64.whl.metadata (1.9 kB)
+2026-06-12T16:35:04.0859637Z Collecting nvidia-cusparselt-cu13==0.8.1 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.0955214Z   Downloading nvidia_cusparselt_cu13-0.8.1-py3-none-manylinux2014_x86_64.whl.metadata (12 kB)
+2026-06-12T16:35:04.1122932Z Collecting nvidia-nccl-cu13==2.29.7 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.1222425Z   Downloading nvidia_nccl_cu13-2.29.7-py3-none-manylinux_2_18_x86_64.whl.metadata (2.1 kB)
+2026-06-12T16:35:04.1388398Z Collecting nvidia-nvshmem-cu13==3.4.5 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.1484105Z   Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.1 kB)
+2026-06-12T16:35:04.1700167Z Collecting triton==3.7.0 (from torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.1796411Z   Downloading triton-3.7.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.2043310Z Collecting nvidia-cuda-runtime==13.0.96.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.2144245Z   Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.2310364Z Collecting nvidia-cufft==12.0.0.61.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.2407310Z   Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+2026-06-12T16:35:04.2575031Z Collecting nvidia-cufile==1.15.1.6.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.2672612Z   Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.2847923Z Collecting nvidia-cuda-cupti==13.0.85.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.2946763Z   Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.3111445Z Collecting nvidia-curand==10.4.0.35.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.3208584Z   Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.3375475Z Collecting nvidia-cusolver==12.0.4.66.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.3488212Z   Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl.metadata (1.8 kB)
+2026-06-12T16:35:04.3655873Z Collecting nvidia-cusparse==12.6.3.3.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.3771517Z   Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (1.8 kB)
+2026-06-12T16:35:04.3945644Z Collecting nvidia-nvjitlink==13.0.88.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.4043766Z   Downloading nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.4213095Z Collecting nvidia-cuda-nvrtc==13.0.88.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.4310095Z   Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl.metadata (1.7 kB)
+2026-06-12T16:35:04.4479589Z Collecting nvidia-nvtx==13.0.85.* (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.4576268Z   Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+2026-06-12T16:35:04.4781722Z Collecting cuda-pathfinder>=1.4.2 (from cuda-bindings<14,>=13.0.3->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.4877814Z   Downloading cuda_pathfinder-1.5.5-py3-none-any.whl.metadata (1.9 kB)
+2026-06-12T16:35:04.5148577Z Collecting mpmath<1.4,>=1.1.0 (from sympy>=1.13.3->torch==2.12.0->-r backend/requirements.txt (line 36))
+2026-06-12T16:35:04.5244738Z   Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+2026-06-12T16:35:04.5401290Z Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+2026-06-12T16:35:04.5517803Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+2026-06-12T16:35:04.5632003Z Downloading anyio-4.13.0-py3-none-any.whl (114 kB)
+2026-06-12T16:35:04.5764219Z Downloading certifi-2026.5.20-py3-none-any.whl (134 kB)
+2026-06-12T16:35:04.5895405Z Downloading charset_normalizer-3.4.7-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (214 kB)
+2026-06-12T16:35:04.6036790Z Downloading click-8.4.1-py3-none-any.whl (116 kB)
+2026-06-12T16:35:04.6152657Z Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+2026-06-12T16:35:04.6266235Z Downloading fastapi-0.136.3-py3-none-any.whl (117 kB)
+2026-06-12T16:35:04.6386283Z Downloading filelock-3.29.3-py3-none-any.whl (42 kB)
+2026-06-12T16:35:04.6503166Z Downloading fsspec-2026.4.0-py3-none-any.whl (203 kB)
+2026-06-12T16:35:04.6636742Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-06-12T16:35:04.6753882Z Downloading huggingface_hub-0.36.2-py3-none-any.whl (566 kB)
+2026-06-12T16:35:04.6884116Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 566.4/566.4 kB 31.1 MB/s  0:00:00
+2026-06-12T16:35:04.6986107Z Downloading idna-3.18-py3-none-any.whl (65 kB)
+2026-06-12T16:35:04.7106902Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-06-12T16:35:04.7230637Z Downloading joblib-1.5.3-py3-none-any.whl (309 kB)
+2026-06-12T16:35:04.7360383Z Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-06-12T16:35:04.7477950Z Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+2026-06-12T16:35:04.8170983Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 248.7 MB/s  0:00:00
+2026-06-12T16:35:04.8269907Z Downloading packaging-26.2-py3-none-any.whl (100 kB)
+2026-06-12T16:35:04.8395622Z Downloading pandas-3.0.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
+2026-06-12T16:35:04.8643413Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 489.2 MB/s  0:00:00
+2026-06-12T16:35:04.8747624Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+2026-06-12T16:35:04.8874377Z Downloading pydantic_core-2.46.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2026-06-12T16:35:04.8942801Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 360.6 MB/s  0:00:00
+2026-06-12T16:35:04.9038279Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-06-12T16:35:04.9157134Z Downloading python_docx-1.2.0-py3-none-any.whl (252 kB)
+2026-06-12T16:35:04.9285310Z Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+2026-06-12T16:35:04.9332554Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 188.9 MB/s  0:00:00
+2026-06-12T16:35:04.9430141Z Downloading regex-2026.5.9-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (799 kB)
+2026-06-12T16:35:04.9477448Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 799.8/799.8 kB 185.3 MB/s  0:00:00
+2026-06-12T16:35:04.9575513Z Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+2026-06-12T16:35:04.9697825Z Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+2026-06-12T16:35:04.9820072Z Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (516 kB)
+2026-06-12T16:35:04.9952249Z Downloading scikit_learn-1.9.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (9.3 MB)
+2026-06-12T16:35:05.0211088Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.3/9.3 MB 392.3 MB/s  0:00:00
+2026-06-12T16:35:05.0315785Z Downloading scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+2026-06-12T16:35:05.1174978Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 423.7 MB/s  0:00:00
+2026-06-12T16:35:05.1279500Z Downloading sentence_transformers-2.7.0-py3-none-any.whl (171 kB)
+2026-06-12T16:35:05.1406385Z Downloading transformers-4.57.6-py3-none-any.whl (12.0 MB)
+2026-06-12T16:35:05.1704996Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.0/12.0 MB 424.3 MB/s  0:00:00
+2026-06-12T16:35:05.1806431Z Downloading tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+2026-06-12T16:35:05.1910154Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 359.9 MB/s  0:00:00
+2026-06-12T16:35:05.2013189Z Downloading setuptools-81.0.0-py3-none-any.whl (1.1 MB)
+2026-06-12T16:35:05.2069285Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 212.1 MB/s  0:00:00
+2026-06-12T16:35:05.2169104Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-06-12T16:35:05.2291849Z Downloading starlette-1.2.1-py3-none-any.whl (73 kB)
+2026-06-12T16:35:05.2410884Z Downloading threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+2026-06-12T16:35:05.2540779Z Downloading torch-2.12.0-cp311-cp311-manylinux_2_28_x86_64.whl (532.2 MB)
+2026-06-12T16:35:08.4203373Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 532.2/532.2 MB 103.4 MB/s  0:00:03
+2026-06-12T16:35:08.4307343Z Downloading tqdm-4.68.2-py3-none-any.whl (78 kB)
+2026-06-12T16:35:08.4446148Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+2026-06-12T16:35:08.4566432Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2026-06-12T16:35:08.4690833Z Downloading tzdata-2026.2-py2.py3-none-any.whl (349 kB)
+2026-06-12T16:35:08.4820431Z Downloading uvicorn-0.49.0-py3-none-any.whl (71 kB)
+2026-06-12T16:35:08.4939481Z Downloading cuda_toolkit-13.0.2-py2.py3-none-any.whl (2.4 kB)
+2026-06-12T16:35:08.5063109Z Downloading nvidia_cudnn_cu13-9.20.0.48-py3-none-manylinux_2_27_x86_64.whl (366.2 MB)
+2026-06-12T16:35:10.2128108Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 366.2/366.2 MB 170.3 MB/s  0:00:01
+2026-06-12T16:35:10.2231962Z Downloading nvidia_cusparselt_cu13-0.8.1-py3-none-manylinux2014_x86_64.whl (170.1 MB)
+2026-06-12T16:35:10.6467711Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.1/170.1 MB 403.3 MB/s  0:00:00
+2026-06-12T16:35:10.6573822Z Downloading nvidia_nccl_cu13-2.29.7-py3-none-manylinux_2_18_x86_64.whl (206.0 MB)
+2026-06-12T16:35:12.3485229Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 206.0/206.0 MB 121.8 MB/s  0:00:01
+2026-06-12T16:35:12.3591699Z Downloading nvidia_nvshmem_cu13-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (60.4 MB)
+2026-06-12T16:35:12.5004712Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.4/60.4 MB 436.3 MB/s  0:00:00
+2026-06-12T16:35:12.5137512Z Downloading triton-3.7.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (201.4 MB)
+2026-06-12T16:35:13.4062017Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 201.4/201.4 MB 226.0 MB/s  0:00:00
+2026-06-12T16:35:13.4164991Z Downloading cuda_bindings-13.3.1-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (6.7 MB)
+2026-06-12T16:35:13.4416485Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.7/6.7 MB 283.1 MB/s  0:00:00
+2026-06-12T16:35:13.4520371Z Downloading hf_xet-1.5.1-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.5 MB)
+2026-06-12T16:35:13.4657411Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 374.9 MB/s  0:00:00
+2026-06-12T16:35:13.4759157Z Downloading nvidia_cublas-13.1.1.3-py3-none-manylinux_2_27_x86_64.whl (423.1 MB)
+2026-06-12T16:35:17.1098680Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 423.1/423.1 MB 76.8 MB/s  0:00:03
+2026-06-12T16:35:17.1211194Z Downloading nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl (10.7 MB)
+2026-06-12T16:35:17.1489871Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.7/10.7 MB 411.4 MB/s  0:00:00
+2026-06-12T16:35:17.1597182Z Downloading nvidia_cuda_nvrtc-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (90.2 MB)
+2026-06-12T16:35:17.3944171Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.2/90.2 MB 387.1 MB/s  0:00:00
+2026-06-12T16:35:17.4051589Z Downloading nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+2026-06-12T16:35:17.4136578Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 317.2 MB/s  0:00:00
+2026-06-12T16:35:17.4240127Z Downloading nvidia_cufft-12.0.0.61-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (214.1 MB)
+2026-06-12T16:35:18.0611930Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.1/214.1 MB 336.8 MB/s  0:00:00
+2026-06-12T16:35:18.0722252Z Downloading nvidia_cufile-1.15.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.2 MB)
+2026-06-12T16:35:18.0788310Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 214.8 MB/s  0:00:00
+2026-06-12T16:35:18.0893866Z Downloading nvidia_curand-10.4.0.35-py3-none-manylinux_2_27_x86_64.whl (59.5 MB)
+2026-06-12T16:35:18.2749629Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.5/59.5 MB 324.0 MB/s  0:00:00
+2026-06-12T16:35:18.2856318Z Downloading nvidia_cusolver-12.0.4.66-py3-none-manylinux_2_27_x86_64.whl (200.9 MB)
+2026-06-12T16:35:18.9108671Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.9/200.9 MB 322.5 MB/s  0:00:00
+2026-06-12T16:35:18.9210753Z Downloading nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (145.9 MB)
+2026-06-12T16:35:20.2451362Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 145.9/145.9 MB 110.2 MB/s  0:00:01
+2026-06-12T16:35:20.2560271Z Downloading nvidia_nvjitlink-13.0.88-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl (40.7 MB)
+2026-06-12T16:35:20.3506046Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.7/40.7 MB 437.5 MB/s  0:00:00
+2026-06-12T16:35:20.3624728Z Downloading nvidia_nvtx-13.0.85-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.whl (148 kB)
+2026-06-12T16:35:20.3759518Z Downloading cuda_pathfinder-1.5.5-py3-none-any.whl (51 kB)
+2026-06-12T16:35:20.3893221Z Downloading lxml-6.1.1-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+2026-06-12T16:35:20.4026057Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 437.5 MB/s  0:00:00
+2026-06-12T16:35:20.4132704Z Downloading narwhals-2.22.1-py3-none-any.whl (454 kB)
+2026-06-12T16:35:20.4268224Z Downloading networkx-3.6.1-py3-none-any.whl (2.1 MB)
+2026-06-12T16:35:20.4336867Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 366.9 MB/s  0:00:00
+2026-06-12T16:35:20.4434552Z Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
+2026-06-12T16:35:20.4589935Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 443.5 MB/s  0:00:00
+2026-06-12T16:35:20.4689798Z Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
+2026-06-12T16:35:20.4739197Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 88.8 MB/s  0:00:00
+2026-06-12T16:35:20.4838488Z Downloading pillow-12.2.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.1 MB)
+2026-06-12T16:35:20.5013242Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/7.1 MB 442.4 MB/s  0:00:00
+2026-06-12T16:35:23.4363447Z Installing collected packages: nvidia-cusparselt-cu13, mpmath, cuda-toolkit, urllib3, tzdata, typing_extensions, triton, tqdm, threadpoolctl, sympy, six, setuptools, safetensors, regex, PyYAML, Pillow, packaging, nvidia-nvtx, nvidia-nvshmem-cu13, nvidia-nvjitlink, nvidia-nccl-cu13, nvidia-curand, nvidia-cufile, nvidia-cuda-runtime, nvidia-cuda-nvrtc, nvidia-cuda-cupti, numpy, networkx, narwhals, MarkupSafe, lxml, joblib, idna, hf-xet, h11, fsspec, filelock, cuda-pathfinder, colorama, click, charset-normalizer, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, scipy, requests, python-docx, python-dateutil, pydantic_core, nvidia-cusparse, nvidia-cufft, nvidia-cublas, Jinja2, cuda-bindings, anyio, starlette, scikit-learn, pydantic, pandas, nvidia-cusolver, nvidia-cudnn-cu13, huggingface_hub, tokenizers, fastapi, transformers, torch, sentence-transformers
+2026-06-12T16:35:31.6371448Z   Attempting uninstall: setuptools
+2026-06-12T16:35:31.6388233Z     Found existing installation: setuptools 79.0.1
+2026-06-12T16:35:31.8012677Z     Uninstalling setuptools-79.0.1:
+2026-06-12T16:35:31.8384190Z       Successfully uninstalled setuptools-79.0.1
+2026-06-12T16:36:10.5447525Z 
+2026-06-12T16:36:10.5476051Z Successfully installed Jinja2-3.1.6 MarkupSafe-3.0.3 Pillow-12.2.0 PyYAML-6.0.3 annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.13.0 certifi-2026.5.20 charset-normalizer-3.4.7 click-8.4.1 colorama-0.4.6 cuda-bindings-13.3.1 cuda-pathfinder-1.5.5 cuda-toolkit-13.0.2 fastapi-0.136.3 filelock-3.29.3 fsspec-2026.4.0 h11-0.16.0 hf-xet-1.5.1 huggingface_hub-0.36.2 idna-3.18 joblib-1.5.3 lxml-6.1.1 mpmath-1.3.0 narwhals-2.22.1 networkx-3.6.1 numpy-2.4.6 nvidia-cublas-13.1.1.3 nvidia-cuda-cupti-13.0.85 nvidia-cuda-nvrtc-13.0.88 nvidia-cuda-runtime-13.0.96 nvidia-cudnn-cu13-9.20.0.48 nvidia-cufft-12.0.0.61 nvidia-cufile-1.15.1.6 nvidia-curand-10.4.0.35 nvidia-cusolver-12.0.4.66 nvidia-cusparse-12.6.3.3 nvidia-cusparselt-cu13-0.8.1 nvidia-nccl-cu13-2.29.7 nvidia-nvjitlink-13.0.88 nvidia-nvshmem-cu13-3.4.5 nvidia-nvtx-13.0.85 packaging-26.2 pandas-3.0.3 pydantic-2.13.4 pydantic_core-2.46.4 python-dateutil-2.9.0.post0 python-docx-1.2.0 regex-2026.5.9 requests-2.34.2 safetensors-0.8.0 scikit-learn-1.9.0 scipy-1.17.1 sentence-transformers-2.7.0 setuptools-81.0.0 six-1.17.0 starlette-1.2.1 sympy-1.14.0 threadpoolctl-3.6.0 tokenizers-0.22.2 torch-2.12.0 tqdm-4.68.2 transformers-4.57.6 triton-3.7.0 typing-inspection-0.4.2 typing_extensions-4.15.0 tzdata-2026.2 urllib3-2.7.0 uvicorn-0.49.0
+2026-06-12T16:36:10.8142493Z ##[group]Run python rank.py --candidates ./data/sample_candidates.json --jd ./data/job_description.txt --out /tmp/test_submission.csv
+2026-06-12T16:36:10.8143365Z [36;1mpython rank.py --candidates ./data/sample_candidates.json --jd ./data/job_description.txt --out /tmp/test_submission.csv[0m
+2026-06-12T16:36:10.8164947Z shell: /usr/bin/bash -e {0}
+2026-06-12T16:36:10.8165206Z env:
+2026-06-12T16:36:10.8165476Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:36:10.8165899Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+2026-06-12T16:36:10.8166316Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:36:10.8166685Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:36:10.8167060Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+2026-06-12T16:36:10.8167427Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+2026-06-12T16:36:10.8167740Z ##[endgroup]
+2026-06-12T16:36:10.8290347Z python: can't open file '/home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters/rank.py': [Errno 2] No such file or directory
+2026-06-12T16:36:10.8319250Z ##[error]Process completed with exit code 2.
+2026-06-12T16:36:10.8431071Z Post job cleanup.
+2026-06-12T16:36:10.9320940Z [command]/usr/bin/git version
+2026-06-12T16:36:10.9352068Z git version 2.54.0
+2026-06-12T16:36:10.9389865Z Temporarily overriding HOME='/home/runner/work/_temp/d1346487-64eb-40cf-be08-d854f76e4e95' before making global git config changes
+2026-06-12T16:36:10.9391120Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-12T16:36:10.9396405Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Resume-Ranker-for-Recruiters/Resume-Ranker-for-Recruiters
+2026-06-12T16:36:10.9427584Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-12T16:36:10.9453541Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-12T16:36:10.9620018Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-12T16:36:10.9639890Z http.https://github.com/.extraheader
+2026-06-12T16:36:10.9650946Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-06-12T16:36:10.9675087Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-12T16:36:10.9838862Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-12T16:36:10.9863795Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-12T16:36:11.0125182Z Cleaning up orphan processes
+2026-06-12T16:36:11.0425781Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/setup-python@v5. Actions will be forced to run with Node.js 24 by default starting June 16th, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
