@@ -239,8 +239,11 @@ def build_reasoning(
         s["name"] for s in skills
         if s.get("name", "").lower() in jd_skills_lower
     ]
+    display_names = matched_display[:5]
+    overflow = len(matched_display) - len(display_names)
+    overflow_str = f" (+{overflow} more)" if overflow > 0 else ""
     matched_skills_str = (
-        f"{len(matched_display)} required skill(s) matched: {', '.join(matched_display[:5])}"
+        f"{len(matched_display)} required skill(s) matched: {', '.join(display_names)}{overflow_str}"
         if matched_display
         else "no required skills matched"
     )
