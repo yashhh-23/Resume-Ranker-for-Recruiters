@@ -19,4 +19,5 @@ jobs:
             --out /tmp/test_submission.csv
       - name: Validate submission
         working-directory: backend
-        run: python dataset/validate_submission.py --submission /tmp/test_submission.csv
+        run: python dataset/validate_submission.py /tmp/test_submission.csv
+
