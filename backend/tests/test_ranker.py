@@ -27,13 +27,13 @@ def test_score_education():
     assert score_education(cand_no_edu_no_exp, jd) == 0.0
 
     cand_no_edu_low_exp = {"education": [], "profile": {"years_of_experience": 2}}
-    assert score_education(cand_no_edu_low_exp, jd) == 0.1
+    assert score_education(cand_no_edu_low_exp, jd) == 0.05
 
     cand_no_edu_med_exp = {"education": [], "profile": {"years_of_experience": 7}}
-    assert score_education(cand_no_edu_med_exp, jd) == 0.3
+    assert score_education(cand_no_edu_med_exp, jd) == 0.175
 
     cand_no_edu_high_exp = {"education": [], "profile": {"years_of_experience": 12}}
-    assert score_education(cand_no_edu_high_exp, jd) == 0.5
+    assert score_education(cand_no_edu_high_exp, jd) == 0.3
 
     cand_phd = {
         "education": [
