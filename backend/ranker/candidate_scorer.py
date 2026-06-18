@@ -292,16 +292,23 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     target_field = jd.get("target_field") or "Computer Science"
 
     best = 0.0
-    DEGREE_WEIGHT = {"phd": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
+    DEGREE_WEIGHT = {"phd": 1.0, "ph.d": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
     for item in education_list:
         tier = EDUCATION_TIER_WEIGHT.get(
             str(item.get("tier") or "unknown").lower(), 0.2
         )
+        field = str(item.get("field_of_study") or "").lower()
         field_match = (
-            1.0 if text_match(item.get("field_of_study"), target_field) > 0 else 0.4
+            1.0 if text_match(field, target_field) > 0 else 0.4
         )
         degree = str(item.get("degree") or "").lower()
         degree_mult = next((v for k, v in DEGREE_WEIGHT.items() if k in degree), 0.6)
+
+        # Domain relevance penalty: cap off-domain degrees severely
+        core_domains = ["computer", "data", "machine", "artificial", "software", "information", "it", "cs", "ai", "math", "statistic", "quantitative"]
+        if not any(d in field for d in core_domains):
+            degree_mult = min(degree_mult, 0.4)  # 40% cap for completely irrelevant degrees
+
         best = max(best, tier * field_match * degree_mult)
 
     return clamp(best)
