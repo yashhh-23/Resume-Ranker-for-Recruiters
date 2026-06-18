@@ -1,0 +1,25 @@
+[
+  {
+    "candidate_id": "cand_test_json",
+    "name": "Jane Doe",
+    "profile": {
+      "years_of_experience": 8,
+      "headline": "Senior Data Engineer",
+      "summary": "Experienced in building scalable data pipelines",
+      "current_title": "Data Engineer",
+      "current_industry": "Tech"
+    },
+    "skills": [
+      {"name": "Python", "proficiency": "expert", "endorsements": 50},
+      {"name": "SQL", "proficiency": "advanced", "endorsements": 10}
+    ],
+    "career_history": [
+      {
+        "title": "Data Engineer",
+        "start_date": "2018-01-01",
+        "end_date": "present",
+        "industry": "Tech"
+      }
+    ]
+  }
+]

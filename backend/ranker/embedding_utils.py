@@ -3,8 +3,8 @@ import pickle
 from pathlib import Path
 from typing import Dict, Iterable, List
 
+from collections import OrderedDict
 import numpy as np
-
 
 CACHE_VERSION = "rrr-embeddings-v1"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -41,10 +41,7 @@ def candidate_embedding_text(candidate: Dict) -> str:
     )
 
     career_history = candidate.get("career_history") or []
-    career_titles = " ".join(
-        str(role.get("title") or "")
-        for role in career_history
-    )
+    career_titles = " ".join(str(role.get("title") or "") for role in career_history)
 
     return " ".join([profile_text, career_titles, " ".join(skill_tokens)]).strip()
 
@@ -52,40 +49,67 @@ def candidate_embedding_text(candidate: Dict) -> str:
 def cache_key(candidate: Dict) -> str:
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     text = candidate_embedding_text(candidate)
-    digest = hashlib.sha256(f"{CACHE_VERSION}|{candidate_id}|{text}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(
+        f"{CACHE_VERSION}|{candidate_id}|{text}".encode("utf-8")
+    ).hexdigest()
     return f"{candidate_id}:{digest}"
 
 
-def load_cache(cache_path: str = ".embedding_cache.pkl") -> Dict[str, np.ndarray]:
-    path = Path(cache_path)
-    if not path.exists():
-        return {}
-    try:
-        with path.open("rb") as handle:
-            payload = pickle.load(handle)
-        if payload.get("version") != CACHE_VERSION:
-            return {}
-        return payload.get("embeddings") or {}
-    except Exception:
-        return {}
+MAX_CACHE_ENTRIES = 20_000  # ~30MB cap for 384-dim embeddings
 
 
-def save_cache(cache: Dict[str, np.ndarray], cache_path: str = ".embedding_cache.pkl") -> None:
-    path = Path(cache_path)
-    with path.open("wb") as handle:
-        pickle.dump({"version": CACHE_VERSION, "embeddings": cache}, handle)
+class LRUEmbeddingCache:
+    def __init__(self, maxsize: int = MAX_CACHE_ENTRIES):
+        self._cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self._maxsize = maxsize
+
+    def get(self, key: str):
+        if key in self._cache:
+            self._cache.move_to_end(key)
+            return self._cache[key]
+        return None
+
+    def set(self, key: str, value: np.ndarray):
+        if key in self._cache:
+            self._cache.move_to_end(key)
+        self._cache[key] = value
+        if len(self._cache) > self._maxsize:
+            self._cache.popitem(last=False)  # evict oldest
+
+
+_EMBEDDING_CACHE = LRUEmbeddingCache()
+
+
+ENCODE_BATCH_SIZE = 64  # Safe for 512MB RAM on CPU
 
 
 def embed_texts(model, texts: Iterable[str]) -> np.ndarray:
-    return np.asarray(
-        model.encode(
-            list(texts),
-            batch_size=64,
-            show_progress_bar=False,
-            normalize_embeddings=True,
-        ),
-        dtype=np.float32,
-    )
+    texts = list(texts)
+    if not texts:
+        return np.array([])
+    if len(texts) <= ENCODE_BATCH_SIZE:
+        return np.asarray(
+            model.encode(
+                texts,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+                normalize_embeddings=True,
+            ),
+            dtype=np.float32,
+        )
+    # Batch encode for large inputs
+    results = []
+    for i in range(0, len(texts), ENCODE_BATCH_SIZE):
+        batch = texts[i : i + ENCODE_BATCH_SIZE]
+        results.append(
+            model.encode(
+                batch,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+                normalize_embeddings=True,
+            )
+        )
+    return np.asarray(np.vstack(results), dtype=np.float32)
 
 
 def get_candidate_embeddings(
@@ -93,14 +117,14 @@ def get_candidate_embeddings(
     model,
     cache_path: str = ".embedding_cache.pkl",
 ) -> Dict[str, np.ndarray]:
-    cache = load_cache(cache_path)
+    cache = _EMBEDDING_CACHE
     missing_candidates = []
     missing_keys = []
     missing_texts = []
 
     for candidate in candidates:
         key = cache_key(candidate)
-        if key not in cache:
+        if cache.get(key) is None:
             missing_candidates.append(candidate)
             missing_keys.append(key)
             missing_texts.append(candidate_embedding_text(candidate))
@@ -108,10 +132,29 @@ def get_candidate_embeddings(
     if missing_texts:
         vectors = embed_texts(model, missing_texts)
         for key, vector in zip(missing_keys, vectors):
-            cache[key] = vector
-        save_cache(cache, cache_path)
+            cache.set(key, vector)
 
-    return {str(candidate.get("candidate_id") or candidate.get("id") or ""): cache[cache_key(candidate)] for candidate in candidates}
+    result = {}
+    for candidate in candidates:
+        cid = str(candidate.get("candidate_id") or candidate.get("id") or "")
+        vec = cache.get(cache_key(candidate))
+        if vec is not None:
+            result[cid] = vec
+    return result
+
+
+def get_jd_embedding(
+    jd: dict, model, cache_path: str = ".embedding_cache.pkl"
+) -> np.ndarray:
+    skills_text = str(jd.get("skills_text") or "")
+    jd_key = "jd:" + hashlib.md5(skills_text.encode()).hexdigest()
+    cache = _EMBEDDING_CACHE
+    cached = cache.get(jd_key)
+    if cached is not None:
+        return cached
+    embedding = embed_texts(model, [skills_text])[0]
+    cache.set(jd_key, embedding)
+    return embedding
 
 
 def cosine_similarity(left: np.ndarray, right: np.ndarray) -> float:

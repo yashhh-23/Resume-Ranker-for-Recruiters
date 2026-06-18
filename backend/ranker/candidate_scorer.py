@@ -1,13 +1,20 @@
 import math
 import re
+import sys
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from .embedding_utils import cosine_similarity, embed_texts, get_candidate_embeddings, load_model
+from .embedding_utils import (
+    cosine_similarity,
+    embed_texts,
+    get_candidate_embeddings,
+    get_jd_embedding,
+    load_model,
+)
 from .signal_scorer import clamp, safe_float, score_availability, score_signal_modifier
-
+from .validators import validate_candidate
 
 WEIGHTS = {
     "skill_match": 0.35,
@@ -29,9 +36,15 @@ EDUCATION_TIER_WEIGHT = {
 
 
 COMPOUND_SKILLS = [
-    "machine learning", "deep learning", "natural language processing",
-    "apache kafka", "apache spark", "power bi", "google cloud"
+    "machine learning",
+    "deep learning",
+    "natural language processing",
+    "apache kafka",
+    "apache spark",
+    "power bi",
+    "google cloud",
 ]
+
 
 def tokenize(text: Any) -> set:
     text_str = str(text or "").lower()
@@ -64,29 +77,43 @@ def years_ago(value: Any) -> float:
     return months / 12.0
 
 
-PROFICIENCY_MAP = {
-    "beginner": 0.1,
-    "intermediate": 0.3,
-    "advanced": 0.6,
-    "expert": 1.0
+PROFICIENCY_WEIGHTS = {
+    "expert": 1.0,
+    "advanced": 0.85,
+    "intermediate": 0.65,
+    "beginner": 0.35,
 }
+
 
 def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     required = [s.lower() for s in jd.get("required_skills", [])]
     if not required:
         return 1.0  # no hard requirements = full score
-    
+
     matched_score = 0.0
     for r in required:
         best_level = 0.0
-        for s in (candidate.get("skills") or []):
+        for s in candidate.get("skills") or []:
             cs = s.get("name", "").lower()
             if r in cs or cs in r:
                 level = str(s.get("proficiency") or "intermediate").lower().strip()
-                best_level = max(best_level, PROFICIENCY_MAP.get(level, 0.5))
+                best_level = max(best_level, PROFICIENCY_WEIGHTS.get(level, 0.65))
         matched_score += best_level
 
-    return clamp(matched_score / len(required))
+    base_coverage = matched_score / len(required)
+
+    preferred = [s.lower() for s in jd.get("preferred_skills", [])]
+    if preferred:
+        pref_matched = sum(
+            1
+            for p in preferred
+            if any(
+                p in s.get("name", "").lower() for s in (candidate.get("skills") or [])
+            )
+        )
+        preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
+        return clamp(base_coverage + preferred_bonus)
+    return clamp(base_coverage)
 
 
 def score_skill_match(
@@ -96,14 +123,16 @@ def score_skill_match(
     candidate: Dict[str, Any] = None,
     jd: Dict[str, Any] = None,
 ) -> float:
-    base = clamp((cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) + 1.0) / 2.0)
+    base = clamp(
+        (cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) + 1.0)
+        / 2.0
+    )
 
     # Endorsement multiplier: rewards peer-validated competence
     skills = (candidate or {}).get("skills") or []
     if skills:
         boosts = [
-            min(1.0, 0.5 + (skill.get("endorsements", 0) / 20.0))
-            for skill in skills
+            min(1.0, 0.5 + (skill.get("endorsements", 0) / 20.0)) for skill in skills
         ]
         endorsement_boost = sum(boosts) / len(boosts)
     else:
@@ -114,31 +143,59 @@ def score_skill_match(
     return clamp(blended_skill)
 
 
-def recency_weight(duration_months_ago: int) -> float:
-    return math.exp(-0.693 * duration_months_ago / 36)
+def recency_weight(duration_months_ago: float, seniority: str = "mid") -> float:
+    half_life = {"junior": 18, "mid": 36, "senior": 60, "lead": 72}.get(seniority, 36)
+    return math.exp(-0.693 * duration_months_ago / half_life)
+
+
+def _seniority_score(candidate_years: float, jd_seniority: str) -> float:
+    """Returns 0.0-1.0 based on how well candidate experience aligns with JD seniority."""
+    bands = {
+        "junior": (0, 2),
+        "mid": (2, 5),
+        "senior": (5, 10),
+        "lead": (8, 99),
+    }
+    low, high = bands.get(jd_seniority, (0, 99))
+    if candidate_years < low:
+        # Under-qualified: linear decay from low boundary
+        return clamp(candidate_years / max(low, 1))
+    elif candidate_years > high + 5:
+        # Massively over-qualified (e.g., 20yr for junior role): slight penalty
+        return 0.7
+    return 1.0
+
 
 def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     target_title = jd.get("target_title") or ""
     target_industry = jd.get("target_industry") or ""
     min_experience = safe_float(jd.get("min_experience_years"), 0.0)
     profile = candidate.get("profile") or {}
+    seniority = jd.get("seniority_level", "mid")
+    years_exp = safe_float(profile.get("years_of_experience"))
+    seniority_align = _seniority_score(years_exp, seniority)
 
     raw_score = 0.0
     career_history = candidate.get("career_history") or []
     for role in career_history:
         months_ago = years_ago(role.get("start_date")) * 12
-        decay = recency_weight(months_ago)
+        decay = recency_weight(months_ago, seniority)
         title_score = text_match(role.get("title"), target_title)
-        industry_score = 1.0 if str(target_industry).lower() == "any" else text_match(role.get("industry"), target_industry)
+        industry_score = (
+            1.0
+            if str(target_industry).lower() == "any"
+            else text_match(role.get("industry"), target_industry)
+        )
         raw_score += decay * (0.6 * title_score + 0.4 * industry_score)
 
     role_score = raw_score / max(1, len(career_history))
 
     exp_score = 0.0
     if min_experience > 0:
-        exp_score = clamp(safe_float(profile.get("years_of_experience")) / min_experience)
+        exp_score = clamp(years_exp / min_experience)
 
-    return clamp(role_score * 0.7 + exp_score * 0.3)
+    gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
+    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -161,8 +218,12 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     best = 0.0
     DEGREE_WEIGHT = {"phd": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
     for item in education:
-        tier = EDUCATION_TIER_WEIGHT.get(str(item.get("tier") or "unknown").lower(), 0.2)
-        field_match = 1.0 if text_match(item.get("field_of_study"), target_field) > 0 else 0.4
+        tier = EDUCATION_TIER_WEIGHT.get(
+            str(item.get("tier") or "unknown").lower(), 0.2
+        )
+        field_match = (
+            1.0 if text_match(item.get("field_of_study"), target_field) > 0 else 0.4
+        )
         degree = str(item.get("degree") or "").lower()
         degree_mult = next((v for k, v in DEGREE_WEIGHT.items() if k in degree), 0.6)
         best = max(best, tier * field_match * degree_mult)
@@ -170,14 +231,18 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     return clamp(best)
 
 
-def build_reasoning(candidate: Dict[str, Any], breakdown: Dict[str, float], jd: Dict[str, Any]) -> str:
+def build_reasoning(
+    candidate: Dict[str, Any], breakdown: Dict[str, float], jd: Dict[str, Any]
+) -> str:
     profile = candidate.get("profile") or {}
     signals = candidate.get("redrob_signals") or {}
     title = profile.get("current_title") or profile.get("headline") or "Candidate"
     years = safe_float(profile.get("years_of_experience"))
     skills = candidate.get("skills") or []
-    jd_required = set(s.lower() for s in jd.get("raw_required_skills", jd.get("required_skills", [])))
-    matched_skills = sum(1 for s in skills if s.get("name","").lower() in jd_required)
+    jd_required = set(
+        s.lower() for s in jd.get("raw_required_skills", jd.get("required_skills", []))
+    )
+    matched_skills = sum(1 for s in skills if s.get("name", "").lower() in jd_required)
     response_rate = safe_float(signals.get("recruiter_response_rate"))
     top_component = max(breakdown, key=breakdown.get).replace("_", " ")
 
@@ -203,7 +268,9 @@ def score_candidate(
     signals = candidate.get("redrob_signals") or {}
 
     breakdown = {
-        "skill_match": score_skill_match(candidate_id, jd_embedding, candidate_embeddings, candidate, jd),
+        "skill_match": score_skill_match(
+            candidate_id, jd_embedding, candidate_embeddings, candidate, jd
+        ),
         "career_fit": score_career_fit(candidate, jd),
         "signal_modifier": score_signal_modifier(signals, jd),
         "education": score_education(candidate, jd),
@@ -212,6 +279,90 @@ def score_candidate(
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
+
+    profile = candidate.get("profile") or {}
+    years = safe_float(profile.get("years_of_experience"))
+    skills = candidate.get("skills") or []
+
+    jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
+    candidate_skill_names = {s.get("name", "").lower() for s in skills if s.get("name")}
+    matched = [r for r in jd_required_list if r.lower() in candidate_skill_names]
+    missing = [r for r in jd_required_list if r.lower() not in candidate_skill_names]
+
+    seen = set()
+    missing_dedup = [
+        x for x in missing if not (x.lower() in seen or seen.add(x.lower()))
+    ]
+    missing_preview = ", ".join(missing_dedup[:3]) + (
+        "..." if len(missing_dedup) > 3 else ""
+    )
+
+    preferred_jd = jd.get("preferred_skills", [])
+    preferred_matched = [p for p in preferred_jd if p.lower() in candidate_skill_names]
+
+    skill_match_desc = (
+        f"{len(matched)}/{len(jd_required_list)} required skills matched"
+        + (
+            f"; missing: {missing_preview}"
+            if missing_dedup
+            else "; all required skills present"
+        )
+        + (
+            f"; {len(preferred_matched)}/{len(preferred_jd)} preferred skills matched"
+            if preferred_jd
+            else ""
+        )
+    )
+
+    career_history = candidate.get("career_history") or []
+    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+    response_rate = safe_float(signals.get("recruiter_response_rate"))
+    github_score = safe_float(signals.get("github_activity_score"), 0.0)
+    notice_days = safe_float(signals.get("notice_period_days"), 180.0)
+    open_flag = signals.get("open_to_work_flag", False)
+    reloc = signals.get("willing_to_relocate", False)
+
+    flags = validate_candidate(candidate)
+
+    education_list = candidate.get("education") or []
+    best_degree = "No degree listed"
+    best_tier = "unknown"
+    best_field = "unknown"
+    if education_list:
+        best_edu = max(
+            education_list,
+            key=lambda e: next(
+                (
+                    v
+                    for k, v in {
+                        "phd": 4,
+                        "master": 3,
+                        "bachelor": 2,
+                        "diploma": 1,
+                    }.items()
+                    if k in str(e.get("degree", "")).lower()
+                ),
+                0,
+            ),
+            default={},
+        )
+        best_degree = best_edu.get("degree", "No degree listed")
+        best_tier = best_edu.get("tier", "unknown")
+        best_field = best_edu.get("field_of_study", "unknown")
+
+    education_desc = (
+        f"Best: {best_degree} ({best_field}), {best_tier} tier; {years:.1f}y exp"
+    )
+
+    reasoning_str = build_reasoning(candidate, rounded_breakdown, jd)
+    if flags:
+        flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
+        try:
+            encoding = sys.stdout.encoding if sys.stdout else None
+        except Exception:
+            encoding = None
+        WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
+        reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
 
     return {
         "candidate_id": candidate_id,
@@ -223,7 +374,19 @@ def score_candidate(
             "activity": rounded_breakdown["signal_modifier"],
             **rounded_breakdown,
         },
-        "reasoning": build_reasoning(candidate, rounded_breakdown, jd),
+        "reasoning": reasoning_str,
+        "signal_reasoning": {
+            "skill_match": skill_match_desc,
+            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}",
+            "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
+            "education": education_desc,
+            "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
+        },
+        "compliance_flags": flags,
+        "is_suspicious": len(flags) > 0,
+        "profile_completeness": round(
+            safe_float(signals.get("profile_completeness_score", 0.0))
+        ),
     }
 
 
@@ -234,19 +397,23 @@ def rank_candidates(
     cache_path: str = ".embedding_cache.pkl",
     limit: Optional[int] = 100,
 ) -> List[Dict[str, Any]]:
-    valid_candidates = [candidate for candidate in candidates if isinstance(candidate, dict)]
+    valid_candidates = [
+        candidate for candidate in candidates if isinstance(candidate, dict)
+    ]
     if not valid_candidates:
         return []
 
     model = model or load_model()
-    jd_embedding = embed_texts(model, [str(jd.get("skills_text") or "")])[0]
-    candidate_embeddings = get_candidate_embeddings(valid_candidates, model, cache_path=cache_path)
+    jd_embedding = get_jd_embedding(jd, model, cache_path=cache_path)
+    candidate_embeddings = get_candidate_embeddings(
+        valid_candidates, model, cache_path=cache_path
+    )
 
     scored = [
         score_candidate(candidate, jd, jd_embedding, candidate_embeddings)
         for candidate in valid_candidates
     ]
-    scored.sort(key=lambda row: (-row["score"], row["candidate_id"]))
+    scored.sort(key=lambda x: (-x["score"], str(x.get("candidate_id", ""))))
 
     if limit is not None:
         scored = scored[:limit]
