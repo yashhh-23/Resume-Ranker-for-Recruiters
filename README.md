@@ -496,21 +496,128 @@ Ranks a list of candidates against a job description.
 
 ## 🕹️ System Usage Guide & Walkthrough
 
-Now that your local servers are up and running, follow this step-by-step guide to interact with the system and test candidate ranking:
+This interactive flowchart maps out the complete operational workflow. **Click on any step card below the diagram** to expand detailed, step-by-step instructions for beginners.
 
-1. **Passphrase Access**: Navigate to `http://localhost:5173`. Enter the demo passphrase: **`hackathon2026`** (pre-loaded in `frontend/.env`). This passphrase is used to initialize **AES-256 client-side encryption** via `crypto-js` to protect talent pool storage locally in `localStorage`.
-2. **Ingest Requirements**: In the **Input Panel** (left side), click **"Load Hackathon Demo"**. This pre-loads a realistic Backend/Data Engineer job description and candidate profiles list.
-3. **Execute Ranker**: Click the blue **"Run Candidate Discovery Matrix"** button. An animated staged loader displays the processing steps:
-   * *Phase 1: Ingesting & parsing requirements...*
-   * *Phase 2: Running local Transformer embeddings...*
-   * *Phase 3: Calculating multi-signal modifiers...*
-4. **Explore Shortlist**: Scroll through the ranked candidate grid. You can sort by final score, experience, skill match, or availability. Click any candidate card to open their full details.
-5. **Inspect Timeline & Skill Gap**: In the details modal, check:
-   * **Employment Timeline**: Visual chronographic timeline identifying anomalies (e.g. overlapping start/end dates).
-   * **JD Skill Gap Analysis**: A proficiency-badged listing of matched vs missing skills.
-6. **Compare Candidates**: Check the select box on 2 or 3 candidates and click the yellow **"Compare Selected"** button. This renders an overlay with a `Recharts` 5-signal radar chart and comparative table.
-7. **Save & Persist**: Click **"Save to Talent Pool"** to encrypt and persist a candidate to the local talent pool.
-8. **Compliance Export**: Click the green **"Export CSV"** button in the shortlist controls to download `submission.csv`, formatted in the exact required columns: `candidate_id,rank,score,reasoning`.
+```mermaid
+graph TD
+    A["🔑 Step 1: Access & Passphrase Gate"] --> B["📥 Step 2: Ingest Job & Candidates"]
+    B --> C["⚙️ Step 3: Run Evaluation & Ranker"]
+    C --> D["🔍 Step 4: Audit Flags & Timelines"]
+    D --> E["📊 Step 5: Head-to-Head Radar Compare"]
+    E --> F["💾 Step 6: Encrypt & Save to Pool"]
+    F --> G["📥 Step 7: Export Compliance CSV"]
+```
+
+### 🔽 Interactive Step-by-Step Details
+
+<details>
+<summary><b>🔑 Step 1: Access & Passphrase Gate</b></summary>
+
+#### Main Idea:
+Unlock the secure local workspace and initialize browser-side cryptography.
+
+#### How to do it (for beginners):
+1. Open your web browser and navigate to **`http://localhost:5173`**.
+2. You will be greeted by the **Passphrase Gate** dialog box.
+3. Enter the default demo passphrase: **`hackathon2026`** (this is pre-configured in `frontend/.env`).
+4. Press **Enter** or click **Unlock Workspace**.
+5. *Under the hood:* The web application uses this passphrase as a cryptographic key to set up **AES-256 client-side encryption** via `crypto-js`. This ensures that your private talent pools remain encrypted locally inside your browser's database (`localStorage`) and are never sent to external servers.
+
+</details>
+
+<details>
+<summary><b>📥 Step 2: Ingest Job & Candidates</b></summary>
+
+#### Main Idea:
+Import the recruitment target (Job Description) and the candidates to evaluate.
+
+#### How to do it (for beginners):
+1. Locate the **Input Panel** on the left side of the dashboard.
+2. Click the yellow-bordered **"Load Hackathon Demo"** button. This will instantly fill the fields with a pre-configured Backend / Data Engineer scenario.
+3. Alternatively, you can:
+   - Paste a raw text Job Description into the **Job Description** text area.
+   - Upload or paste candidate profiles in JSON/JSONL format into the **Candidates JSON** text area.
+4. Review the extracted skills and requirements that appear in the preview box.
+
+</details>
+
+<details>
+<summary><b>⚙️ Step 3: Run Evaluation & Ranker</b></summary>
+
+#### Main Idea:
+Calculate multi-signal scores and sort the talent pool.
+
+#### How to do it (for beginners):
+1. Click the blue **"Run Candidate Discovery Matrix"** button at the bottom of the input panel.
+2. An animated loading display will appear, showing the pipeline progress through three distinct phases:
+   - **Phase 1: Parsing job requirements** (extracting required experience levels and technical skills).
+   - **Phase 2: Computing semantic embeddings** (mapping profiles against the JD using the local `all-MiniLM-L6-v2` embedding model).
+   - **Phase 3: Applying signal modifiers** (processing RedRob recruiter response rates and test telemetry).
+3. Once completed (usually 1–2 seconds), the grid on the right side of the screen will render all ranked candidates, ordered from highest score to lowest.
+
+</details>
+
+<details>
+<summary><b>🔍 Step 4: Audit Flags & Timelines</b></summary>
+
+#### Main Idea:
+Inspect candidate skill profiles and audit automatically generated timeline warning flags.
+
+#### How to do it (for beginners):
+1. Scroll through the ranked results grid.
+2. Click on any candidate's card. This opens their comprehensive **Candidate Profile Modal**.
+3. Review the following sections:
+   - **JD Skill Gap Analysis**: Displays matched and missing skills side-by-side, badged by proficiency (Expert, Advanced, Intermediate, Beginner).
+   - **Employment Timeline**: A visual horizontal/vertical career line auditing role durations. Look out for yellow warning badges alerting you of timeline anomalies (e.g. overlapping employment periods or impossible gaps).
+
+</details>
+
+<details>
+<summary><b>📊 Step 5: Head-to-Head Radar Compare</b></summary>
+
+#### Main Idea:
+Perform side-by-side comparison of top candidates across the five dimensions of the scoring matrix.
+
+#### How to do it (for beginners):
+1. On the candidate list grid, check the selection checkbox located in the top-left corner of 2 or 3 candidate cards.
+2. A yellow comparison tray will slide up from the bottom of the screen.
+3. Click the yellow **"Compare Selected (X)"** button.
+4. This opens a visual overlay containing a **Recharts Multi-Axis Radar Chart** mapping out the candidates' scores across:
+   - `Skill Match`
+   - `Career Fit`
+   - `Signal Modifier`
+   - `Education`
+   - `Availability`
+5. Below the chart, review the side-by-side tabular data summarizing their key statistics (experience, location, notice period, and core matched skills).
+
+</details>
+
+<details>
+<summary><b>💾 Step 6: Encrypt & Save to Pool</b></summary>
+
+#### Main Idea:
+Store shortlisted candidates securely in local browser memory.
+
+#### How to do it (for beginners):
+1. Inside any Candidate Profile modal, click the **"Save to Talent Pool"** button.
+2. The candidate's data will be encrypted using the passphrase key generated in Step 1 and saved into your browser's local storage database.
+3. You can review, load, or clear saved candidates at any time by opening the **Talent Pool Sidebar** on the left side of the app.
+
+</details>
+
+<details>
+<summary><b>📥 Step 7: Export Compliance CSV</b></summary>
+
+#### Main Idea:
+Generate the official hackathon submission file.
+
+#### How to do it (for beginners):
+1. In the bottom-right panel or top of the candidate shortlist, click the green **"Export CSV"** button.
+2. Your browser will download `submission.csv`.
+3. Open the file to verify it contains exactly **100 rows** (plus a header row) sorted by rank, in the exact column sequence: `candidate_id,rank,score,reasoning`.
+4. The generated reasoning strings are fact-based and non-templated, summarizing exact candidate details and specific warnings, fully compliant with the Redrob manual evaluation guidelines.
+
+</details>
 
 ---
 
