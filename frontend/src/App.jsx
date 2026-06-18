@@ -58,6 +58,15 @@ const App = () => {
     setPoolCandidate(null);
   };
 
+  const handleResetWorkspace = () => {
+    setJobDescription("");
+    setCandidates([]);
+    setRankedResults([]);
+    setSelectedCandidateId(null);
+    setPoolCandidate(null);
+    setError(null);
+  };
+
   // ─── Main state ───────────────────────────────────────────────────────────
   const [jobDescription, setJobDescription] = useState("");
   const [candidates, setCandidates] = useState([]);
@@ -67,6 +76,7 @@ const App = () => {
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [talentPools, setTalentPools] = useState([]);
   const [poolCandidate, setPoolCandidate] = useState(null);
+  const [executionTime, setExecutionTime] = useState(null);
 
   // Talent pools are loaded after authentication — no automatic load on mount
 
@@ -189,12 +199,15 @@ const App = () => {
 
     setError(null);
     setIsLoading(true);
+    const startTime = performance.now();
 
     try {
       const results = await rankCandidates({
         jobDescription,
         candidates,
       });
+      const endTime = performance.now();
+      setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
       setRankedResults(normalizeRankedResults(results, candidates));
       setRunCount((prev) => prev + 1);
       
@@ -204,6 +217,8 @@ const App = () => {
       }
     } catch (err) {
       const fallback = computeFallbackRanking(candidates);
+      const endTime = performance.now();
+      setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
       setRankedResults(fallback);
       setRunCount((prev) => prev + 1);
       setError(
@@ -238,6 +253,14 @@ const App = () => {
             <LockIcon className="h-2.5 w-2.5 shrink-0" />
             <span>Encrypted Locally</span>
           </div>
+          <a
+            href="https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-white rounded transition-colors"
+          >
+            <span>GitHub Repo</span>
+          </a>
         </div>
 
         {/* Action Controls */}
@@ -349,6 +372,8 @@ const App = () => {
                     onCreateTalentPool={handleCreateTalentPool}
                     onDeleteTalentPool={handleDeleteTalentPool}
                     onRemoveCandidateFromTalentPool={handleRemoveCandidateFromTalentPool}
+                    executionTime={executionTime}
+                    onReset={handleResetWorkspace}
                   />
                 </ResultsErrorBoundary>
               </div>
@@ -397,6 +422,8 @@ const App = () => {
                       onCreateTalentPool={handleCreateTalentPool}
                       onDeleteTalentPool={handleDeleteTalentPool}
                       onRemoveCandidateFromTalentPool={handleRemoveCandidateFromTalentPool}
+                      executionTime={executionTime}
+                      onReset={handleResetWorkspace}
                     />
                   </ResultsErrorBoundary>
                 </div>
@@ -418,7 +445,7 @@ const App = () => {
 
       {selectedCandidate && (
         <Suspense fallback={null}>
-          <ResultsErrorBoundary resetKey={selectedCandidateId}>
+          <ResultsErrorBoundary resetKey={selectedCandidateId} candidateId={selectedCandidateId} candidateName={selectedCandidate?.profile?.anonymized_name}>
             <CandidateModal
               candidate={selectedCandidate}
               result={selectedResult}
@@ -441,6 +468,12 @@ const App = () => {
           onRemoveCandidateFromTalentPool={handleRemoveCandidateFromTalentPool}
         />
       )}
+
+      {/* Powered by Tech Strip Footer */}
+      <footer className="bg-slate-950 border-t border-borderline h-8 shrink-0 flex items-center justify-between px-6 text-[10px] text-slate-500 font-mono select-none">
+        <span>Powered by: <strong>Vite + React</strong> · <strong>all-MiniLM-L6-v2</strong> Local Inference</span>
+        <span>Team Chanakya · Redrob H2S Hackathon</span>
+      </footer>
     </div>
   );
 };
