@@ -17,11 +17,11 @@ from .signal_scorer import clamp, safe_float, score_availability, score_signal_m
 from .validators import validate_candidate
 
 WEIGHTS = {
-    "skill_match": 0.50,
-    "career_fit": 0.30,
-    "signal_modifier": 0.05,
-    "education": 0.07,
-    "availability": 0.08,
+    "skill_match": 0.35,
+    "career_fit": 0.25,
+    "signal_modifier": 0.15,
+    "education": 0.15,
+    "availability": 0.10,
 }
 
 MAX_CAREER_SCORE = 5.0
@@ -247,12 +247,11 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
 
 def score_skill_match(
     candidate_id: str,
-    jd_embedding: np.ndarray,
-    candidate_embeddings: Dict[str, np.ndarray],
+    jd_similarity: float,
     candidate: Dict[str, Any] = None,
     jd: Dict[str, Any] = None,
 ) -> float:
-    raw_cos = cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) or 0.0
+    raw_cos = jd_similarity
     # Threshold semantic similarity to heavily penalize out-of-domain resumes (like Mobile Devs)
     base = clamp((raw_cos - 0.15) * 5.0)
 
@@ -327,7 +326,7 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
         role_val = decay * (0.6 * title_score + 0.4 * industry_score)
         best_role_score = max(best_role_score, role_val)
 
-    role_score = best_role_score
+    role_score = max(0.2, best_role_score)
 
     exp_score = 0.0
     if min_experience > 0:
@@ -457,8 +456,7 @@ def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
 def score_candidate(
     candidate: Dict[str, Any],
     jd: Dict[str, Any],
-    jd_embedding: np.ndarray,
-    candidate_embeddings: Dict[str, np.ndarray],
+    jd_similarity: float,
 ) -> Dict[str, Any]:
     fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate)
 
@@ -481,7 +479,7 @@ def score_candidate(
 
     breakdown = {
         "skill_match": score_skill_match(
-            candidate_id, jd_embedding, candidate_embeddings, candidate, jd
+            candidate_id, jd_similarity, candidate, jd
         ),
         "career_fit": score_career_fit(candidate, jd),
         "signal_modifier": score_signal_modifier(signals, jd, matched_count=matched_count),
@@ -515,6 +513,12 @@ def score_candidate(
         breakdown["education"] = min(breakdown["education"], 0.15)
     elif years_exp < 5.0:
         breakdown["education"] = min(breakdown["education"], 0.30)
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    exp_gap = max(0.0, min_experience - years_exp)
+    if exp_gap > 0:
+        exp_penalty = max(0.6, 1.0 - (exp_gap / min_experience) * 0.3)
+        breakdown["career_fit"] *= exp_penalty
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
@@ -653,6 +657,10 @@ def score_candidate(
         
     if breakdown["career_fit"] < 0.35:
         reasoning_str += f" | {WARNING_CHAR} role title mismatch"
+
+    if matched_count < 2:
+        final_score *= 0.50
+        reasoning_str += f" | {WARNING_CHAR} Skill gate applied: <2 required skills matched"
 
     # Removed completeness penalty to preserve skill match monotonicity
 
@@ -795,11 +803,35 @@ def rank_candidates(
         top_candidates, model
     )
 
+    candidate_ids = list(candidate_embeddings.keys())
+    if candidate_ids:
+        candidate_matrix = np.array([candidate_embeddings[cid] for cid in candidate_ids])
+        jd_norm = np.linalg.norm(jd_embedding)
+        jd_vec_norm = jd_embedding / (jd_norm + 1e-9)
+        cand_norms = np.linalg.norm(candidate_matrix, axis=1, keepdims=True)
+        similarities = (candidate_matrix @ jd_vec_norm) / (cand_norms.squeeze() + 1e-9)
+        sim_map = dict(zip(candidate_ids, np.clip(similarities, -1.0, 1.0)))
+    else:
+        sim_map = {}
+
     scored = [
-        score_candidate(candidate, jd, jd_embedding, candidate_embeddings)
+        score_candidate(candidate, jd, float(sim_map.get(str(candidate.get("candidate_id") or candidate.get("id") or ""), 0.0)))
         for candidate in top_candidates
     ]
-    scored.sort(key=lambda x: (-x["score"], str(x.get("candidate_id", ""))))
+    from functools import cmp_to_key
+
+    def compare_candidates(a, b):
+        if abs(a["score"] - b["score"]) < 0.005:
+            if a["matched_count"] != b["matched_count"]:
+                return b["matched_count"] - a["matched_count"]
+        if a["score"] != b["score"]:
+            return -1 if a["score"] > b["score"] else 1
+        ida = str(a.get("candidate_id", ""))
+        idb = str(b.get("candidate_id", ""))
+        if ida == idb: return 0
+        return -1 if ida < idb else 1
+
+    scored.sort(key=cmp_to_key(compare_candidates))
 
     if limit is not None:
         scored = scored[:limit]

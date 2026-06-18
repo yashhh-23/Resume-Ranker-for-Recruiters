@@ -138,6 +138,12 @@ const CandidateCard = memo(({
             <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 text-[9px] font-mono rounded-none" title="Profile completeness quality score">
               DQ: {completenessScore}%
             </span>
+            {/* Low Skill Match penalty badge */}
+            {result.reasoning && result.reasoning.includes("Skill gate applied") && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[9px] font-mono rounded-none" title="Low skill match penalty">
+                ⚠ Low Skill Match
+              </span>
+            )}
             {/* Suspicious Profile alert badge */}
             {isSuspicious && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[9px] font-mono font-bold rounded-none animate-pulse" title="Logical anomalies or low data quality constraints flagged">
