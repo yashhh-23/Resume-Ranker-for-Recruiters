@@ -18,6 +18,7 @@ python -m venv .venv
 ```
 
 The first ranking run downloads `sentence-transformers/all-MiniLM-L6-v2`. After that, ranking can run offline from the local model/cache.
+*Note: Embeddings are cached up to 10,000 entries. A warm-up happens on the first run; subsequent runs with the same candidates are ~3× faster.*
 
 ## Run CLI Ranker
 
