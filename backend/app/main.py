@@ -163,6 +163,13 @@ async def rank(request: Request, req: RankRequest):
         "ranked_count": len(ranked),
         "processing_time_ms": elapsed_ms,
         "jd_metadata": jd,
+        "jd_parsed": {
+            "required_skills": jd.get("required_skills", []),
+            "target_title": jd.get("target_title", ""),
+            "min_experience_years": jd.get("min_experience_years", 0),
+            "target_industry": jd.get("target_industry", ""),
+            "seniority_level": jd.get("seniority_level", "mid"),
+        },
         "scoring_model": {
             "name": "semantic_weighted_v1",
             "weights": WEIGHTS,
