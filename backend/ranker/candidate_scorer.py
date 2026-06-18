@@ -233,20 +233,23 @@ def build_reasoning(
     title = profile.get("current_title") or profile.get("headline") or "Candidate"
     years = safe_float(profile.get("years_of_experience"))
     skills = candidate.get("skills") or []
-    jd_required = set(
-        s.lower() for s in jd.get("raw_required_skills", jd.get("required_skills", []))
+    jd_skills_lower = {s.lower() for s in jd.get("required_skills", [])}
+    matched = [
+        s["name"] for s in skills
+        if s.get("name", "").lower() in jd_skills_lower
+    ]
+    matched_skills_str = (
+        f"{len(matched)} required skill(s) matched"
+        if matched
+        else "no required skills matched"
     )
-    matched_skills = sum(1 for s in skills if s.get("name", "").lower() in jd_required)
+    
     response_rate = safe_float(signals.get("recruiter_response_rate"))
     top_component = max(breakdown, key=breakdown.get).replace("_", " ")
 
-    domain = (jd.get("target_title") or "core").strip()
-    parts = domain.split()
-    domain_label = parts[0] if parts else "core"
-
     return (
         f"{title} with {years:.1f} yrs; "
-        f"{matched_skills} {domain_label} skills matched; "
+        f"{matched_skills_str}; "
         f"top signal {top_component}; "
         f"response rate {response_rate:.2f}."
     )
