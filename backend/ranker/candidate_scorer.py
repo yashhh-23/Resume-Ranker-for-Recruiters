@@ -425,10 +425,12 @@ def score_candidate(
             breakdown["education"] *= 0.70
             breakdown["education"] = min(breakdown["education"], 0.40)
 
-    # Cap education at 0.35 for candidates with < 5 years experience
+    # Cap education for junior candidates
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
-    if years_exp < 5.0:
+    if years_exp < 2.0:
+        breakdown["education"] = min(breakdown["education"], 0.20)
+    elif years_exp < 5.0:
         breakdown["education"] = min(breakdown["education"], 0.35)
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
@@ -604,10 +606,12 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
             breakdown["education"] *= 0.70
             breakdown["education"] = min(breakdown["education"], 0.40)
 
-    # Cap education at 0.35 for candidates with < 5 years experience
+    # Cap education for junior candidates
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
-    if years_exp < 5.0:
+    if years_exp < 2.0:
+        breakdown["education"] = min(breakdown["education"], 0.20)
+    elif years_exp < 5.0:
         breakdown["education"] = min(breakdown["education"], 0.35)
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
