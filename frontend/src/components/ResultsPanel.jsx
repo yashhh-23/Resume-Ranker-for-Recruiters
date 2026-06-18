@@ -170,7 +170,7 @@ const ResultsPanel = ({
 
   useEffect(() => {
     setVisibleCount(30);
-  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId, rankedResults.length]);
+  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId, rankedResults.length, criteriaFiltered.length]);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -515,14 +515,16 @@ const ResultsPanel = ({
         {isLoading && activeTab === "shortlist" && (
           <div>
             <LoadingPhaseDisplay loadingPhase={loadingPhase} candidatesCount={candidates.length} />
-            {/* Skeleton placeholder cards while API processes */}
-            <div className="px-4 py-3 space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-36 rounded-none border border-slate-800 bg-slate-900/50 animate-pulse"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                />
+            <div className="divide-y divide-slate-900 animate-pulse">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="px-4 py-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-slate-800 rounded-none shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-slate-800 rounded w-2/3" />
+                    <div className="h-2 bg-slate-900 rounded w-1/2" />
+                  </div>
+                  <div className="h-3 bg-slate-800 rounded w-12" />
+                </div>
               ))}
             </div>
           </div>
@@ -695,7 +697,11 @@ const ResultsPanel = ({
                 <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-none shadow-md w-full font-mono">
                   <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Podium View Unavailable</p>
                   <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
-                    Podium requires at least 3 candidates to construct Gold, Silver, and Bronze tiers. Please adjust your filters or ingest more candidates (currently {activeList.length} candidate{activeList.length === 1 ? "" : "s"} visible).
+                    Podium requires at least{" "}
+                    <strong className="text-slate-300">3 candidates</strong>.
+                    Currently showing{" "}
+                    <strong className="text-emerald">{activeList.length}</strong>{" "}
+                    candidate{activeList.length === 1 ? "" : "s"} — adjust filters or upload more data.
                   </p>
                 </div>
               </div>
