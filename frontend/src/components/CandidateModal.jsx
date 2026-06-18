@@ -266,6 +266,7 @@ const CandidateModal = ({
             breakdown={breakdown}
             candidate={candidate}
             jobDescription={jobDescription}
+            signalReasoning={result?.signal_reasoning || null}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
