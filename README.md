@@ -128,8 +128,7 @@ Resume-Ranker-for-Recruiters/
 │   │   ├── signal_scorer.py           ← 7-signal modifier + SIGNAL_WEIGHTS
 │   │   └── validators.py              ← Candidate sanitisation & safe field defaults
 │   └── tests/
-│       ├── test_ranker.py             ← pytest unit tests (scoring logic)
-│       └── test_api.py                ← pytest integration tests (FastAPI TestClient)
+│       └── test_ranker.py             ← pytest unit tests (scoring logic)
 │
 └── frontend/
     ├── package.json                   ← React 18, Vite, Recharts, crypto-js
@@ -252,7 +251,6 @@ The API is now live at **http://localhost:8000**
 | `GET` | `/health` | Model readiness + uptime |
 | `GET` | `/weights` | Live scoring weights |
 | `POST` | `/rank` | Rank candidates (JSON body) |
-| `POST` | `/rank/upload` | Rank candidates (multipart `.json` / `.jsonl` file) |
 | `GET` | `/docs` | Swagger UI (dev mode only) |
 
 ### Run the Hackathon CLI Script
@@ -312,7 +310,7 @@ npm run preview  # preview the production build locally
 
 Ranks a list of candidates against a job description.
 
-**Rate limit:** 30 requests / minute per IP (configurable via `RANK_RATE_LIMIT` env var)
+**Rate limit:** 10 requests / minute per IP (configurable via `RANK_RATE_LIMIT` env var)
 
 **Request body:**
 
@@ -426,20 +424,11 @@ Ranks a list of candidates against a job description.
 | Status | Trigger |
 |--------|---------|
 | `400` | `job_description` is empty or `candidates` array is missing |
-| `422` | More than 1,000 candidates submitted; or unsupported file type on `/rank/upload` |
+| `422` | More than 1,000 candidates submitted |
 | `429` | Rate limit exceeded |
 | `500` | Internal server error (request ID included for debugging) |
 
-### `POST /rank/upload`
 
-Same as `/rank` but accepts a multipart form — useful for large files.
-
-```
-Content-Type: multipart/form-data
-
-job_description: <string>
-candidates_file: <.json or .jsonl file>
-```
 
 ---
 
@@ -482,7 +471,7 @@ candidates_file: <.json or .jsonl file>
 | **scikit-learn** | 1.9.0 | Cosine similarity utilities |
 | **numpy** | 2.4.6 | Embedding vector operations |
 | **pydantic** | 2.13.4 | Request / response schema validation |
-| **slowapi** | 0.1.9 | Rate limiting (30 req/min on `/rank`) |
+| **slowapi** | 0.1.9 | Rate limiting (10 req/min on `/rank`) |
 | **starlette** | 1.2.1 | Middleware (GZip, CORS, RequestID) |
 
 ### Frontend
