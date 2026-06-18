@@ -172,9 +172,9 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
               <table className="w-full font-mono text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-900 text-[9px] uppercase tracking-wider text-slate-600">
-                    <th className="py-2 pr-4">Signal</th>
+                    <th scope="col" className="py-2 pr-4">Signal</th>
                     {selectedCandidates.map((item, idx) => (
-                      <th key={idx} className="py-2 text-right" style={{ color: COLORS[idx] }}>
+                      <th scope="col" key={idx} className="py-2 text-right" style={{ color: COLORS[idx] }}>
                         Cand {String.fromCharCode(65 + idx)}
                       </th>
                     ))}
