@@ -416,8 +416,8 @@ def score_candidate(
 
     matched_count = len(matched)
     
-    # Dampen education contribution if the career fit is extremely weak
-    if breakdown["career_fit"] < 0.15:
+    # Dampen education contribution if the career fit is weak
+    if breakdown["career_fit"] < 0.30:
         if matched_count <= 1:
             breakdown["education"] *= 0.40  # Harsher dampening for low skill count
             breakdown["education"] = min(breakdown["education"], 0.20)
@@ -589,8 +589,8 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
         matched_count = sum(1 for r, rl in req_zip if any(rl in cs or cs in rl for cs in candidate_skill_names))
 
-    # Dampen education contribution if the career fit is extremely weak
-    if breakdown["career_fit"] < 0.15:
+    # Dampen education contribution if the career fit is weak
+    if breakdown["career_fit"] < 0.30:
         if matched_count <= 1:
             breakdown["education"] *= 0.40  # Harsher dampening for low skill count
             breakdown["education"] = min(breakdown["education"], 0.20)
