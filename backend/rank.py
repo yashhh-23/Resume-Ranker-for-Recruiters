@@ -83,6 +83,19 @@ def main():
     print(f"Wrote {args.out} with {len(ranked)} rows", file=sys.stderr)
     print(f"Top 5: {top_ids}", file=sys.stderr)
 
+    test_results_dir = Path("test_results")
+    test_results_dir.mkdir(exist_ok=True)
+    json_out_path = test_results_dir / "ranked_results.json"
+    metrics = {
+        "execution_time_seconds": elapsed,
+        "candidates_processed": len(candidates),
+        "top_5": top_ids.split(", "),
+        "results": ranked
+    }
+    with json_out_path.open("w", encoding="utf-8") as jf:
+        json.dump(metrics, jf, indent=2)
+    print(f"Wrote JSON results to {json_out_path}", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()

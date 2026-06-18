@@ -87,29 +87,16 @@ def embed_texts(model, texts: Iterable[str]) -> np.ndarray:
     texts = list(texts)
     if not texts:
         return np.array([])
-    if len(texts) <= ENCODE_BATCH_SIZE:
-        return np.asarray(
-            model.encode(
-                texts,
-                convert_to_numpy=True,
-                show_progress_bar=False,
-                normalize_embeddings=True,
-            ),
-            dtype=np.float32,
-        )
-    # Batch encode for large inputs
-    results = []
-    for i in range(0, len(texts), ENCODE_BATCH_SIZE):
-        batch = texts[i : i + ENCODE_BATCH_SIZE]
-        results.append(
-            model.encode(
-                batch,
-                convert_to_numpy=True,
-                show_progress_bar=False,
-                normalize_embeddings=True,
-            )
-        )
-    return np.asarray(np.vstack(results), dtype=np.float32)
+    return np.asarray(
+        model.encode(
+            texts,
+            batch_size=256,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+            normalize_embeddings=True,
+        ),
+        dtype=np.float32,
+    )
 
 
 def get_candidate_embeddings(
