@@ -57,6 +57,10 @@ def tokenize(text: Any) -> set:
     return tokens
 
 
+def _get_candidate_skill_names(skills: List[Dict[str, Any]]) -> set[str]:
+    return {str(s.get("name", "")).lower() for s in skills if s.get("name")}
+
+
 def text_match(value: Any, target: Any) -> float:
     source = tokenize(value)
     wanted = tokenize(target)
@@ -104,12 +108,9 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
 
     preferred = [s.lower() for s in jd.get("preferred_skills", [])]
     if preferred:
+        candidate_skills_lower = _get_candidate_skill_names(candidate.get("skills") or [])
         pref_matched = sum(
-            1
-            for p in preferred
-            if any(
-                p in s.get("name", "").lower() for s in (candidate.get("skills") or [])
-            )
+            1 for p in preferred if any(p in cs for cs in candidate_skills_lower)
         )
         preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
         return clamp(base_coverage + preferred_bonus)
@@ -234,10 +235,8 @@ def build_reasoning(
     years = safe_float(profile.get("years_of_experience"))
     skills = candidate.get("skills") or []
     jd_skills_lower = {s.lower() for s in jd.get("required_skills", [])}
-    matched = [
-        s["name"] for s in skills
-        if s.get("name", "").lower() in jd_skills_lower
-    ]
+    candidate_skills_lower = _get_candidate_skill_names(skills)
+    matched = candidate_skills_lower.intersection(jd_skills_lower)
     matched_skills_str = (
         f"{len(matched)} required skill(s) matched"
         if matched
@@ -282,7 +281,7 @@ def score_candidate(
     skills = candidate.get("skills") or []
 
     jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
-    candidate_skill_names = {s.get("name", "").lower() for s in skills if s.get("name")}
+    candidate_skill_names = _get_candidate_skill_names(skills)
     matched = [r for r in jd_required_list if r.lower() in candidate_skill_names]
     missing = [r for r in jd_required_list if r.lower() not in candidate_skill_names]
 
@@ -319,7 +318,9 @@ def score_candidate(
     open_flag = signals.get("open_to_work_flag", False)
     reloc = signals.get("willing_to_relocate", False)
 
-    flags = validate_candidate(candidate)
+    flags, deduped_skills = validate_candidate(candidate)
+    if deduped_skills is not None:
+        candidate["skills"] = deduped_skills
 
     education_list = candidate.get("education") or []
     best_degree = "No degree listed"

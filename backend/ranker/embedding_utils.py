@@ -55,7 +55,7 @@ def cache_key(candidate: Dict) -> str:
     return f"{candidate_id}:{digest}"
 
 
-MAX_CACHE_ENTRIES = 20_000  # ~30MB cap for 384-dim embeddings
+MAX_CACHE_ENTRIES = 10_000  # ~15MB cap for 384-dim embeddings
 
 
 class LRUEmbeddingCache:
@@ -157,6 +157,6 @@ def get_jd_embedding(
 
 
 def cosine_similarity(left: np.ndarray, right: np.ndarray) -> float:
-    if left is None or right is None:
+    if left is None or right is None or len(left) == 0 or len(right) == 0:
         return 0.0
     return float(np.clip(np.dot(left, right), -1.0, 1.0))

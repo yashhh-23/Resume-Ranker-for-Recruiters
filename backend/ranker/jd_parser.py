@@ -311,6 +311,21 @@ def _extract_salary_range(text: str) -> tuple[float, float]:
         min_val = float(lpa_match.group(1)) * 100_000
         max_val = float(lpa_match.group(2)) * 100_000
         return min_val, max_val
+    lpa_fallback_1 = re.search(
+        r"(\d+(?:\.\d+)?)\s*L(?:PA)?\s*(?:-|to|–)\s*(\d+(?:\.\d+)?)",
+        text, flags=re.IGNORECASE
+    )
+    if lpa_fallback_1:
+        min_val = float(lpa_fallback_1.group(1)) * 100_000
+        max_val = float(lpa_fallback_1.group(2)) * 100_000
+        return min_val, max_val
+    lpa_single = re.search(
+        r"(\d+(?:\.\d+)?)\s*L(?:PA)?\b",
+        text, flags=re.IGNORECASE
+    )
+    if lpa_single:
+        val = float(lpa_single.group(1)) * 100_000
+        return val, val
     match = re.search(
         r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text
     )
