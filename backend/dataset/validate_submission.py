@@ -22,7 +22,9 @@ def validate_submission(csv_path):
     if path.suffix.lower() != ".csv":
         errors.append("Filename must use a .csv extension.")
     elif not path.stem:
-        errors.append("Filename must be your registered participant ID (e.g. team_xxx.csv).")
+        errors.append(
+            "Filename must be your registered participant ID (e.g. team_xxx.csv)."
+        )
 
     try:
         with open(path, "r", encoding="utf-8", newline="") as f:

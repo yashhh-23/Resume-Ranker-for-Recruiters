@@ -1,41 +1,15 @@
 team_name: "Team Chanakya"
-demo_url: "https://rrr-resume-ranker-recruiter-fronten.vercel.app"
-api_url: "https://rrr-resume-ranker-backend.onrender.com"
-reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
-uses_gpu: false
-runtime_minutes_estimate: 2
-submission_ready: true
-
-primary_contact:
-  name: "Yash"
-  email: "yash@example.com"
-  phone: "+91-9999999999"
-
-team_members:
-  - name: "Yash"
-    email: "yash@example.com"
-    role: "ML Engineer"
-
-compute:
-  platform: "Local Windows PC"
-  cpu_cores: 8
-  ram_gb: 16
-  python_version: "3.11.4"
-  os: "Windows 11"
-  uses_gpu_for_inference: false
-  has_network_during_ranking: false
-  pre_computation_required: false
-  pre_computation_time_minutes: 0
-
-ai_tools_used:
-  - "Gemini"
-  - "Cursor"
-
-ai_usage_summary: "Used Gemini for code optimization, debugging, and adding the benchmarking endpoint."
-
-declarations:
-  read_submission_spec: true
-  code_is_original_work: true
-  no_collusion: true
-  honeypot_check_done: true
-  reproduction_tested: true
+members:
+  - name: "TBD"
+    email: "TBD@example.com"
+  - name: "TBD"
+    email: "TBD@example.com"
+github_url: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
+huggingface_sandbox_link: "TBD"
+reproduce_command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+compute_specs:
+  cpu: "TBD"
+  ram: "TBD"
+  gpu: "None"
+ai_tools_declaration: "TBD"
+methodology_summary: "Deterministic rule-based heuristics and weighted semantic cosine similarity using sentence-transformers/all-MiniLM-L6-v2."

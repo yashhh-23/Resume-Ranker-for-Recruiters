@@ -12,6 +12,8 @@ jobs:
       - run: pip install -r backend/requirements.txt
       - name: Run rank.py smoke test
         working-directory: backend
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python rank.py \
             --candidates dataset/sample_candidates.json \
