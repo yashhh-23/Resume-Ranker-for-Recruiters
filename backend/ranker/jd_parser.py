@@ -378,6 +378,34 @@ def _extract_seniority(text: str) -> str:
     return "mid"  # safe default
 
 
+def _extract_skill_weights(text: str, skills: list) -> dict:
+    weights = {}
+    text_lower = text.lower()
+    
+    # Split text into chunks separated by newlines
+    chunks = [c.strip() for c in text_lower.replace('.', '\n').split('\n') if c.strip()]
+    
+    tier_1_phrases = ["strong proficiency in", "deep technical depth", "required", "must have"]
+    tier_2_phrases = ["highly preferred", "production experience", "hands-on experience"]
+    tier_3_phrases = ["experience with", "familiarity", "is a plus"]
+    
+    for skill in skills:
+        skill_lower = skill.lower()
+        weight = 1.0 # default Tier 3
+        
+        # Find which chunk mentions this skill
+        for chunk in chunks:
+            if skill_lower in chunk:
+                if any(phrase in chunk for phrase in tier_1_phrases):
+                    weight = max(weight, 2.0)
+                elif any(phrase in chunk for phrase in tier_2_phrases):
+                    weight = max(weight, 1.5)
+                elif any(phrase in chunk for phrase in tier_3_phrases):
+                    weight = max(weight, 1.0)
+        
+        weights[skill] = weight
+    return weights
+
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
@@ -450,6 +478,9 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     if min_exp <= 0:
         raise ValueError(f"Validation failed: minimum experience must be > 0, got {min_exp}.")
 
+    # Extract skill weights based on JD text
+    skill_weights = _extract_skill_weights(text, required)
+
     return {
         "required_skills": required,
         "raw_required_skills": raw_required,
@@ -462,6 +493,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         "salary_min": salary_min,
         "salary_max": salary_max,
         "seniority_level": _extract_seniority(text),
+        "skill_weights": skill_weights,
     }
 
 

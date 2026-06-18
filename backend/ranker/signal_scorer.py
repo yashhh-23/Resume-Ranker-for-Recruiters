@@ -2,8 +2,8 @@ import math
 from typing import Any, Dict
 
 SIGNAL_WEIGHTS = {
-    "github_score": 0.1,
-    "response_rate": 0.4,
+    "github_score": 0.2,
+    "response_rate": 0.3,
     "interview_completion": 0.1,
     "assessment_score": 0.1,
     "offer_score": 0.1,
@@ -65,7 +65,7 @@ def score_salary_fit(signals: dict, jd: dict) -> float:
     return clamp((overlap_end - overlap_start) / max(jd_max - jd_min, 1))
 
 
-def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) -> float:
+def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None, matched_count: int = 0) -> float:
     signals = signals or {}
     jd = jd or {}
 
@@ -100,6 +100,13 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
         + completeness_score * SIGNAL_WEIGHTS["completeness_score"]
         + salary_fit * SIGNAL_WEIGHTS["salary_fit"]
     )
+    
+    if github_score < 0.25:
+        if matched_count < 4:
+            weighted_sum *= 0.40
+        else:
+            weighted_sum *= 0.75
+        
     return clamp(weighted_sum)
 
 
@@ -108,7 +115,16 @@ def score_availability(signals: Dict[str, Any]) -> float:
 
     open_to_work = 1.0 if signals.get("open_to_work_flag") else 0.5
     notice_days = safe_float(signals.get("notice_period_days"), 180.0)
-    notice_score = clamp(math.exp(-notice_days / 60.0))
+    
+    if notice_days <= 30.0:
+        notice_score = 1.0
+    elif notice_days <= 60.0:
+        notice_score = 0.90
+    elif notice_days <= 90.0:
+        notice_score = 0.80
+    else:
+        notice_score = 0.70
+        
     relocation = 1.0 if signals.get("willing_to_relocate") else 0.6
 
     return clamp(mean([open_to_work, notice_score, relocation]))
