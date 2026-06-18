@@ -56,24 +56,14 @@ def cache_key(candidate: Dict) -> str:
     return f"{candidate_id}:{digest}"
 
 
+_EMBEDDING_CACHE: Dict[str, np.ndarray] = {}
+
 def load_cache(cache_path: str = ".embedding_cache.pkl") -> Dict[str, np.ndarray]:
-    path = Path(cache_path)
-    if not path.exists():
-        return {}
-    try:
-        with path.open("rb") as handle:
-            payload = pickle.load(handle)
-        if payload.get("version") != CACHE_VERSION:
-            return {}
-        return payload.get("embeddings") or {}
-    except Exception:
-        return {}
+    return _EMBEDDING_CACHE
 
 
 def save_cache(cache: Dict[str, np.ndarray], cache_path: str = ".embedding_cache.pkl") -> None:
-    path = Path(cache_path)
-    with path.open("wb") as handle:
-        pickle.dump({"version": CACHE_VERSION, "embeddings": cache}, handle)
+    pass
 
 
 def embed_texts(model, texts: Iterable[str]) -> np.ndarray:

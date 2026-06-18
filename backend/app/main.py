@@ -1,11 +1,7 @@
-import os
-import time
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List
-from contextlib import asynccontextmanager
+import json
+import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,6 +10,13 @@ from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+
+import os
+import time
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+from contextlib import asynccontextmanager
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -66,6 +69,19 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "error": "Rate limit exceeded. Please try again later.",
             "status_code": 429,
             "path": str(request.url.path)
+        }
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    logging.error(f"Unhandled error on {request.url.path}: {traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error. Please try again.",
+            "status_code": 500,
+            "request_id": getattr(request.state, "request_id", "unknown"),
         }
     )
 
@@ -133,8 +149,10 @@ async def health():
     }
 
 
+RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
+
 @app.post("/rank")
-@limiter.limit("10/minute")
+@limiter.limit(RANK_RATE_LIMIT)
 async def rank(request: Request, req: RankRequest):
     if not req.job_description.strip():
         raise HTTPException(status_code=400, detail="job_description is required")
@@ -153,26 +171,122 @@ async def rank(request: Request, req: RankRequest):
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    return {
+    response = {
         "ranked_candidates": ranked,
         "skipped_candidates": {
             "count": len(skipped),
-            "ids": skipped
+            "ids": skipped,
+            "reason": "Failed data validation / sanitization"
         },
         "total_candidates": len(req.candidates),
+        "valid_candidates": len(valid_candidates),
+        "scored_candidates": len(valid_candidates),
         "ranked_count": len(ranked),
         "processing_time_ms": elapsed_ms,
-        "jd_metadata": jd,
         "jd_parsed": {
             "required_skills": jd.get("required_skills", []),
+            "preferred_skills": jd.get("preferred_skills", []),
             "target_title": jd.get("target_title", ""),
             "min_experience_years": jd.get("min_experience_years", 0),
             "target_industry": jd.get("target_industry", ""),
+            "target_field": jd.get("target_field", ""),
             "seniority_level": jd.get("seniority_level", "mid"),
+            "salary_min": jd.get("salary_min", 0.0),
+            "salary_max": jd.get("salary_max", 0.0),
         },
         "scoring_model": {
-            "name": "semantic_weighted_v1",
+            "name": "sentence_weighted_v1",
             "weights": WEIGHTS,
             "model_id": "sentence-transformers/all-MiniLM-L6-v2",
         },
+    }
+    if os.getenv("ENV", "development") != "production":
+        response["jd_debug"] = jd
+
+    return response
+
+@app.post("/rank/upload")
+@limiter.limit(RANK_RATE_LIMIT)
+async def rank_upload(
+    request: Request,
+    job_description: str = Form(...),
+    candidates_file: UploadFile = File(...)
+):
+    content = await candidates_file.read()
+    lines = content.decode("utf-8").splitlines()
+    candidates = []
+    for line in lines:
+        line = line.strip()
+        if line:
+            try:
+                candidates.append(json.loads(line))
+                if len(candidates) >= MAX_CANDIDATES:
+                    break
+            except json.JSONDecodeError:
+                continue
+
+    if not job_description.strip():
+        raise HTTPException(status_code=400, detail="job_description is required")
+    if not candidates:
+        raise HTTPException(status_code=400, detail="candidates array is empty or invalid")
+
+    t0 = time.perf_counter()
+    valid_candidates, skipped = sanitize_candidates(candidates)
+    jd = parse_jd_text(job_description)
+    ranked = rank_candidates(valid_candidates, jd, limit=100)
+    elapsed_ms = round((time.perf_counter() - t0) * 1000)
+
+    response = {
+        "ranked_candidates": ranked,
+        "skipped_candidates": {
+            "count": len(skipped),
+            "ids": skipped,
+            "reason": "Failed data validation / sanitization"
+        },
+        "total_candidates": len(candidates),
+        "valid_candidates": len(valid_candidates),
+        "scored_candidates": len(valid_candidates),
+        "ranked_count": len(ranked),
+        "processing_time_ms": elapsed_ms,
+        "jd_parsed": {
+            "required_skills": jd.get("required_skills", []),
+            "preferred_skills": jd.get("preferred_skills", []),
+            "target_title": jd.get("target_title", ""),
+            "min_experience_years": jd.get("min_experience_years", 0),
+            "target_industry": jd.get("target_industry", ""),
+            "target_field": jd.get("target_field", ""),
+            "seniority_level": jd.get("seniority_level", "mid"),
+            "salary_min": jd.get("salary_min", 0.0),
+            "salary_max": jd.get("salary_max", 0.0),
+        },
+        "scoring_model": {
+            "name": "sentence_weighted_v1",
+            "weights": WEIGHTS,
+            "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+        },
+    }
+    if os.getenv("ENV", "development") != "production":
+        response["jd_debug"] = jd
+
+    return response
+
+@app.get("/info")
+async def info():
+    return {
+        "project": "RRR — Resume Ranker for Recruiters",
+        "team": "Team Chanakya",
+        "hackathon": "Redrob H2S",
+        "scoring_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "vector_index": "FAISS (CPU flat L2)",
+        "framework": "FastAPI",
+        "deployment": "HuggingFace Spaces (CPU Docker)",
+        "scoring_signals": {
+            "skill_match": "35% — semantic cosine + coverage + endorsements",
+            "career_fit": "25% — title/industry text match + experience decay",
+            "signal_modifier": "15% — GitHub, response rate, assessments, salary fit",
+            "education": "15% — degree tier × field match × degree level",
+            "availability": "10% — notice period, open_to_work, relocation",
+        },
+        "hallucination_free": True,
+        "reasoning": "deterministic — no LLM generation",
     }
