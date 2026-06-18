@@ -56,6 +56,8 @@ const App = () => {
     setRankedResults([]);
     setSelectedCandidateId(null);
     setPoolCandidate(null);
+    setJdParsed(null);
+    setBackendProcessingMs(null);
   };
 
   const handleResetWorkspace = () => {
@@ -65,6 +67,8 @@ const App = () => {
     setSelectedCandidateId(null);
     setPoolCandidate(null);
     setError(null);
+    setJdParsed(null);
+    setBackendProcessingMs(null);
   };
 
   // ─── Main state ───────────────────────────────────────────────────────────
@@ -77,6 +81,8 @@ const App = () => {
   const [talentPools, setTalentPools] = useState([]);
   const [poolCandidate, setPoolCandidate] = useState(null);
   const [executionTime, setExecutionTime] = useState(null);
+  const [jdParsed, setJdParsed] = useState(null); // parsed JD from backend
+  const [backendProcessingMs, setBackendProcessingMs] = useState(null);
 
   // Talent pools are loaded after authentication — no automatic load on mount
 
@@ -202,12 +208,14 @@ const App = () => {
     const startTime = performance.now();
 
     try {
-      const results = await rankCandidates({
+      const { results, meta } = await rankCandidates({
         jobDescription,
         candidates,
       });
       const endTime = performance.now();
       setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
+      if (meta?.jd_parsed) setJdParsed(meta.jd_parsed);
+      if (meta?.processing_time_ms) setBackendProcessingMs(meta.processing_time_ms);
       setRankedResults(normalizeRankedResults(results, candidates));
       setRunCount((prev) => prev + 1);
       
@@ -252,6 +260,10 @@ const App = () => {
           <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald ml-2 animate-pulse">
             <LockIcon className="h-2.5 w-2.5 shrink-0" />
             <span>Encrypted Locally</span>
+          </div>
+          <div className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <span>⚡</span>
+            <span>Zero LLM Hallucination</span>
           </div>
           <a
             href="https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
@@ -342,6 +354,7 @@ const App = () => {
                 isLoading={isLoading}
                 error={error}
                 setError={setError}
+                jdParsed={jdParsed}
               />
             </section>
 
@@ -405,6 +418,7 @@ const App = () => {
                   isLoading={isLoading}
                   error={error}
                   setError={setError}
+                  jdParsed={jdParsed}
                 />
               </div>
             ) : (
@@ -471,8 +485,13 @@ const App = () => {
 
       {/* Powered by Tech Strip Footer */}
       <footer className="bg-slate-950 border-t border-borderline h-8 shrink-0 flex items-center justify-between px-6 text-[10px] text-slate-500 font-mono select-none">
-        <span>Powered by: <strong>Vite + React</strong> · <strong>all-MiniLM-L6-v2</strong> Local Inference</span>
-        <span>Team Chanakya · Redrob H2S Hackathon</span>
+        <span>Powered by: <strong className="text-slate-400">Vite + React</strong> · <strong className="text-slate-400">all-MiniLM-L6-v2</strong> · Zero LLM · 5-Signal Weighted Scoring</span>
+        <span className="flex items-center gap-3">
+          {backendProcessingMs && (
+            <span className="text-emerald/60">⚡ Last API: {backendProcessingMs}ms</span>
+          )}
+          <span>Team Chanakya · Redrob H2S Hackathon</span>
+        </span>
       </footer>
     </div>
   );

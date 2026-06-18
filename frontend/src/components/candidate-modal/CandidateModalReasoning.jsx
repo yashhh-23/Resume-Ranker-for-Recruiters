@@ -6,6 +6,7 @@ const CandidateModalReasoning = memo(({
   breakdown = {},
   candidate = {},
   jobDescription = "",
+  signalReasoning = null, // from backend result.signal_reasoning
 }) => {
   const profile = candidate.profile || {};
   const signals = candidate.redrob_signals || {};
@@ -203,12 +204,18 @@ const CandidateModalReasoning = memo(({
 
   return (
     <div className="border border-slate-900 bg-slate-950/20 p-5 rounded-none font-mono text-xs">
-      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-900 pb-3 mb-4">
-        Multi-Dimensional Reasoning Trace
+      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-900 pb-3 mb-4 flex items-center justify-between">
+        <span>Multi-Dimensional Reasoning Trace</span>
+        {signalReasoning && (
+          <span className="px-2 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-bold tracking-wider rounded-none">
+            ✓ Backend Insights
+          </span>
+        )}
       </h4>
       <div className="space-y-3">
         {sections.map((sect) => {
           const isOpen = openSection === sect.id;
+          const apiInsight = signalReasoning?.[sect.id];
           return (
             <div key={sect.id} className={`border border-slate-900 bg-slate-950/60 rounded-none overflow-hidden transition-all duration-200 border-l-4 ${sect.color}`}>
               <button
@@ -226,6 +233,12 @@ const CandidateModalReasoning = memo(({
               </button>
               {isOpen && (
                 <div className="px-4 pb-4 pt-1 border-t border-slate-900/50 text-[11px] leading-relaxed text-slate-400 mt-1">
+                  {apiInsight && (
+                    <div className="mb-3 px-3 py-2 bg-emerald/5 border border-emerald/20 rounded-none text-emerald text-[10px] font-mono flex items-start gap-2">
+                      <span className="shrink-0 text-emerald/60 mt-0.5">▶</span>
+                      <span>{apiInsight}</span>
+                    </div>
+                  )}
                   {sect.content}
                 </div>
               )}
