@@ -20,10 +20,14 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
     valid, skipped = [], []
     for idx, c in enumerate(candidates):
         if not isinstance(c, dict):
-            skipped.append({'index': idx, 'reason': 'not_a_dict'})
+            skipped.append({"index": idx, "candidate_id": None, "reason": "not_a_dict"})
             continue
         if not any(k in c for k in REQUIRED_CANDIDATE_KEYS):
-            skipped.append({'index': idx, 'reason': 'missing_required_keys'})
+            skipped.append({
+                "index": idx,
+                "candidate_id": c.get("candidate_id", f"unknown-{idx}"),
+                "reason": "missing_required_keys"
+            })
             continue
         # Ensure required fields have safe defaults
         c.setdefault("skills", [])
@@ -31,7 +35,11 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
         c.setdefault("redrob_signals", {})
         c.setdefault("profile", {})
         if not c.get("candidate_id"):
-            skipped.append({'index': idx, 'reason': 'missing_candidate_id'})
+            skipped.append({
+                "index": idx,
+                "candidate_id": None,
+                "reason": "missing_candidate_id"
+            })
             continue
         if not c.get("name"):
             c["name"] = c.get("candidate_id", "Unknown Candidate")
@@ -65,7 +73,7 @@ def validate_candidate(c: dict) -> list:
     # Implausibly high endorsements (>500 on a single skill = suspicious)
     for s in skills:
         try:
-            if int(s.get("endorsements" or 0) or 0) > 500:
+            if int(s.get("endorsements", 0) or 0) > 500:
                 flags.append(f"Implausible endorsement count on skill: {s.get('name')}")
                 break
         except (TypeError, ValueError):

@@ -10,6 +10,87 @@ from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.gzip import GZipMiddleware
+
+import os
+import time
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+from contextlib import asynccontextmanager
+
+limiter = Limiter(key_func=get_remote_address)
+
+from ranker import parse_jd_text, rank_candidates
+from ranker.candidate_scorer import WEIGHTS
+from ranker.signal_scorer import SIGNAL_WEIGHTS
+from ranker.embedding_utils import load_model
+from ranker.validators import sanitize_candidates
+
+_START_TIME = time.time()
+MAX_CANDIDATES = 1000
+_MODEL_READY = False
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _MODEL_READY
+    import asyncio
+    loop = asyncio.get_event_loop()
+    try:
+        await loop.run_in_executor(None, load_model)
+        _MODEL_READY = True
+        print("[RRR] Model loaded and ready.")
+    except Exception as e:
+        print(f"[RRR] WARNING: Model warm-up failed: {e}")
+    yield
+
+app = FastAPI(
+    title="RRR Resume Ranker Backend",
+    lifespan=lifespan,
+    docs_url="/docs" if os.getenv("ENV", "development") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENV", "development") != "production" else None,
+)
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail,
+            "status_code": exc.status_code,
+            "path": str(request.url.path)
+        }
+    )
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "Rate limit exceeded. Please try again later.",
+            "status_code": 429,
+            "path": str(request.url.path)
+        }
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    logging.error(f"Unhandled error on {request.url.path}: {traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error. Please try again.",
+            "status_code": 500,
+            "request_id": getattr(request.state, "request_id", "unknown"),
+        }
+    )
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())[:8]
+        request.state.request_id = request_id
+from starlette.middleware.gzip import GZipMiddleware
 
 import os
 import time
@@ -104,6 +185,8 @@ allowed_origins = [
     if origin.strip()
 ]
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -149,6 +232,40 @@ async def health():
     }
 
 
+def _build_rank_response(ranked, skipped, all_candidates_len, valid_candidates_len, elapsed_ms, jd):
+    response = {
+        "ranked_candidates": ranked,
+        "skipped_candidates": {
+            "count": len(skipped),
+            "entries": skipped,
+            "reason": "Failed data validation / sanitization"
+        },
+        "total_candidates": all_candidates_len,
+        "valid_candidates": valid_candidates_len,
+        "scored_candidates": valid_candidates_len,
+        "ranked_count": len(ranked),
+        "processing_time_ms": elapsed_ms,
+        "jd_parsed": {
+            "required_skills": jd.get("required_skills", []),
+            "preferred_skills": jd.get("preferred_skills", []),
+            "target_title": jd.get("target_title", ""),
+            "min_experience_years": jd.get("min_experience_years", 0),
+            "target_industry": jd.get("target_industry", ""),
+            "target_field": jd.get("target_field", ""),
+            "seniority_level": jd.get("seniority_level", "mid"),
+            "salary_min": jd.get("salary_min", 0.0),
+            "salary_max": jd.get("salary_max", 0.0),
+        },
+        "scoring_model": {
+            "name": "sentence_weighted_v1",
+            "weights": WEIGHTS,
+            "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+        },
+    }
+    if os.getenv("ENV", "development") != "production":
+        response["jd_debug"] = jd
+    return response
+
 RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
 
 @app.post("/rank")
@@ -171,39 +288,7 @@ async def rank(request: Request, req: RankRequest):
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    response = {
-        "ranked_candidates": ranked,
-        "skipped_candidates": {
-            "count": len(skipped),
-            "ids": skipped,
-            "reason": "Failed data validation / sanitization"
-        },
-        "total_candidates": len(req.candidates),
-        "valid_candidates": len(valid_candidates),
-        "scored_candidates": len(valid_candidates),
-        "ranked_count": len(ranked),
-        "processing_time_ms": elapsed_ms,
-        "jd_parsed": {
-            "required_skills": jd.get("required_skills", []),
-            "preferred_skills": jd.get("preferred_skills", []),
-            "target_title": jd.get("target_title", ""),
-            "min_experience_years": jd.get("min_experience_years", 0),
-            "target_industry": jd.get("target_industry", ""),
-            "target_field": jd.get("target_field", ""),
-            "seniority_level": jd.get("seniority_level", "mid"),
-            "salary_min": jd.get("salary_min", 0.0),
-            "salary_max": jd.get("salary_max", 0.0),
-        },
-        "scoring_model": {
-            "name": "sentence_weighted_v1",
-            "weights": WEIGHTS,
-            "model_id": "sentence-transformers/all-MiniLM-L6-v2",
-        },
-    }
-    if os.getenv("ENV", "development") != "production":
-        response["jd_debug"] = jd
-
-    return response
+    return _build_rank_response(ranked, skipped, len(req.candidates), len(valid_candidates), elapsed_ms, jd)
 
 @app.post("/rank/upload")
 @limiter.limit(RANK_RATE_LIMIT)
@@ -212,7 +297,19 @@ async def rank_upload(
     job_description: str = Form(...),
     candidates_file: UploadFile = File(...)
 ):
+    allowed_types = {".json", ".jsonl"}
+    filename = candidates_file.filename or ""
+    ext = os.path.splitext(filename)[-1].lower()
+    if ext not in allowed_types:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported file type '{ext}'. Use .json or .jsonl"
+        )
+    
     content = await candidates_file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large. Max 10MB.")
+        
     lines = content.decode("utf-8").splitlines()
     candidates = []
     for line in lines:
@@ -236,39 +333,7 @@ async def rank_upload(
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    response = {
-        "ranked_candidates": ranked,
-        "skipped_candidates": {
-            "count": len(skipped),
-            "ids": skipped,
-            "reason": "Failed data validation / sanitization"
-        },
-        "total_candidates": len(candidates),
-        "valid_candidates": len(valid_candidates),
-        "scored_candidates": len(valid_candidates),
-        "ranked_count": len(ranked),
-        "processing_time_ms": elapsed_ms,
-        "jd_parsed": {
-            "required_skills": jd.get("required_skills", []),
-            "preferred_skills": jd.get("preferred_skills", []),
-            "target_title": jd.get("target_title", ""),
-            "min_experience_years": jd.get("min_experience_years", 0),
-            "target_industry": jd.get("target_industry", ""),
-            "target_field": jd.get("target_field", ""),
-            "seniority_level": jd.get("seniority_level", "mid"),
-            "salary_min": jd.get("salary_min", 0.0),
-            "salary_max": jd.get("salary_max", 0.0),
-        },
-        "scoring_model": {
-            "name": "sentence_weighted_v1",
-            "weights": WEIGHTS,
-            "model_id": "sentence-transformers/all-MiniLM-L6-v2",
-        },
-    }
-    if os.getenv("ENV", "development") != "production":
-        response["jd_debug"] = jd
-
-    return response
+    return _build_rank_response(ranked, skipped, len(candidates), len(valid_candidates), elapsed_ms, jd)
 
 @app.get("/info")
 async def info():
@@ -288,5 +353,12 @@ async def info():
             "availability": "10% — notice period, open_to_work, relocation",
         },
         "hallucination_free": True,
-        "reasoning": "deterministic — no LLM generation",
+        "reasoning_methodology": (
+            "All candidate reasoning strings are generated deterministically from "
+            "structured data fields (skills, career_history, education, redrob_signals). "
+            "No language model is invoked for reasoning generation. "
+            "Scores are computed via weighted cosine similarity + rule-based heuristics."
+        ),
+        "no_llm_in_scoring_loop": True,
+        "model_inference_type": "embedding-only (encode, no generation)",
     }
