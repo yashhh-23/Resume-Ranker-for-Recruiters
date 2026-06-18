@@ -12,7 +12,9 @@ jobs:
         working-directory: backend
         run: |
           python rank.py \
-            --candidates ../data/sample_candidates.json \
-            --jd ../data/job_description.txt \
+            --candidates dataset/sample_candidates.json \
+            --jd dataset/job_description.docx \
             --out /tmp/test_submission.csv
-      - run: python validate_submission.py --submission /tmp/test_submission.csv
+      - name: Validate submission
+        working-directory: backend
+        run: python dataset/validate_submission.py --submission /tmp/test_submission.csv
