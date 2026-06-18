@@ -36,21 +36,22 @@ const CandidateCard = memo(({
     : 0;
 
   const getScoreColor = (score) => {
-    const val = score <= 1 ? score * 100 : score;
-    if (val >= 80) return "text-emerald border-emerald/20 bg-emerald/5";
-    if (val >= 60) return "text-cobalt border-cobalt/20 bg-cobalt/5";
-    return "text-slate-400 border-slate-800 bg-slate-900/40";
+    const val = score <= 1 ? score : score / 100;
+    if (val >= 0.75) return "text-emerald border-emerald/20 bg-emerald/5";
+    if (val >= 0.50) return "text-amber border-amber/20 bg-amber/5";
+    return "text-rose-400 border-rose-500/20 bg-rose-500/5";
   };
 
   const isInAnyPool = talentPools.some((p) =>
     p.candidates.some((c) => c.candidate_id === result.candidate_id)
   );
 
-  // Suspicious Profile badge logical contradiction checks
+  // Suspicious Profile: combine heuristic flags with backend-provided signals
   const yearsExp = profile.years_of_experience || 0;
   const skillsCount = candidate?.skills?.length || 0;
   const completenessScore = candidate?.redrob_signals?.profile_completeness_score || 0;
-  const isSuspicious = yearsExp > 30 || skillsCount === 0 || completenessScore < 20;
+  const backendFlagged = result?.is_suspicious === true || (Array.isArray(result?.compliance_flags) && result.compliance_flags.length > 0);
+  const isSuspicious = backendFlagged || yearsExp > 30 || skillsCount === 0 || completenessScore < 20;
 
   // Rank Delta Indicator calculation
   const originalRank = typeof result.rank === 'number' ? result.rank : parseInt(result.rank, 10);
