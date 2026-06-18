@@ -194,9 +194,15 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
             return clamp(title_score)
         return 0.5  # no hard requirements = neutral score
 
+    skill_weights = jd.get("skill_weights", {})
+    skill_weights_lower = {k.lower(): v for k, v in skill_weights.items()}
+
     career_history = candidate.get("career_history") or []
     matched_score = 0.0
+    total_possible_score = 0.0
+    missing_tier1_count = 0
     for r in required:
+        weight = skill_weights_lower.get(r, 1.0)
         best_level = 0.0
         for s in candidate.get("skills") or []:
             cs = s.get("name", "").lower()
@@ -212,10 +218,18 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
                         break
                         
                 best_level = max(best_level, 1.0 + prof_bonus + history_bonus)
-        matched_score += best_level
+                
+        if best_level == 0.0 and weight >= 2.0:
+            missing_tier1_count += 1
+            
+        matched_score += best_level * weight
+        total_possible_score += 1.10 * weight
 
-    # Normalize by max possible score per skill (1.10) to keep max coverage at 1.0
-    base_coverage = matched_score / (len(required) * 1.10)
+    # Normalize by max possible score per weighted skill to keep max coverage at 1.0
+    base_coverage = matched_score / total_possible_score if total_possible_score > 0 else 0.0
+    
+    if missing_tier1_count > 0:
+        base_coverage *= (0.80 ** missing_tier1_count)
 
     preferred = jd.get("_cached_preferred_skills")
     if preferred is None:
@@ -451,16 +465,6 @@ def score_candidate(
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     signals = candidate.get("redrob_signals") or {}
 
-    breakdown = {
-        "skill_match": score_skill_match(
-            candidate_id, jd_embedding, candidate_embeddings, candidate, jd
-        ),
-        "career_fit": score_career_fit(candidate, jd),
-        "signal_modifier": score_signal_modifier(signals, jd),
-        "education": score_education(candidate, jd),
-        "availability": score_availability(signals),
-    }
-
     skills = candidate.get("skills") or []
     candidate_skill_names = _get_candidate_skill_names(skills)
     jd_required_list = jd.get("_cached_raw_req")
@@ -474,6 +478,16 @@ def score_candidate(
     missing = [r for r, rl in req_zip if not any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
 
     matched_count = len(matched)
+
+    breakdown = {
+        "skill_match": score_skill_match(
+            candidate_id, jd_embedding, candidate_embeddings, candidate, jd
+        ),
+        "career_fit": score_career_fit(candidate, jd),
+        "signal_modifier": score_signal_modifier(signals, jd, matched_count=matched_count),
+        "education": score_education(candidate, jd),
+        "availability": score_availability(signals),
+    }
     
     # Read experience ONCE, used in both dampening and experience-gating below
     profile = candidate.get("profile") or {}
@@ -521,7 +535,7 @@ def score_candidate(
 
     # Additive bonus to mathematically enforce strict skill-tier separation 
     # without breaking validator monotonically decreasing rules
-    final_score += (len(matched) * 0.05)
+    final_score += (len(matched) * 0.06)
     
     trap_penalty = score_jd_specific_traps(candidate)
     final_score = max(0.0, final_score - trap_penalty)
@@ -533,11 +547,14 @@ def score_candidate(
 
     min_experience = safe_float(jd.get("min_experience_years"), 0.0)
     if min_experience > 0 and years_exp < min_experience:
-        final_score *= 0.30
+        if years_exp < min_experience * 0.75:
+            final_score *= 0.70
+        else:
+            final_score *= 0.85
         
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
-    if breakdown["career_fit"] < 0.08:
-        final_score *= 0.7
+    if breakdown["career_fit"] < 0.35:
+        final_score *= 0.50
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
@@ -614,14 +631,28 @@ def score_candidate(
     )
 
     reasoning_str = build_reasoning(candidate, rounded_breakdown, matched, jd)
+    try:
+        encoding = sys.stdout.encoding if sys.stdout else None
+    except Exception:
+        encoding = None
+    WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
+
+    if len(matched) == 0:
+        reasoning_str += f" | {WARNING_CHAR} 0 skills matched"
+        flags.append("zero_skill_match")
+
+    tags = []
+    if len(matched) >= len(jd_required_list) * 0.5 and years_exp < min_experience:
+        tags.append(f"{WARNING_CHAR} Under-experienced but high-skill match")
+    if tags:
+        reasoning_str += " | " + " | ".join(tags)
+
     if flags:
         flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
-        try:
-            encoding = sys.stdout.encoding if sys.stdout else None
-        except Exception:
-            encoding = None
-        WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
         reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
+        
+    if breakdown["career_fit"] < 0.35:
+        reasoning_str += f" | {WARNING_CHAR} role title mismatch"
 
     # Removed completeness penalty to preserve skill match monotonicity
 
@@ -630,16 +661,10 @@ def score_candidate(
         "score": round(clamp(calibrate_score(final_score)), 4),
         "matched_count": len(matched),
         "score_breakdown": rounded_breakdown,
-        "breakdown": {
-            "skill": rounded_breakdown["skill_match"],
-            "semantic": rounded_breakdown["career_fit"],
-            "activity": rounded_breakdown["signal_modifier"],
-            **rounded_breakdown,
-        },
         "reasoning": reasoning_str,
         "signal_reasoning": {
             "skill_match": skill_match_desc,
-            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}",
+            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}" + (f"; Trap penalty: {trap_penalty:.2f}" if trap_penalty > 0 else ""),
             "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
             "education": education_desc,
             "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
