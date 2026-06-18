@@ -403,6 +403,10 @@ def score_candidate(
     matched = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if any(rl in cs or cs in rl for cs in candidate_skill_names)]
     missing = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if not any(rl in cs or cs in rl for cs in candidate_skill_names)]
 
+    # Dampen education contribution if the career fit is extremely weak
+    if breakdown["career_fit"] < 0.12:
+        breakdown["education"] *= 0.70
+
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
     # Implement a skill count gate as a hard multiplicative factor on the total score
@@ -555,12 +559,18 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         "availability": score_availability(signals),
     }
 
+    # Dampen education contribution if the career fit is extremely weak
+    if breakdown["career_fit"] < 0.12:
+        breakdown["education"] *= 0.70
+
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
-    required = jd.get("required_skills", [])
-    if required:
-        candidate_skills_lower = [str(s.get("name", "")).lower() for s in candidate.get("skills") or []]
-        matched_count = sum(1 for r in required if any(r in cs or cs in r for cs in candidate_skills_lower))
+    jd_required_list = jd.get("_cached_raw_req", jd.get("raw_required_skills", jd.get("required_skills", [])))
+    jd["_cached_raw_req"] = jd_required_list
+    if jd_required_list:
+        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
+        jd_required_list_lower = [r.lower() for r in jd_required_list]
+        matched_count = sum(1 for r, rl in zip(jd_required_list, jd_required_list_lower) if any(rl in cs or cs in rl for cs in candidate_skill_names))
         
         # Implement a skill count gate as a hard multiplicative factor on the total score
         if matched_count == 0:
