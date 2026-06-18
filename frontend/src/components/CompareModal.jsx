@@ -18,11 +18,11 @@ const WEIGHTS_MAP = {
  */
 
 const SCORE_AXES = [
-  { key: "skill_match", label: "Skills", weight: "35%", color: "#10B981" },
-  { key: "career_fit", label: "Career", weight: "25%", color: "#3B82F6" },
-  { key: "signal_modifier", label: "Signals", weight: "15%", color: "#6366F1" },
-  { key: "education", label: "Education", weight: "15%", color: "#14B8A6" },
-  { key: "availability", label: "Availability", weight: "10%", color: "#D97706" },
+  { key: "skill_match", label: "Skill Match (35%)", weight: "35%", color: "#10B981" },
+  { key: "career_fit", label: "Career Fit (25%)", weight: "25%", color: "#3B82F6" },
+  { key: "signal_modifier", label: "Engagement (15%)", weight: "15%", color: "#6366F1" },
+  { key: "education", label: "Education (15%)", weight: "15%", color: "#14B8A6" },
+  { key: "availability", label: "Availability (10%)", weight: "10%", color: "#D97706" },
 ];
 
 const COLORS = ["#10B981", "#3B82F6", "#D97706"];
@@ -73,13 +73,29 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
 
   // Prepare data for Recharts RadarChart
   const radarData = SCORE_AXES.map((axis) => {
-    const dataPoint = { subject: axis.label, fullMark: 1.0 };
+    const dataPoint = { subject: axis.label, fullMark: 1.0, axisKey: axis.key };
     selectedCandidates.forEach((item, index) => {
       const breakdown = deriveBreakdown(item.result, item.candidate);
       dataPoint[`cand${index}`] = breakdown[axis.key] ?? 0;
     });
     return dataPoint;
   });
+
+  // Custom tick that shows axis label on 2 lines (name + abbreviated scores)
+  const CustomAxisTick = ({ x, y, payload, textAnchor }) => {
+    const entry = radarData.find(d => d.subject === payload.value);
+    const scores = entry
+      ? selectedCandidates.map((_, i) => `${((entry[`cand${i}`] ?? 0) * 100).toFixed(0)}%`).join(" / ")
+      : "";
+    return (
+      <g>
+        <text x={x} y={y} textAnchor={textAnchor} fill="#94a3b8" fontSize={9} fontFamily="monospace">
+          <tspan x={x} dy="0">{payload.value}</tspan>
+          <tspan x={x} dy={12} fill="#64748b" fontSize={8}>{scores}</tspan>
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div
@@ -141,9 +157,9 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
               <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-3 text-center">Score Radar Overlay</p>
               <div className="h-[250px] w-full relative">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="62%" data={radarData}>
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }} />
+                    <PolarAngleAxis dataKey="subject" tick={<CustomAxisTick />} />
                     <PolarRadiusAxis domain={[0, 1.0]} tick={false} axisLine={false} />
                     <Tooltip
                       contentStyle={{
@@ -194,7 +210,7 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
                     <tr key={ax.key} className="hover:bg-slate-900/10">
                       <td className="py-2 pr-4 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: ax.color }} />
-                        <span className="text-slate-400">{ax.label}</span>
+                        <span className="text-slate-400">{ax.label.replace(/ \(\d+%\)$/, "")}</span>
                         <span className="text-slate-600 text-[9px]">({ax.weight})</span>
                       </td>
                       {selectedCandidates.map((item, idx) => {
