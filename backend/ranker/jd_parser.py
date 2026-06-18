@@ -131,6 +131,9 @@ TECH_SKILLS = [
     "Prisma",
     "Ray",
     "LlamaIndex",
+    "AI",
+    "GenAI",
+    "Artificial Intelligence",
 ]
 
 SOFT_SKILLS = [
@@ -154,7 +157,7 @@ SOFT_SKILLS = [
 
 TITLE_PATTERNS = [
     r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist))",
-    r"\b(ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
+    r"\b(AI Engineer|ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
     r"Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|"
     r"Product Manager|SDE-I|SDE-II|SDE-III|SDE I|SDE II|SDE III|"
     r"Technical Program Manager|Associate Consultant|Founding Engineer|"
@@ -224,7 +227,7 @@ def _split_skill_lines(lines: List[str]) -> List[str]:
                 1 <= len(cleaned.split()) <= 4
                 and len(cleaned) <= 32
                 and not re.search(
-                    r"\b(this|that|beyond|practical|probably|terms|range|used)\b",
+                    r"\b(this|that|beyond|practical|probably|terms|range|used|years?|yrs?|lpa|ctc|salary|requirement|we've|tried|working|great)\b|[\(\)]",
                     cleaned,
                     re.IGNORECASE,
                 )
@@ -235,9 +238,11 @@ def _split_skill_lines(lines: List[str]) -> List[str]:
 
 def _known_skill_hits(text: str, skill_list: List[str]) -> List[str]:
     hits = []
-    lowered = text.lower()
     for skill in skill_list:
-        if skill.lower() in lowered:
+        escaped = re.escape(skill)
+        # Use word boundaries so "AI" doesn't trigger on "email"
+        pattern = r"(?<!\w)" + escaped + r"(?!\w)"
+        if re.search(pattern, text, re.IGNORECASE):
             hits.append(skill)
     return _dedupe(hits)
 
@@ -252,12 +257,12 @@ def _extract_title(text: str) -> str:
 
 
 def _extract_experience(text: str) -> int:
-    # Try to find a range first: "2-5 years", "3 to 7 years"
+    # Try to find a range first: "2-5 years", "3 to 7 years", or "5–9 years" (en-dash/em-dash)
     range_match = re.search(
-        r"(\d+)\s*(?:-|to)\s*(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE
+        r"(\d+)\s*(?:-|–|—|to)\s*(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE
     )
     if range_match:
-        return int(range_match.group(2))  # use upper bound as min_experience
+        return int(range_match.group(1))  # use lower bound as min_experience
     # Fallback to single number
     single_match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
     if single_match:

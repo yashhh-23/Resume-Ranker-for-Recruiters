@@ -17,10 +17,10 @@ from .signal_scorer import clamp, safe_float, score_availability, score_signal_m
 from .validators import validate_candidate
 
 WEIGHTS = {
-    "skill_match": 0.45,
-    "career_fit": 0.20,
-    "signal_modifier": 0.16,
-    "education": 0.09,
+    "skill_match": 0.50,
+    "career_fit": 0.25,
+    "signal_modifier": 0.08,
+    "education": 0.07,
     "availability": 0.10,
 }
 
@@ -51,6 +51,7 @@ import functools
 @functools.lru_cache(maxsize=4096)
 def tokenize(text: Any) -> frozenset:
     text_str = str(text or "").lower()
+    text_str = re.sub(r"\b(ml|machine learning|artificial intelligence)\b", "ai", text_str)
     tokens = set()
     for compound in COMPOUND_SKILLS:
         if compound in text_str:
@@ -62,8 +63,35 @@ def tokenize(text: Any) -> frozenset:
 def _get_candidate_skill_names(skills: List[Dict[str, Any]]) -> set[str]:
     return {str(s.get("name", "")).lower() for s in skills if s.get("name")}
 
+SKILL_ALIASES = {
+    "llms": {"llms", "llm", "large language model", "large language models", "gpt", "gpt-3", "gpt-4", "transformer", "transformers", "bert", "openai", "claude", "gemini", "llama", "hugging face", "huggingface"},
+    "llm": {"llms", "llm", "large language model", "large language models", "gpt", "gpt-3", "gpt-4", "transformer", "transformers", "bert", "openai", "claude", "gemini", "llama", "hugging face", "huggingface"},
+    "large language models": {"llms", "llm", "large language model", "large language models", "gpt", "gpt-3", "gpt-4", "transformer", "transformers", "bert", "openai", "claude", "gemini", "llama", "hugging face", "huggingface"},
+    "large language model": {"llms", "llm", "large language model", "large language models", "gpt", "gpt-3", "gpt-4", "transformer", "transformers", "bert", "openai", "claude", "gemini", "llama", "hugging face", "huggingface"},
+    "retrieval": {"retrieval", "rag", "vector search", "embedding search", "retrieval augmented generation", "faiss", "pinecone", "qdrant", "milvus", "weaviate", "elasticsearch", "opensearch", "bm25", "hybrid retrieval"},
+    "hybrid retrieval": {"retrieval", "rag", "vector search", "embedding search", "retrieval augmented generation", "faiss", "pinecone", "qdrant", "milvus", "weaviate", "elasticsearch", "opensearch", "bm25", "hybrid retrieval"},
+    "fine-tuning": {"fine-tuning", "finetuning", "fine tuning", "peft", "lora", "qlora", "rlhf", "sft", "instruction tuning"},
+    "fine-tuning llms": {"fine-tuning", "finetuning", "fine tuning", "peft", "lora", "qlora", "rlhf", "sft", "instruction tuning", "fine-tuning llms"},
+}
+
 def is_skill_match(r: str, c: str) -> bool:
-    return r in c or c in r
+    r_clean = r.lower().strip()
+    c_clean = c.lower().strip()
+    if r_clean in c_clean or c_clean in r_clean:
+        return True
+    r_aliases = SKILL_ALIASES.get(r_clean, {r_clean})
+    c_aliases = SKILL_ALIASES.get(c_clean, {c_clean})
+    if r_aliases & c_aliases:
+        return True
+    for alias in r_aliases:
+        if alias in c_clean or c_clean in alias:
+            return True
+    return False
+
+
+def calibrate_score(score: float) -> float:
+    s = max(0.0, min(1.0, score))
+    return (math.exp(1.8 * s) - 1.0) / (math.exp(1.8) - 1.0)
 
 
 def text_match(value: Any, target: Any) -> float:
@@ -121,10 +149,17 @@ def apply_pass_1_bouncer(candidate: Dict[str, Any]) -> tuple[bool, bool]:
     if years_exp * 12 > total_duration_months and total_duration_months > 0:
         fraudulent_timeline = True
 
-    current_title = str(profile.get("current_title") or "").lower()
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title and career_history:
+        current_title = str(career_history[0].get("title") or "").lower()
+        
     blacklist = ["civil", "mechanical", "hr", "marketing", "accountant", "analyst", "manager", "sales", "content", "designer", "frontend", "net", ".net", "graphic", "writer", "customer support", "cloud", "devops", "qa"]
-    if any(b in current_title for b in blacklist):
-        blacklist_penalty = True
+    import re
+    for b in blacklist:
+        pattern = r"(?<!\w)" + re.escape(b) + r"(?!\w)"
+        if re.search(pattern, current_title):
+            blacklist_penalty = True
+            break
 
     for skill in candidate.get("skills") or []:
         dur = safe_float(skill.get("duration_months"), 0.0)
@@ -147,10 +182,17 @@ def _get_skill_cross_field_multiplier(skill_name: str, career_history: list) -> 
 def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     required = jd.get("_cached_required_skills")
     if required is None:
-        required = [s.lower() for s in jd.get("required_skills", [])]
+        required_list = jd.get("raw_required_skills")
+        if not required_list:
+            required_list = jd.get("required_skills", [])
+        required = [s.lower() for s in required_list]
         jd["_cached_required_skills"] = required
     if not required:
-        return 1.0  # no hard requirements = full score
+        target_title = jd.get("target_title", "")
+        if target_title and target_title.lower() != "any":
+            title_score = text_match(target_title, candidate.get("profile", {}).get("current_title", ""))
+            return clamp(title_score)
+        return 0.5  # no hard requirements = neutral score
 
     career_history = candidate.get("career_history") or []
     matched_score = 0.0
@@ -158,7 +200,7 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         best_level = 0.0
         for s in candidate.get("skills") or []:
             cs = s.get("name", "").lower()
-            if r in cs or cs in r:
+            if is_skill_match(r, cs):
                 level = str(s.get("proficiency") or "intermediate").lower().strip()
                 base_level_weight = PROFICIENCY_WEIGHTS.get(level, 0.65)
                 multiplier = _get_skill_cross_field_multiplier(cs, career_history)
@@ -267,7 +309,16 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     exp_score = 0.0
     if min_experience > 0:
-        exp_score = clamp((years_exp + 2) / min_experience)
+        if years_exp < min_experience:
+            # Steep penalty for under-experienced candidates
+            exp_score = clamp((years_exp / min_experience) ** 2)
+        elif years_exp <= min_experience + 2:
+            # Sweet spot
+            exp_score = 1.0
+        else:
+            # Over-experienced penalty: max out at min_experience+2, then decay
+            over = years_exp - (min_experience + 2)
+            exp_score = clamp(1.0 - (over * 0.05))
 
     gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
     
@@ -411,8 +462,8 @@ def score_candidate(
         jd["_cached_req_zip"] = [(r, r.lower()) for r in jd_required_list]
 
     req_zip = jd.get("_cached_req_zip", [])
-    matched = [r for r, rl in req_zip if any(rl in cs or cs in rl for cs in candidate_skill_names)]
-    missing = [r for r, rl in req_zip if not any(rl in cs or cs in rl for cs in candidate_skill_names)]
+    matched = [r for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
+    missing = [r for r, rl in req_zip if not any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
 
     matched_count = len(matched)
     
@@ -447,12 +498,19 @@ def score_candidate(
 
     # Implement a skill count gate as a hard multiplicative factor on the total score
     if len(matched) == 0:
-        final_score *= 0.40
+        final_score *= 0.30
     elif len(matched) == 1:
         if breakdown["career_fit"] >= 0.35:
-            final_score *= 0.85  # Career fit rescue clause
+            final_score *= 0.75  # Career fit rescue clause
         else:
-            final_score *= 0.70
+            final_score *= 0.60
+    elif len(matched) == 2:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.90
+        else:
+            final_score *= 0.80
+    elif len(matched) == 3:
+        final_score *= 0.95
 
     # Additive bonus to mathematically enforce strict skill-tier separation 
     # without breaking validator monotonically decreasing rules
@@ -465,6 +523,10 @@ def score_candidate(
         final_score *= 0.2
     if fraud_timeline:
         final_score = 0.0
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    if min_experience > 0 and years_exp < min_experience:
+        final_score *= 0.30
         
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.08:
@@ -486,7 +548,7 @@ def score_candidate(
     preferred_jd = jd.get("_cached_raw_pref", jd.get("preferred_skills", []))
     jd["_cached_raw_pref"] = preferred_jd
     preferred_jd_lower = [p.lower() for p in preferred_jd]
-    preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(pl in cs or cs in pl for cs in candidate_skill_names)]
+    preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(is_skill_match(pl, cs) for cs in candidate_skill_names)]
 
     skill_match_desc = (
         f"{len(matched)}/{len(jd_required_list)} required skills matched"
@@ -558,7 +620,7 @@ def score_candidate(
 
     return {
         "candidate_id": candidate_id,
-        "score": round(clamp(final_score), 4),
+        "score": round(clamp(calibrate_score(final_score)), 4),
         "matched_count": len(matched),
         "score_breakdown": rounded_breakdown,
         "breakdown": {
@@ -605,7 +667,7 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     matched_count = 0
     if req_zip:
         candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
-        matched_count = sum(1 for r, rl in req_zip if any(rl in cs or cs in rl for cs in candidate_skill_names))
+        matched_count = sum(1 for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names))
 
     # Read experience ONCE, used in both dampening and experience-gating below
     profile = candidate.get("profile") or {}
@@ -636,18 +698,23 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
-    if req_zip:
-        
-        # Implement a skill count gate as a hard multiplicative factor on the total score
-        if matched_count == 0:
-            final_score *= 0.40
-        elif matched_count == 1:
-            if breakdown["career_fit"] >= 0.35:
-                final_score *= 0.85  # Career fit rescue clause
-            else:
-                final_score *= 0.70
-                
-        final_score += (matched_count * 0.05)
+    # Implement a skill count gate as a hard multiplicative factor on the total score
+    if matched_count == 0:
+        final_score *= 0.30
+    elif matched_count == 1:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.75  # Career fit rescue clause
+        else:
+            final_score *= 0.60
+    elif matched_count == 2:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.90
+        else:
+            final_score *= 0.80
+    elif matched_count == 3:
+        final_score *= 0.95
+            
+    final_score += (matched_count * 0.05)
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.08:
         final_score *= 0.7
@@ -659,7 +726,12 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         final_score *= 0.2
     if fraud_timeline:
         final_score = 0.0
-    return final_score
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    if min_experience > 0 and years_exp < min_experience:
+        final_score *= 0.30
+
+    return calibrate_score(final_score)
 
 
 def rank_candidates(
