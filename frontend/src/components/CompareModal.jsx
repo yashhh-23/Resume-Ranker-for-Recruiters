@@ -2,6 +2,15 @@ import { useEffect, useRef } from "react";
 import { formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown } from "../utils/scoreUtils";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { SKILL_WEIGHT, CAREER_WEIGHT, SIGNAL_WEIGHT, EDUCATION_WEIGHT, AVAILABILITY_WEIGHT } from "../constants/weights";
+
+const WEIGHTS_MAP = {
+  skill_match: SKILL_WEIGHT,
+  career_fit: CAREER_WEIGHT,
+  signal_modifier: SIGNAL_WEIGHT,
+  education: EDUCATION_WEIGHT,
+  availability: AVAILABILITY_WEIGHT,
+};
 
 /**
  * CompareModal — Side-by-side comparison of up to 3 candidates.
@@ -191,9 +200,14 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
                       {selectedCandidates.map((item, idx) => {
                         const breakdown = deriveBreakdown(item.result, item.candidate);
                         const val = breakdown[ax.key] ?? 0;
+                        const weightVal = WEIGHTS_MAP[ax.key] ?? 0;
+                        const contrib = val * weightVal;
                         return (
                           <td key={idx} className="py-2 text-right font-bold text-slate-200">
-                            {formatPercent(val)}
+                            {formatPercent(val)}{" "}
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              (+{formatPercent(contrib)} weight)
+                            </span>
                           </td>
                         );
                       })}
