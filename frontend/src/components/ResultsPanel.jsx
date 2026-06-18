@@ -275,17 +275,17 @@ const ResultsPanel = ({
           
           <div className="flex items-center gap-2 flex-wrap">
             {/* Pools vs Shortlist Tab Switcher */}
-            <div className="flex border border-slate-800 bg-slate-950 p-0.5 rounded-none shrink-0 font-mono">
+            <div className="flex border border-slate-800 bg-slate-950/80 p-0.5 rounded-none shrink-0 font-mono h-[28px] items-center">
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab("shortlist");
                   setSelectedPoolId(null);
                 }}
-                className={`px-2 py-1 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider ${
+                className={`px-2.5 py-0.5 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider h-full flex items-center ${
                   activeTab === "shortlist"
-                    ? "bg-slate-800 text-slate-100 font-bold border border-slate-700"
-                    : "text-slate-500 hover:text-slate-300 border border-transparent"
+                    ? "bg-slate-800 text-slate-100"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-slate-900/30"
                 }`}
               >
                 Shortlist
@@ -296,10 +296,10 @@ const ResultsPanel = ({
                   setActiveTab("pools");
                   setSelectedPoolId(null);
                 }}
-                className={`px-2 py-1 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider flex items-center gap-1 ${
+                className={`px-2.5 py-0.5 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider flex items-center gap-1.5 h-full ${
                   activeTab === "pools"
-                    ? "bg-slate-800 text-slate-100 font-bold border border-slate-700"
-                    : "text-slate-500 hover:text-slate-300 border border-transparent"
+                    ? "bg-slate-800 text-slate-100"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-slate-900/30"
                 }`}
               >
                 <span>Pools</span>
