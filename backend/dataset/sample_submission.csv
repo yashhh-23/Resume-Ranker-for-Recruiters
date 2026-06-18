@@ -1,101 +1,51 @@
 candidate_id,rank,score,reasoning
-CAND_0000031,1,0.4640,Recommendation Systems Engineer with 6.0 yrs; 0 Any skills matched; top signal availability; response rate 0.91.
-CAND_0000020,2,0.4430,Mechanical Engineer with 6.3 yrs; 0 Any skills matched; top signal education; response rate 0.55.
-CAND_0000007,3,0.4377,Civil Engineer with 5.5 yrs; 0 Any skills matched; top signal availability; response rate 0.62.
-CAND_0000023,4,0.4184,Software Engineer with 3.7 yrs; 0 Any skills matched; top signal availability; response rate 0.57.
-CAND_0000024,5,0.4009,HR Manager with 7.5 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.78.
-CAND_0000001,6,0.3917,Backend Engineer with 6.9 yrs; 0 Any skills matched; top signal availability; response rate 0.34.
-CAND_0000019,7,0.3877,Project Manager with 6.5 yrs; 0 Any skills matched; top signal education; response rate 0.34.
-CAND_0000027,8,0.3855,DevOps Engineer with 3.9 yrs; 0 Any skills matched; top signal availability; response rate 0.58.
-CAND_0000011,9,0.3844,QA Engineer with 2.0 yrs; 0 Any skills matched; top signal skill match; response rate 0.56.
-CAND_0000048,10,0.3837,Mobile Developer with 9.7 yrs; 0 Any skills matched; top signal availability; response rate 0.65.
-CAND_0000038,11,0.3806,Java Developer with 6.7 yrs; 0 Any skills matched; top signal availability; response rate 0.20.
-CAND_0000008,12,0.3761,Operations Manager with 3.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.42.
-CAND_0000035,13,0.3665,Full Stack Developer with 4.3 yrs; 0 Any skills matched; top signal skill match; response rate 0.34.
-CAND_0000026,14,0.3658,Graphic Designer with 6.8 yrs; 0 Any skills matched; top signal availability; response rate 0.59.
-CAND_0000016,15,0.3652,Accountant with 5.3 yrs; 0 Any skills matched; top signal availability; response rate 0.64.
-CAND_0000039,16,0.3629,Marketing Manager with 3.9 yrs; 0 Any skills matched; top signal availability; response rate 0.52.
-CAND_0000032,17,0.3625,.NET Developer with 8.1 yrs; 0 Any skills matched; top signal availability; response rate 0.69.
-CAND_0000014,18,0.3618,Frontend Engineer with 8.4 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.80.
-CAND_0000046,19,0.3583,Mechanical Engineer with 7.8 yrs; 0 Any skills matched; top signal availability; response rate 0.41.
-CAND_0000025,20,0.3575,Frontend Engineer with 7.3 yrs; 0 Any skills matched; top signal availability; response rate 0.74.
-CAND_0000033,21,0.3559,Graphic Designer with 8.6 yrs; 0 Any skills matched; top signal availability; response rate 0.08.
-CAND_0000005,22,0.3556,Accountant with 11.0 yrs; 0 Any skills matched; top signal availability; response rate 0.37.
-CAND_0000045,23,0.3544,Project Manager with 12.2 yrs; 0 Any skills matched; top signal availability; response rate 0.62.
-CAND_0000010,24,0.3534,Data Engineer with 4.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.40.
-CAND_0000015,25,0.3518,Software Engineer with 5.4 yrs; 0 Any skills matched; top signal availability; response rate 0.32.
-CAND_0000042,26,0.3492,HR Manager with 5.0 yrs; 0 Any skills matched; top signal availability; response rate 0.58.
-CAND_0000044,27,0.3468,Frontend Engineer with 5.7 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.66.
-CAND_0000018,28,0.3459,Frontend Engineer with 6.6 yrs; 0 Any skills matched; top signal skill match; response rate 0.16.
-CAND_0000013,29,0.3445,Civil Engineer with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.28.
-CAND_0000030,30,0.3424,Marketing Manager with 10.0 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.66.
-CAND_0000037,31,0.3404,Business Analyst with 14.3 yrs; 0 Any skills matched; top signal availability; response rate 0.78.
-CAND_0000036,32,0.3381,Project Manager with 11.3 yrs; 0 Any skills matched; top signal availability; response rate 0.40.
-CAND_0000049,33,0.3378,Mechanical Engineer with 11.8 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.59.
-CAND_0000021,34,0.3347,Project Manager with 14.5 yrs; 0 Any skills matched; top signal availability; response rate 0.49.
-CAND_0000002,35,0.3333,Operations Manager with 12.5 yrs; 0 Any skills matched; top signal availability; response rate 0.29.
-CAND_0000050,36,0.3321,Business Analyst with 13.5 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.42.
-CAND_0000022,37,0.3320,Mechanical Engineer with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.27.
-CAND_0000009,38,0.3273,Mechanical Engineer with 11.0 yrs; 0 Any skills matched; top signal skill match; response rate 0.53.
-CAND_0000047,39,0.3258,Project Manager with 2.4 yrs; 0 Any skills matched; top signal skill match; response rate 0.39.
-CAND_0000041,40,0.3228,Operations Manager with 13.7 yrs; 0 Any skills matched; top signal availability; response rate 0.07.
-CAND_0000043,41,0.3176,Cloud Engineer with 8.3 yrs; 0 Any skills matched; top signal availability; response rate 0.04.
-CAND_0000028,42,0.3148,Operations Manager with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.14.
-CAND_0000004,43,0.3124,Marketing Manager with 3.8 yrs; 0 Any skills matched; top signal availability; response rate 0.26.
-CAND_0000029,44,0.3114,Business Analyst with 7.2 yrs; 0 Any skills matched; top signal availability; response rate 0.12.
-CAND_0000006,45,0.3058,Business Analyst with 6.0 yrs; 0 Any skills matched; top signal availability; response rate 0.12.
-CAND_0000017,46,0.3058,Accountant with 12.3 yrs; 0 Any skills matched; top signal skill match; response rate 0.27.
-CAND_0000040,47,0.3057,Customer Support with 1.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.46.
-CAND_0000034,48,0.2979,Business Analyst with 14.5 yrs; 0 Any skills matched; top signal skill match; response rate 0.15.
-CAND_0000003,49,0.2957,Customer Support with 1.1 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.46.
-CAND_0000012,50,0.2911,Operations Manager with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.16.
-CAND_9000051,51,0.0000,Dummy candidate for padding; rank 51.
-CAND_9000052,52,0.0000,Dummy candidate for padding; rank 52.
-CAND_9000053,53,0.0000,Dummy candidate for padding; rank 53.
-CAND_9000054,54,0.0000,Dummy candidate for padding; rank 54.
-CAND_9000055,55,0.0000,Dummy candidate for padding; rank 55.
-CAND_9000056,56,0.0000,Dummy candidate for padding; rank 56.
-CAND_9000057,57,0.0000,Dummy candidate for padding; rank 57.
-CAND_9000058,58,0.0000,Dummy candidate for padding; rank 58.
-CAND_9000059,59,0.0000,Dummy candidate for padding; rank 59.
-CAND_9000060,60,0.0000,Dummy candidate for padding; rank 60.
-CAND_9000061,61,0.0000,Dummy candidate for padding; rank 61.
-CAND_9000062,62,0.0000,Dummy candidate for padding; rank 62.
-CAND_9000063,63,0.0000,Dummy candidate for padding; rank 63.
-CAND_9000064,64,0.0000,Dummy candidate for padding; rank 64.
-CAND_9000065,65,0.0000,Dummy candidate for padding; rank 65.
-CAND_9000066,66,0.0000,Dummy candidate for padding; rank 66.
-CAND_9000067,67,0.0000,Dummy candidate for padding; rank 67.
-CAND_9000068,68,0.0000,Dummy candidate for padding; rank 68.
-CAND_9000069,69,0.0000,Dummy candidate for padding; rank 69.
-CAND_9000070,70,0.0000,Dummy candidate for padding; rank 70.
-CAND_9000071,71,0.0000,Dummy candidate for padding; rank 71.
-CAND_9000072,72,0.0000,Dummy candidate for padding; rank 72.
-CAND_9000073,73,0.0000,Dummy candidate for padding; rank 73.
-CAND_9000074,74,0.0000,Dummy candidate for padding; rank 74.
-CAND_9000075,75,0.0000,Dummy candidate for padding; rank 75.
-CAND_9000076,76,0.0000,Dummy candidate for padding; rank 76.
-CAND_9000077,77,0.0000,Dummy candidate for padding; rank 77.
-CAND_9000078,78,0.0000,Dummy candidate for padding; rank 78.
-CAND_9000079,79,0.0000,Dummy candidate for padding; rank 79.
-CAND_9000080,80,0.0000,Dummy candidate for padding; rank 80.
-CAND_9000081,81,0.0000,Dummy candidate for padding; rank 81.
-CAND_9000082,82,0.0000,Dummy candidate for padding; rank 82.
-CAND_9000083,83,0.0000,Dummy candidate for padding; rank 83.
-CAND_9000084,84,0.0000,Dummy candidate for padding; rank 84.
-CAND_9000085,85,0.0000,Dummy candidate for padding; rank 85.
-CAND_9000086,86,0.0000,Dummy candidate for padding; rank 86.
-CAND_9000087,87,0.0000,Dummy candidate for padding; rank 87.
-CAND_9000088,88,0.0000,Dummy candidate for padding; rank 88.
-CAND_9000089,89,0.0000,Dummy candidate for padding; rank 89.
-CAND_9000090,90,0.0000,Dummy candidate for padding; rank 90.
-CAND_9000091,91,0.0000,Dummy candidate for padding; rank 91.
-CAND_9000092,92,0.0000,Dummy candidate for padding; rank 92.
-CAND_9000093,93,0.0000,Dummy candidate for padding; rank 93.
-CAND_9000094,94,0.0000,Dummy candidate for padding; rank 94.
-CAND_9000095,95,0.0000,Dummy candidate for padding; rank 95.
-CAND_9000096,96,0.0000,Dummy candidate for padding; rank 96.
-CAND_9000097,97,0.0000,Dummy candidate for padding; rank 97.
-CAND_9000098,98,0.0000,Dummy candidate for padding; rank 98.
-CAND_9000099,99,0.0000,Dummy candidate for padding; rank 99.
-CAND_9000100,100,0.0000,Dummy candidate for padding; rank 100.
+CAND_0000031,1,0.4264,Recommendation Systems Engineer with 6.0 yrs; 2 required skill(s) matched; top signal availability; response rate 0.91.
+CAND_0000021,2,0.3214,Project Manager with 14.5 yrs; 2 required skill(s) matched; top signal availability; response rate 0.49.
+CAND_0000001,3,0.3180,Backend Engineer with 6.9 yrs; 1 required skill(s) matched; top signal availability; response rate 0.34.
+CAND_0000024,4,0.3135,HR Manager with 7.5 yrs; no required skills matched; top signal signal modifier; response rate 0.78.
+CAND_0000046,5,0.3111,Mechanical Engineer with 7.8 yrs; no required skills matched; top signal availability; response rate 0.41.
+CAND_0000042,6,0.3080,HR Manager with 5.0 yrs; no required skills matched; top signal availability; response rate 0.58.
+CAND_0000032,7,0.3010,.NET Developer with 8.1 yrs; 2 required skill(s) matched; top signal availability; response rate 0.69.
+CAND_0000036,8,0.2997,Project Manager with 11.3 yrs; no required skills matched; top signal availability; response rate 0.40.
+CAND_0000005,9,0.2985,Accountant with 11.0 yrs; no required skills matched; top signal availability; response rate 0.37.
+CAND_0000045,10,0.2977,Project Manager with 12.2 yrs; no required skills matched; top signal availability; response rate 0.62.
+CAND_0000007,11,0.2958,Civil Engineer with 5.5 yrs; no required skills matched; top signal availability; response rate 0.62.
+CAND_0000020,12,0.2937,Mechanical Engineer with 6.3 yrs; no required skills matched; top signal availability; response rate 0.55.
+CAND_0000039,13,0.2929,Marketing Manager with 3.9 yrs; no required skills matched; top signal availability; response rate 0.52.
+CAND_0000038,14,0.2924,Java Developer with 6.7 yrs; no required skills matched; top signal availability; response rate 0.20.
+CAND_0000010,15,0.2908,Data Engineer with 4.6 yrs; 3 required skill(s) matched; top signal signal modifier; response rate 0.40.
+CAND_0000037,16,0.2872,Business Analyst with 14.3 yrs; no required skills matched; top signal availability; response rate 0.78.
+CAND_0000044,17,0.2838,Frontend Engineer with 5.7 yrs; 1 required skill(s) matched; top signal signal modifier; response rate 0.66.
+CAND_0000014,18,0.2832,Frontend Engineer with 8.4 yrs; 1 required skill(s) matched; top signal signal modifier; response rate 0.80.
+CAND_0000025,19,0.2830,Frontend Engineer with 7.3 yrs; no required skills matched; top signal availability; response rate 0.74.
+CAND_0000048,20,0.2817,Mobile Developer with 9.7 yrs; no required skills matched; top signal availability; response rate 0.65.
+CAND_0000030,21,0.2806,Marketing Manager with 10.0 yrs; no required skills matched; top signal signal modifier; response rate 0.66.
+CAND_0000008,22,0.2789,Operations Manager with 3.6 yrs; no required skills matched; top signal signal modifier; response rate 0.42.
+CAND_0000026,23,0.2785,Graphic Designer with 6.8 yrs; no required skills matched; top signal availability; response rate 0.59.
+CAND_0000027,24,0.2757,DevOps Engineer with 3.9 yrs; no required skills matched; top signal availability; response rate 0.58.
+CAND_0000050,25,0.2732,Business Analyst with 13.5 yrs; no required skills matched; top signal signal modifier; response rate 0.42.
+CAND_0000002,26,0.2716,Operations Manager with 12.5 yrs; no required skills matched; top signal availability; response rate 0.29.
+CAND_0000019,27,0.2699,Project Manager with 6.5 yrs; no required skills matched; top signal availability; response rate 0.34.
+CAND_0000049,28,0.2669,Mechanical Engineer with 11.8 yrs; no required skills matched; top signal signal modifier; response rate 0.59.
+CAND_0000016,29,0.2651,Accountant with 5.3 yrs; no required skills matched; top signal availability; response rate 0.64.
+CAND_0000023,30,0.2639,Software Engineer with 3.7 yrs; no required skills matched; top signal availability; response rate 0.57.
+CAND_0000033,31,0.2625,Graphic Designer with 8.6 yrs; no required skills matched; top signal availability; response rate 0.08.
+CAND_0000015,32,0.2597,Software Engineer with 5.4 yrs; 1 required skill(s) matched; top signal availability; response rate 0.32.
+CAND_0000009,33,0.2584,Mechanical Engineer with 11.0 yrs; no required skills matched; top signal signal modifier; response rate 0.53.
+CAND_0000041,34,0.2563,Operations Manager with 13.7 yrs; no required skills matched; top signal availability; response rate 0.07.
+CAND_0000043,35,0.2560,Cloud Engineer with 8.3 yrs; 1 required skill(s) matched; top signal availability; response rate 0.04.
+CAND_0000018,36,0.2471,Frontend Engineer with 6.6 yrs; no required skills matched; top signal availability; response rate 0.16.
+CAND_0000047,37,0.2408,Project Manager with 2.4 yrs; no required skills matched; top signal availability; response rate 0.39.
+CAND_0000035,38,0.2396,Full Stack Developer with 4.3 yrs; no required skills matched; top signal availability; response rate 0.34.
+CAND_0000034,39,0.2390,Business Analyst with 14.5 yrs; no required skills matched; top signal availability; response rate 0.15.
+CAND_0000013,40,0.2345,Civil Engineer with 1.1 yrs; no required skills matched; top signal availability; response rate 0.28.
+CAND_0000006,41,0.2340,Business Analyst with 6.0 yrs; no required skills matched; top signal availability; response rate 0.12.
+CAND_0000022,42,0.2319,Mechanical Engineer with 1.1 yrs; no required skills matched; top signal availability; response rate 0.27.
+CAND_0000029,43,0.2319,Business Analyst with 7.2 yrs; no required skills matched; top signal availability; response rate 0.12.
+CAND_0000004,44,0.2314,Marketing Manager with 3.8 yrs; no required skills matched; top signal availability; response rate 0.26.
+CAND_0000028,45,0.2262,Operations Manager with 1.1 yrs; no required skills matched; top signal availability; response rate 0.14.
+CAND_0000012,46,0.2231,Operations Manager with 1.1 yrs; no required skills matched; top signal availability; response rate 0.16.
+CAND_0000011,47,0.2230,QA Engineer with 2.0 yrs; no required skills matched; top signal signal modifier; response rate 0.56.
+CAND_0000017,48,0.2200,Accountant with 12.3 yrs; no required skills matched; top signal availability; response rate 0.27.
+CAND_0000003,49,0.2194,Customer Support with 1.1 yrs; no required skills matched; top signal signal modifier; response rate 0.46.
+CAND_0000040,50,0.2064,Customer Support with 1.6 yrs; no required skills matched; top signal signal modifier; response rate 0.46.

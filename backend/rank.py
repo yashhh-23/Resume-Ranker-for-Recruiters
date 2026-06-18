@@ -58,9 +58,10 @@ def parse_args():
         "--candidates", required=True, help="Path to candidates JSON or JSONL"
     )
     parser.add_argument(
-        "--jd", default="data/job_description.docx", help="Path to job_description.docx"
+        "--jd", default="dataset/job_description.docx", help="Path to job_description.docx"
     )
     parser.add_argument("--out", default="submission.csv", help="Output CSV path")
+    parser.add_argument("--top-n", type=int, default=100, help="Number of top candidates to output")
     return parser.parse_args()
 
 
@@ -73,24 +74,7 @@ def main():
     if skipped:
         print(f"Skipped {len(skipped)} invalid candidates.", file=sys.stderr)
     jd = parse_jd(args.jd)
-    ranked = rank_candidates(valid_candidates, jd, limit=100)
-    if len(ranked) < 100:
-        print(
-            f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.",
-            file=sys.stderr,
-        )
-        dummy_rank = len(ranked) + 1
-        while len(ranked) < 100:
-            dummy_id = f"CAND_9{dummy_rank:06d}"
-            ranked.append(
-                {
-                    "candidate_id": dummy_id,
-                    "score": 0.0,
-                    "reasoning": f"Dummy candidate for padding; rank {dummy_rank}.",
-                    "rank": dummy_rank,
-                }
-            )
-            dummy_rank += 1
+    ranked = rank_candidates(valid_candidates, jd, limit=args.top_n)
     write_submission(ranked, Path(args.out))
 
     elapsed = time.perf_counter() - started
