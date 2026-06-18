@@ -46,7 +46,10 @@ COMPOUND_SKILLS = [
 ]
 
 
-def tokenize(text: Any) -> set:
+import functools
+
+@functools.lru_cache(maxsize=4096)
+def tokenize(text: Any) -> frozenset:
     text_str = str(text or "").lower()
     tokens = set()
     for compound in COMPOUND_SKILLS:
@@ -54,8 +57,7 @@ def tokenize(text: Any) -> set:
             tokens.add(compound)
             text_str = text_str.replace(compound, "")
     tokens.update(re.findall(r"[a-zA-Z][a-zA-Z0-9+#.-]*", text_str))
-    return tokens
-
+    return frozenset(tokens)
 
 def _get_candidate_skill_names(skills: List[Dict[str, Any]]) -> set[str]:
     return {str(s.get("name", "")).lower() for s in skills if s.get("name")}
@@ -89,11 +91,62 @@ PROFICIENCY_WEIGHTS = {
 }
 
 
+def apply_pass_1_bouncer(candidate: Dict[str, Any]) -> tuple[bool, bool]:
+    fraudulent_timeline = False
+    blacklist_penalty = False
+
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience", 0.0))
+    career_history = candidate.get("career_history") or []
+    
+    total_duration_months = 0.0
+    for role in career_history:
+        dur = role.get("duration_months")
+        if dur is not None:
+            total_duration_months += safe_float(dur, 0.0)
+        else:
+            start = role.get("start_date")
+            end = role.get("end_date")
+            if start:
+                try:
+                    s_date = datetime.fromisoformat(str(start)).date()
+                    e_date = datetime.fromisoformat(str(end)).date() if end else date.today()
+                    total_duration_months += max(0, (e_date.year - s_date.year) * 12 + e_date.month - s_date.month)
+                except ValueError:
+                    pass
+    
+    if years_exp * 12 > total_duration_months and total_duration_months > 0:
+        fraudulent_timeline = True
+
+    current_title = str(profile.get("current_title") or "").lower()
+    blacklist = ["civil", "mechanical", "hr", "marketing", "accountant", "analyst", "manager"]
+    if any(b in current_title for b in blacklist):
+        blacklist_penalty = True
+
+    for skill in candidate.get("skills") or []:
+        dur = safe_float(skill.get("duration_months"), 0.0)
+        prof = str(skill.get("proficiency") or "").lower()
+        if dur == 0.0 and prof in ("expert", "advanced"):
+            skill["proficiency"] = "beginner"
+
+    return fraudulent_timeline, blacklist_penalty
+
+def _get_skill_cross_field_multiplier(skill_name: str, career_history: list) -> float:
+    if not skill_name:
+        return 0.3
+    skill_lower = skill_name.lower()
+    for role in career_history:
+        desc = str(role.get("description") or "").lower()
+        if skill_lower in desc:
+            return 1.0
+    return 0.3
+
 def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     required = [s.lower() for s in jd.get("required_skills", [])]
     if not required:
         return 1.0  # no hard requirements = full score
 
+    career_history = candidate.get("career_history") or []
     matched_score = 0.0
     for r in required:
         best_level = 0.0
@@ -101,7 +154,9 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
             cs = s.get("name", "").lower()
             if r in cs or cs in r:
                 level = str(s.get("proficiency") or "intermediate").lower().strip()
-                best_level = max(best_level, PROFICIENCY_WEIGHTS.get(level, 0.65))
+                base_level_weight = PROFICIENCY_WEIGHTS.get(level, 0.65)
+                multiplier = _get_skill_cross_field_multiplier(cs, career_history)
+                best_level = max(best_level, base_level_weight * multiplier)
         matched_score += best_level
 
     base_coverage = matched_score / len(required)
@@ -176,7 +231,13 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     raw_score = 0.0
     career_history = candidate.get("career_history") or []
+    penalty_companies = {"tcs", "infosys", "wipro", "cognizant", "capgemini"}
+    it_penalty = 0.0
     for role in career_history:
+        comp = str(role.get("company") or "").lower()
+        if any(p in comp for p in penalty_companies):
+            it_penalty = 0.2
+            
         months_ago = years_ago(role.get("start_date")) * 12
         decay = recency_weight(months_ago, seniority)
         title_score = text_match(role.get("title"), target_title)
@@ -194,7 +255,7 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
         exp_score = clamp(years_exp / min_experience)
 
     gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
-    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
+    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15 - it_penalty)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -265,6 +326,8 @@ def score_candidate(
     jd_embedding: np.ndarray,
     candidate_embeddings: Dict[str, np.ndarray],
 ) -> Dict[str, Any]:
+    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate)
+
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     signals = candidate.get("redrob_signals") or {}
 
@@ -279,6 +342,10 @@ def score_candidate(
     }
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+    if blacklist_penalty:
+        final_score *= 0.2
+    if fraud_timeline:
+        final_score = 0.0
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
     profile = candidate.get("profile") or {}
