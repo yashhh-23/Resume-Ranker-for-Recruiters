@@ -61,19 +61,11 @@ def parse_args():
         "--jd", default="data/job_description.docx", help="Path to job_description.docx"
     )
     parser.add_argument("--out", default="submission.csv", help="Output CSV path")
-    parser.add_argument(
-        "--cache", default=".embedding_cache.pkl", help="Embedding cache path"
-    )
-    parser.add_argument(
-        "--clear-cache", action="store_true", help="Delete embedding cache before run"
-    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    if args.clear_cache and Path(args.cache).exists():
-        Path(args.cache).unlink()
     started = time.perf_counter()
 
     candidates = load_candidates(Path(args.candidates))

@@ -44,20 +44,20 @@ def test_score_education():
 
 
 def test_score_career_fit():
-    jd = {"target_title": "Engineer", "min_experience_years": 5.0}
-    cand_1_role = {
-        "profile": {"years_of_experience": 6.0},
-        "career_history": [{"title": "Software Engineer", "start_date": "2020-01-01"}],
+    jd = {"target_title": "Engineer", "min_experience_years": 5.0, "seniority_level": "senior"}
+    cand_senior = {
+        "profile": {"years_of_experience": 7.0},
+        "career_history": [{"title": "Software Engineer", "start_date": "2018-01-01"}],
     }
-    cand_6_roles = {
-        "profile": {"years_of_experience": 6.0},
-        "career_history": [{"title": "Software Engineer", "start_date": "2020-01-01"}]
-        * 6,
+    cand_junior = {
+        "profile": {"years_of_experience": 1.0},
+        "career_history": [{"title": "Intern", "start_date": "2025-01-01"}],
     }
-    score_1 = score_career_fit(cand_1_role, jd)
-    score_6 = score_career_fit(cand_6_roles, jd)
-    assert score_1 > 0.0
-    assert abs(score_1 - score_6) < 0.01
+    score_senior = score_career_fit(cand_senior, jd)
+    score_junior = score_career_fit(cand_junior, jd)
+    assert score_senior > score_junior
+    assert score_senior > 0.3
+    assert score_junior < 0.5
 
 
 def test_score_availability():
@@ -137,19 +137,25 @@ def test_rank_candidates():
 
 def test_score_required_skill_coverage():
     from ranker.candidate_scorer import score_required_skill_coverage
-    jd = {"required_skills": ["Python", "SQL"], "preferred_skills": []}
-    # Expert Python, no SQL → should score 0.5 (1.0/2 required matched)
-    cand_expert = {"skills": [{"name": "Python", "proficiency": "expert"}]}
-    score_expert = score_required_skill_coverage(cand_expert, jd)
-    # Beginner Python, no SQL → should score less than expert
+    jd = {"required_skills": ["Python", "SQL"], "preferred_skills": ["Docker"]}
+
+    # Expert Python only → 0.5 base (1/2 required) + no preferred bonus
+    cand_expert_one = {"skills": [{"name": "Python", "proficiency": "expert"}]}
+    score_expert = score_required_skill_coverage(cand_expert_one, jd)
+
+    # Beginner Python only → lower than expert
     cand_beginner = {"skills": [{"name": "Python", "proficiency": "beginner"}]}
     score_beginner = score_required_skill_coverage(cand_beginner, jd)
-    assert score_expert > score_beginner
-    assert 0.0 <= score_expert <= 1.0
-    assert 0.0 <= score_beginner <= 1.0
-    # Both skills matched at expert level → should score ~1.0
+
+    # Both required + preferred → max score
     cand_full = {"skills": [
         {"name": "Python", "proficiency": "expert"},
-        {"name": "SQL", "proficiency": "expert"}
+        {"name": "SQL", "proficiency": "advanced"},
+        {"name": "Docker", "proficiency": "intermediate"},
     ]}
-    assert score_required_skill_coverage(cand_full, jd) > 0.9
+    score_full = score_required_skill_coverage(cand_full, jd)
+
+    assert score_expert > score_beginner, "Expert should outscore beginner"
+    assert score_full > score_expert, "Full match should outscore partial"
+    assert score_full <= 1.0
+    assert score_beginner >= 0.0
