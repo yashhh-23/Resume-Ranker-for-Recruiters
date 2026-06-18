@@ -169,6 +169,18 @@ const InputPanel = ({
             placeholder="Paste job description text..."
             className="w-full min-h-[140px] resize-y rounded-md border border-slate-800/80 bg-slate-950/60 p-3 text-sm font-mono text-slate-200 focus:border-emerald/70 focus:ring-1 focus:ring-emerald/20 focus:outline-none transition-all duration-200 ease-in-out placeholder-slate-600"
           />
+          {(() => {
+            const JD_MAX = 5000;
+            const charCount = jobDescription?.length || 0;
+            const isNearLimit = charCount > JD_MAX * 0.9;
+            return (
+              <div className="flex justify-end text-[10px] font-mono mt-1 select-none">
+                <span className={isNearLimit ? "text-amber-400 font-semibold" : "text-slate-600"}>
+                  {charCount.toLocaleString()} / {JD_MAX.toLocaleString()} chars
+                </span>
+              </div>
+            );
+          })()}
         </div>
 
         <div

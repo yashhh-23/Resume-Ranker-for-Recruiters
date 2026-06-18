@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown } from "../utils/scoreUtils";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -20,6 +21,47 @@ const COLORS = ["#10B981", "#3B82F6", "#D97706"];
 const CompareModal = ({ selectedCandidates = [], onClose }) => {
   if (selectedCandidates.length === 0) return null;
 
+  const modalRef = useRef(null);
+  const closeRef = useRef(null);
+
+  const nameMap = selectedCandidates.reduce((acc, item, i) => {
+    acc[`cand${i}`] = item.candidate?.profile?.anonymized_name || item.result?.candidate_id || `Candidate ${i + 1}`;
+    return acc;
+  }, {});
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // Prepare data for Recharts RadarChart
   const radarData = SCORE_AXES.map((axis) => {
     const dataPoint = { subject: axis.label, fullMark: 1.0 };
@@ -32,6 +74,10 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
 
   return (
     <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="compare-modal-title"
       className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -40,9 +86,10 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950 shrink-0">
           <div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-mono">Head-to-Head Matrix</p>
-            <h3 className="text-lg font-bold text-white mt-0.5">Candidate Comparison</h3>
+            <h3 id="compare-modal-title" className="text-lg font-bold text-white mt-0.5">Candidate Comparison</h3>
           </div>
           <button
+            ref={closeRef}
             type="button"
             onClick={onClose}
             className="px-4 py-2 text-xs uppercase tracking-wider font-mono bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-none transition-all duration-200"
@@ -97,12 +144,15 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
                         fontFamily: 'monospace',
                         fontSize: 11,
                       }}
-                      formatter={(value, name) => [`${(value * 100).toFixed(1)}%`, name]}
+                      formatter={(value, name) => {
+                        const displayName = nameMap[name] || name;
+                        return [`${(value * 100).toFixed(1)}%`, displayName];
+                      }}
                     />
                     {selectedCandidates.map((item, idx) => (
                       <Radar
                         key={item.candidate_id}
-                        name={`Candidate ${String.fromCharCode(65 + idx)}`}
+                        name={item.candidate?.profile?.anonymized_name || item.result?.candidate_id || `Candidate ${String.fromCharCode(65 + idx)}`}
                         dataKey={`cand${idx}`}
                         stroke={COLORS[idx]}
                         fill={COLORS[idx]}
