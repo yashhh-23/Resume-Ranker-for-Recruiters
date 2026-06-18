@@ -64,6 +64,25 @@ class LRUEmbeddingCache:
     def __init__(self, maxsize: int = MAX_CACHE_ENTRIES):
         self._cache: OrderedDict[str, np.ndarray] = OrderedDict()
         self._maxsize = maxsize
+        self._cache_path = Path(".embedding_cache.pkl")
+        self.load()
+
+    def load(self):
+        if self._cache_path.exists():
+            try:
+                with open(self._cache_path, "rb") as f:
+                    payload = pickle.load(f)
+                if isinstance(payload, dict) and payload.get("version") == CACHE_VERSION:
+                    self._cache = OrderedDict(payload.get("embeddings", {}))
+            except Exception:
+                pass
+
+    def save(self):
+        try:
+            with open(self._cache_path, "wb") as f:
+                pickle.dump({"version": CACHE_VERSION, "embeddings": dict(self._cache)}, f)
+        except Exception:
+            pass
 
     def get(self, key: str):
         if key in self._cache:
@@ -121,6 +140,7 @@ def get_candidate_embeddings(
         vectors = embed_texts(model, missing_texts)
         for key, vector in zip(missing_keys, vectors):
             cache.set(key, vector)
+        cache.save()
 
     result = {}
     for candidate in candidates:
@@ -142,6 +162,7 @@ def get_jd_embedding(
         return cached
     embedding = embed_texts(model, [skills_text])[0]
     cache.set(jd_key, embedding)
+    cache.save()
     return embedding
 
 
