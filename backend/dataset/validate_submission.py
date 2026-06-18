@@ -5,6 +5,7 @@ Row 1 = header. Rows 2–101 = exactly 100 data rows. CSV only.
 """
 
 import csv
+import os
 import re
 import sys
 from pathlib import Path
@@ -12,7 +13,7 @@ from pathlib import Path
 REQUIRED_HEADER = ["candidate_id", "rank", "score", "reasoning"]
 CANDIDATE_ID_PATTERN = re.compile(r"^CAND_[0-9]{7}$")
 DATA_ROW_START = 2
-EXPECTED_DATA_ROWS = 50
+EXPECTED_DATA_ROWS = int(os.environ.get("EXPECTED_DATA_ROWS", 100))
 
 
 def validate_submission(csv_path):
