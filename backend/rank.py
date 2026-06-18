@@ -5,7 +5,8 @@ import json
 import time
 from pathlib import Path
 
-from ranker import parse_jd_docx, rank_candidates
+from ranker import parse_jd, rank_candidates
+from ranker.validators import sanitize_candidates
 
 
 CSV_HEADER = ["candidate_id", "rank", "score", "reasoning"]
@@ -51,13 +52,16 @@ def main():
     started = time.perf_counter()
 
     candidates = load_candidates(Path(args.candidates))
-    jd = parse_jd_docx(args.jd)
-    ranked = rank_candidates(candidates, jd, cache_path=args.cache, limit=100)
+    valid_candidates, skipped = sanitize_candidates(candidates)
+    if skipped:
+        print(f"Skipped {len(skipped)} invalid candidates.")
+    jd = parse_jd(args.jd)
+    ranked = rank_candidates(valid_candidates, jd, cache_path=args.cache, limit=100)
     if len(ranked) < 100:
         print(f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.")
         dummy_rank = len(ranked) + 1
         while len(ranked) < 100:
-            dummy_id = f"CAND_99{dummy_rank:05d}"
+            dummy_id = f"CAND_9{dummy_rank:06d}"
             ranked.append({
                 "candidate_id": dummy_id,
                 "score": 0.0,
