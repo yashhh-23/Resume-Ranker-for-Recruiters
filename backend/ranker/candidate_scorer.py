@@ -416,22 +416,32 @@ def score_candidate(
 
     matched_count = len(matched)
     
-    # Dampen education contribution if the career fit is weak
-    if breakdown["career_fit"] < 0.30:
-        if matched_count <= 1:
-            breakdown["education"] *= 0.40  # Harsher dampening for low skill count
-            breakdown["education"] = min(breakdown["education"], 0.20)
-        else:
-            breakdown["education"] *= 0.70
-            breakdown["education"] = min(breakdown["education"], 0.40)
-
-    # Cap education for junior candidates
+    # Read experience ONCE, used in both dampening and experience-gating below
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+
+    # Dampen education contribution if career fit is weak
+    if breakdown["career_fit"] < 0.30:
+        if matched_count <= 1:
+            breakdown["education"] *= 0.40
+            # Experience-aware cap: senior tier_1 candidates shouldn't be
+            # floored as low as entry-level candidates with 1 matched skill
+            if years_exp < 3.0:
+                breakdown["education"] = min(breakdown["education"], 0.15)
+            elif years_exp < 6.0:
+                breakdown["education"] = min(breakdown["education"], 0.20)
+            else:
+                breakdown["education"] = min(breakdown["education"], 0.26)
+        else:
+            breakdown["education"] *= 0.70
+            breakdown["education"] = min(breakdown["education"], 0.35)
+
+    # Hard experience-gate: raw education cannot exceed these ceilings
+    # regardless of tier, to prevent fresh graduates inflating the score
     if years_exp < 2.0:
-        breakdown["education"] = min(breakdown["education"], 0.20)
+        breakdown["education"] = min(breakdown["education"], 0.15)
     elif years_exp < 5.0:
-        breakdown["education"] = min(breakdown["education"], 0.35)
+        breakdown["education"] = min(breakdown["education"], 0.30)
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
@@ -597,22 +607,32 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
         matched_count = sum(1 for r, rl in req_zip if any(rl in cs or cs in rl for cs in candidate_skill_names))
 
-    # Dampen education contribution if the career fit is weak
-    if breakdown["career_fit"] < 0.30:
-        if matched_count <= 1:
-            breakdown["education"] *= 0.40  # Harsher dampening for low skill count
-            breakdown["education"] = min(breakdown["education"], 0.20)
-        else:
-            breakdown["education"] *= 0.70
-            breakdown["education"] = min(breakdown["education"], 0.40)
-
-    # Cap education for junior candidates
+    # Read experience ONCE, used in both dampening and experience-gating below
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+
+    # Dampen education contribution if career fit is weak
+    if breakdown["career_fit"] < 0.30:
+        if matched_count <= 1:
+            breakdown["education"] *= 0.40
+            # Experience-aware cap: senior tier_1 candidates shouldn't be
+            # floored as low as entry-level candidates with 1 matched skill
+            if years_exp < 3.0:
+                breakdown["education"] = min(breakdown["education"], 0.15)
+            elif years_exp < 6.0:
+                breakdown["education"] = min(breakdown["education"], 0.20)
+            else:
+                breakdown["education"] = min(breakdown["education"], 0.26)
+        else:
+            breakdown["education"] *= 0.70
+            breakdown["education"] = min(breakdown["education"], 0.35)
+
+    # Hard experience-gate: raw education cannot exceed these ceilings
+    # regardless of tier, to prevent fresh graduates inflating the score
     if years_exp < 2.0:
-        breakdown["education"] = min(breakdown["education"], 0.20)
+        breakdown["education"] = min(breakdown["education"], 0.15)
     elif years_exp < 5.0:
-        breakdown["education"] = min(breakdown["education"], 0.35)
+        breakdown["education"] = min(breakdown["education"], 0.30)
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
