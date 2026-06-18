@@ -14,9 +14,11 @@ const exportSubmissionCsv = (rankedResults) => {
   };
 
   const hasFlags = rankedResults.some(r => r.compliance_flags != null);
-  const header = hasFlags
-    ? "candidate_id,rank,score,reasoning,compliance_flags"
-    : "candidate_id,rank,score,reasoning";
+  const hasSuspicious = rankedResults.some(r => r.is_suspicious != null);
+  const headerParts = ["candidate_id", "rank", "score", "reasoning"];
+  if (hasFlags) headerParts.push("compliance_flags");
+  if (hasSuspicious) headerParts.push("is_suspicious");
+  const header = headerParts.join(",");
 
   const rows = rankedResults.map((r, i) => {
     const rank = r.rank === "-" || r.rank == null ? i + 1 : r.rank;
@@ -31,6 +33,9 @@ const exportSubmissionCsv = (rankedResults) => {
         ? r.compliance_flags.join("; ")
         : (r.compliance_flags ?? "");
       row.push(escapeField(flags));
+    }
+    if (hasSuspicious) {
+      row.push(escapeField(r.is_suspicious ? "YES" : "NO"));
     }
     return row.join(",");
   });

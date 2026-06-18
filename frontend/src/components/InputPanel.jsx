@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { parseJsonlFile } from "../utils/jsonlParser";
 import { extractJdSkills } from "../utils/jdUtils";
 
@@ -350,11 +351,9 @@ const InputPanel = ({
             onKeyDown={(event) => {
               if (event.ctrlKey && event.key === "Enter") {
                 event.preventDefault();
-                setJobDescription(localJD);
                 if (!isLoading && candidates.length > 0) {
-                  setTimeout(() => {
-                    onRun();
-                  }, 0);
+                  flushSync(() => setJobDescription(localJD));
+                  onRun();
                 }
               }
             }}
