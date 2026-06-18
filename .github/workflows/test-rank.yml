@@ -8,7 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with: 
+          python-version: "3.11"
+          cache: 'pip'
+      - name: Cache HuggingFace models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-huggingface-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-huggingface-
       - run: pip install -r backend/requirements.txt
       - name: Run rank.py smoke test
         working-directory: backend
