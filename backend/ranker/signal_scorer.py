@@ -11,16 +11,28 @@ SIGNAL_WEIGHTS = {
     "salary_fit": 0.1,
 }
 
+
 def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
 
 
-_SIGNAL_STRING_MAP = {'high': 0.8, 'medium': 0.5, 'low': 0.2, 'none': 0.0, 'yes': 1.0, 'no': 0.0}
+_SIGNAL_STRING_MAP = {
+    "high": 0.8,
+    "medium": 0.5,
+    "low": 0.2,
+    "none": 0.0,
+    "yes": 1.0,
+    "no": 0.0,
+}
+
 
 def safe_float(value: Any, default: float = 0.0) -> float:
-    if value is None: return default
-    if isinstance(value, bool): return 1.0 if value else 0.0
-    try: return float(value)
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return 1.0 if value else 0.0
+    try:
+        return float(value)
     except (TypeError, ValueError):
         return _SIGNAL_STRING_MAP.get(str(value).lower().strip(), default)
 
@@ -38,13 +50,13 @@ def score_salary_fit(signals: dict, jd: dict) -> float:
     jd_max = safe_float(jd.get("salary_max"), 0)
     if jd_min == 0 and jd_max == 0:
         return 0.5  # JD doesn't specify salary → neutral
-    
+
     c_min = safe_float(signals.get("salary_expectation_min"), 0)
     c_max = safe_float(signals.get("salary_expectation_max"), 0)
-    
+
     if c_min == 0:
         return 0.5
-    
+
     # Overlap ratio
     overlap_start = max(jd_min, c_min)
     overlap_end = min(jd_max, c_max) if jd_max > 0 else c_max
@@ -65,7 +77,9 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
 
     assessments = signals.get("skill_assessment_scores") or {}
     if assessments:
-        assessment_score = clamp(mean(safe_float(value) for value in assessments.values()) / 100.0)
+        assessment_score = clamp(
+            mean(safe_float(value) for value in assessments.values()) / 100.0
+        )
     else:
         assessment_score = 0.5
 
@@ -78,13 +92,13 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
     salary_fit = score_salary_fit(signals, jd)
 
     weighted_sum = (
-        github_score * SIGNAL_WEIGHTS["github_score"] +
-        response_rate * SIGNAL_WEIGHTS["response_rate"] +
-        interview_completion * SIGNAL_WEIGHTS["interview_completion"] +
-        assessment_score * SIGNAL_WEIGHTS["assessment_score"] +
-        offer_score * SIGNAL_WEIGHTS["offer_score"] +
-        completeness_score * SIGNAL_WEIGHTS["completeness_score"] +
-        salary_fit * SIGNAL_WEIGHTS["salary_fit"]
+        github_score * SIGNAL_WEIGHTS["github_score"]
+        + response_rate * SIGNAL_WEIGHTS["response_rate"]
+        + interview_completion * SIGNAL_WEIGHTS["interview_completion"]
+        + assessment_score * SIGNAL_WEIGHTS["assessment_score"]
+        + offer_score * SIGNAL_WEIGHTS["offer_score"]
+        + completeness_score * SIGNAL_WEIGHTS["completeness_score"]
+        + salary_fit * SIGNAL_WEIGHTS["salary_fit"]
     )
     return clamp(weighted_sum)
 
