@@ -11,6 +11,7 @@ USER appuser
 
 ENV PORT=7860
 ENV RRR_ALLOWED_ORIGINS=https://*.vercel.app
+ENV ENV=development
 
 EXPOSE 7860
 

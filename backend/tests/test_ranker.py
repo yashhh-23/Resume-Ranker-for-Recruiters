@@ -131,5 +131,25 @@ def test_rank_candidates():
         def encode(self, texts, **kwargs):
             return np.ones((len(texts), 384))
 
-    res = rank_candidates(cands, jd, model=DummyModel(), cache_path=".test_cache.pkl")
+    res = rank_candidates(cands, jd, model=DummyModel())
     assert len(res) == 1
+
+
+def test_score_required_skill_coverage():
+    from ranker.candidate_scorer import score_required_skill_coverage
+    jd = {"required_skills": ["Python", "SQL"], "preferred_skills": []}
+    # Expert Python, no SQL → should score 0.5 (1.0/2 required matched)
+    cand_expert = {"skills": [{"name": "Python", "proficiency": "expert"}]}
+    score_expert = score_required_skill_coverage(cand_expert, jd)
+    # Beginner Python, no SQL → should score less than expert
+    cand_beginner = {"skills": [{"name": "Python", "proficiency": "beginner"}]}
+    score_beginner = score_required_skill_coverage(cand_beginner, jd)
+    assert score_expert > score_beginner
+    assert 0.0 <= score_expert <= 1.0
+    assert 0.0 <= score_beginner <= 1.0
+    # Both skills matched at expert level → should score ~1.0
+    cand_full = {"skills": [
+        {"name": "Python", "proficiency": "expert"},
+        {"name": "SQL", "proficiency": "expert"}
+    ]}
+    assert score_required_skill_coverage(cand_full, jd) > 0.9

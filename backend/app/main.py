@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+import traceback
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -79,7 +80,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    import traceback
 
     logging.error(f"Unhandled error on {request.url.path}: {traceback.format_exc()}")
     return JSONResponse(

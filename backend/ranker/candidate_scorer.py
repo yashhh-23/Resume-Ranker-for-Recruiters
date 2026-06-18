@@ -123,10 +123,8 @@ def score_skill_match(
     candidate: Dict[str, Any] = None,
     jd: Dict[str, Any] = None,
 ) -> float:
-    base = clamp(
-        (cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) + 1.0)
-        / 2.0
-    )
+    raw_cos = cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) or 0.0
+    base = clamp(raw_cos)
 
     # Endorsement multiplier: rewards peer-validated competence
     skills = (candidate or {}).get("skills") or []
@@ -199,25 +197,21 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
-    education = candidate.get("education") or []
-    target_field = jd.get("target_field") or "Computer Science"
-    if not education:
+    education_list = candidate.get("education") or []
+    education_list = [e for e in education_list if e and isinstance(e, dict) and e.get("degree")]
+    if not education_list:
         profile = candidate.get("profile") or {}
         try:
             years_exp = float(profile.get("years_of_experience") or 0.0)
         except (ValueError, TypeError):
             years_exp = 0.0
-        if years_exp >= 10:
-            return 0.5
-        elif years_exp >= 5:
-            return 0.3
-        elif years_exp >= 1:
-            return 0.1
-        return 0.0
+        return clamp(years_exp / 20.0) * 0.5
+
+    target_field = jd.get("target_field") or "Computer Science"
 
     best = 0.0
     DEGREE_WEIGHT = {"phd": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
-    for item in education:
+    for item in education_list:
         tier = EDUCATION_TIER_WEIGHT.get(
             str(item.get("tier") or "unknown").lower(), 0.2
         )
@@ -394,7 +388,7 @@ def rank_candidates(
     candidates: List[Dict[str, Any]],
     jd: Dict[str, Any],
     model=None,
-    cache_path: str = ".embedding_cache.pkl",
+
     limit: Optional[int] = 100,
 ) -> List[Dict[str, Any]]:
     valid_candidates = [
@@ -404,9 +398,9 @@ def rank_candidates(
         return []
 
     model = model or load_model()
-    jd_embedding = get_jd_embedding(jd, model, cache_path=cache_path)
+    jd_embedding = get_jd_embedding(jd, model)
     candidate_embeddings = get_candidate_embeddings(
-        valid_candidates, model, cache_path=cache_path
+        valid_candidates, model
     )
 
     scored = [
