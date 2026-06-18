@@ -302,27 +302,18 @@ def _extract_field(text: str) -> str:
 
 
 def _extract_salary_range(text: str) -> tuple[float, float]:
-    lpa_match = re.search(
-        r"(?:INR|₹|Rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:L|lakh|LPA)?\s*(?:-|to|–)\s*"
-        r"(?:INR|₹|Rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:L|lakh|LPA)",
-        text, flags=re.IGNORECASE
-    )
-    if lpa_match:
-        min_val = float(lpa_match.group(1)) * 100_000
-        max_val = float(lpa_match.group(2)) * 100_000
-        return min_val, max_val
-    lpa_fallback_1 = re.search(
-        r"(\d+(?:\.\d+)?)\s*L(?:PA)?\s*(?:-|to|–)\s*(\d+(?:\.\d+)?)",
-        text, flags=re.IGNORECASE
-    )
-    if lpa_fallback_1:
-        min_val = float(lpa_fallback_1.group(1)) * 100_000
-        max_val = float(lpa_fallback_1.group(2)) * 100_000
-        return min_val, max_val
-    lpa_single = re.search(
-        r"(\d+(?:\.\d+)?)\s*L(?:PA)?\b",
-        text, flags=re.IGNORECASE
-    )
+    LPA_RANGE_PATTERNS = [
+        r"(\d+(?:\.\d+)?)\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*[Ll][Pp][Aa]",    # "8–15 LPA"
+        r"(\d+(?:\.\d+)?)\s*[Ll][Pp][Aa]\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)\s*[Ll][Pp][Aa]",  # "8LPA-15LPA"
+        r"(\d+(?:\.\d+)?)\s*[Ll](?:[Pp][Aa])?\s*(?:–|-|to)\s*(\d+(?:\.\d+)?)", # "8L-15"
+    ]
+    for pat in LPA_RANGE_PATTERNS:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            return float(m.group(1)) * 100_000, float(m.group(2)) * 100_000
+
+    # Only fall through to single-value if NO range matched
+    lpa_single = re.search(r"(\d+(?:\.\d+)?)\s*[Ll](?:[Pp][Aa])?\b", text, re.IGNORECASE)
     if lpa_single:
         val = float(lpa_single.group(1)) * 100_000
         return val, val

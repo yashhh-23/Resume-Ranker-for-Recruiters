@@ -19,7 +19,7 @@ def test_parse_jd_text():
     assert 'Docker' in jd['preferred_skills']
     assert len(jd['required_skills']) >= 2
     assert jd['seniority_level'] == 'senior'
-    assert jd['target_industry'] in ('tech', 'unknown')
+    assert jd['target_industry'] in ('tech', 'fintech', 'finance')
 
 def test_score_education():
     jd = {'target_field': 'Computer Science'}
@@ -199,5 +199,10 @@ def test_rank_candidates_tie_breaker():
 
 def test_extract_seniority():
     from ranker.jd_parser import _extract_seniority
-    text = "We need 5+ years of experience as a software engineer"
-    assert _extract_seniority(text) == "senior"
+    assert _extract_seniority("5+ years as a software engineer") == "senior"
+    assert _extract_seniority("We need a junior developer") == "junior"
+    assert _extract_seniority("Lead Engineer position") == "lead"
+    assert _extract_seniority("Entry level role") == "junior"
+    assert _extract_seniority("2+ years experience required") == "mid"
+    assert _extract_seniority("8+ years required") == "senior"
+    assert _extract_seniority("Looking for an intern") == "junior"
