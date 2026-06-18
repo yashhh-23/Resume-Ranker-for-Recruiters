@@ -118,7 +118,7 @@ def test_build_reasoning_with_reasonable_data():
         "education": 0.2,
         "availability": 0.1,
     }
-    result = build_reasoning(candidate, breakdown, jd)  # must not raise IndexError
+    result = build_reasoning(candidate, breakdown, [], jd)  # must not raise IndexError
     assert isinstance(result, str)
     assert "Engineer" in result
 
@@ -138,7 +138,7 @@ def test_build_reasoning_with_empty_title():
         "education": 0.2,
         "availability": 0.1,
     }
-    result = build_reasoning(candidate, breakdown, jd)
+    result = build_reasoning(candidate, breakdown, [], jd)
     assert "Fallback Headline" in result
 
 

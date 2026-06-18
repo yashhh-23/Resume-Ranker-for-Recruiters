@@ -70,7 +70,7 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
     jd = jd or {}
 
     github = safe_float(signals.get("github_activity_score"), -1.0)
-    github_score = 0.0 if github < 0 else clamp(github / 100.0)
+    github_score = 0.5 if github < 0 else clamp(github / 100.0)
 
     response_rate = clamp(safe_float(signals.get("recruiter_response_rate")))
     interview_completion = clamp(safe_float(signals.get("interview_completion_rate")))
