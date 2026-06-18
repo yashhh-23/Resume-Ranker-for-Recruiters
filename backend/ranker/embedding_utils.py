@@ -12,7 +12,9 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def load_model(model_name: str = MODEL_NAME):
     from sentence_transformers import SentenceTransformer
-
+    import transformers
+    
+    transformers.utils.logging.set_verbosity_error()
     return SentenceTransformer(model_name)
 
 

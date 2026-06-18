@@ -408,10 +408,13 @@ def score_candidate(
     if fraud_timeline:
         final_score = 0.0
         
+    # Enforce strict monotonicity based on actual required skills
     if len(matched) == 0:
-        final_score *= 0.3
+        final_score *= 0.2
     elif len(matched) == 1:
-        final_score *= 0.7
+        final_score *= 0.4
+    elif len(matched) == 2:
+        final_score *= 0.75
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
@@ -497,11 +500,7 @@ def score_candidate(
         WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
         reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
 
-    completeness = safe_float(signals.get("profile_completeness_score", 100.0))
-    if completeness < 50:
-        final_score *= 0.70
-    elif completeness < 70:
-        final_score *= 0.85
+    # Removed completeness penalty to preserve skill match monotonicity
 
     return {
         "candidate_id": candidate_id,
@@ -542,19 +541,23 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     }
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
-    if breakdown["skill_match"] < 0.1:
-        final_score *= 0.3
-    elif breakdown["skill_match"] < 0.3:
-        final_score *= 0.7
+    # Enforce strict monotonicity based on actual required skills
+    required = jd.get("required_skills", [])
+    if required:
+        candidate_skills_lower = [str(s.get("name", "")).lower() for s in candidate.get("skills") or []]
+        matched_count = sum(1 for r in required if any(r in cs or cs in r for cs in candidate_skills_lower))
         
+        # Brutally penalize candidates who lack the actual required skills
+        if matched_count == 0:
+            final_score *= 0.2
+        elif matched_count == 1:
+            final_score *= 0.4
+        elif matched_count == 2:
+            final_score *= 0.75
+        # 3 or more matches receive NO penalty (1.0x)
+
     trap_penalty = score_jd_specific_traps(candidate)
     final_score = max(0.0, final_score - trap_penalty)
-
-    completeness = safe_float(signals.get("profile_completeness_score", 100.0))
-    if completeness < 50:
-        final_score *= 0.70
-    elif completeness < 70:
-        final_score *= 0.85
 
     if blacklist_penalty:
         final_score *= 0.2
