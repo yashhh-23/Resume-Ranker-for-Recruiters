@@ -184,13 +184,22 @@ const InputPanel = ({
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Drag and drop candidate dataset, or select file by clicking Browse button"
           onDragOver={(event) => {
             event.preventDefault();
             setIsDragging(true);
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={`border border-dashed rounded-lg p-5 transition-all duration-300 ease-in-out ${
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
+          className={`border border-dashed rounded-lg p-5 transition-all duration-300 ease-in-out focus:outline-none focus:ring-1 focus:ring-emerald/50 ${
             isDragging
               ? "border-emerald bg-emerald/5 shadow-inner"
               : "border-slate-800 bg-slate-900/30 hover:border-slate-700/60"
@@ -251,6 +260,8 @@ const InputPanel = ({
           </div>
 
           <input
+            id="candidate-file-input"
+            aria-label="Upload candidate dataset in JSON, JSONL, or GZ format"
             ref={fileInputRef}
             type="file"
             accept=".json,.jsonl,.jsonl.gz"
