@@ -1,6 +1,8 @@
 import { memo } from "react";
 import { formatPercent, formatScore } from "../../utils/formatters";
 import { SKILL_WEIGHT, CAREER_WEIGHT, SIGNAL_WEIGHT, EDUCATION_WEIGHT, AVAILABILITY_WEIGHT } from "../../constants/weights";
+import CopyButton from "../CopyButton";
+import { buildScoreTableCopy } from "../../utils/copyUtils";
 
 const CandidateModalScores = memo(({
   breakdown = {},
@@ -22,7 +24,14 @@ const CandidateModalScores = memo(({
 
   return (
     <div className="px-6 py-5 border-b border-slate-900 bg-slate-950/60 font-mono text-xs">
-      <h4 className="text-[10px] uppercase tracking-wider text-slate-500 mb-3 font-bold">5-Dimensional Discovery Scores & Waterfall Math</h4>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">5-Dimensional Discovery Scores &amp; Waterfall Math</h4>
+        <CopyButton
+          plain={buildScoreTableCopy(rows, score).plain}
+          html={buildScoreTableCopy(rows, score).html}
+          label="Copy score breakdown table"
+        />
+      </div>
       
       {/* Stacked Waterfall Progress Bar */}
       <div className="h-4 w-full bg-slate-900 overflow-hidden flex border border-slate-800 rounded-none mb-5">

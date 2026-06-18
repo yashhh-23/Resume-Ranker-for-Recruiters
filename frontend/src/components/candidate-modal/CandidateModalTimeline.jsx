@@ -1,5 +1,7 @@
 import { memo } from "react";
 import { formatDate } from "../../utils/formatters";
+import CopyButton from "../CopyButton";
+import { buildTimelineCopy } from "../../utils/copyUtils";
 
 const getCompanyCategory = (industry) => {
   if (!industry) return "Unknown";
@@ -46,8 +48,13 @@ const CandidateModalTimeline = memo(({
 }) => {
   return (
     <section className="border border-slate-900 bg-slate-900/10 p-5 flex flex-col rounded-none font-mono text-xs">
-      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4">
-        Employment Timeline Trace
+      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4 flex items-center justify-between">
+        <span>Employment Timeline Trace</span>
+        <CopyButton
+          plain={buildTimelineCopy(careerHistory).plain}
+          html={buildTimelineCopy(careerHistory).html}
+          label="Copy career timeline"
+        />
       </h4>
       {(!careerHistory || careerHistory.length === 0) ? (
         <div className="flex-1 flex items-center justify-center py-12 text-center">

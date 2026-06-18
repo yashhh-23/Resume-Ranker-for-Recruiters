@@ -1,9 +1,0 @@
-node_modules
-.dist
-dist
-.env.local
-.env.*.local
-.DS_Store
-.vscode
-**/.DS_Store
-

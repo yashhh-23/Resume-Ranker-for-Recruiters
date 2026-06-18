@@ -1,3 +1,28 @@
-script.ps
-.env.local
+# System files
+.DS_Store
+**/.DS_Store
+.vscode/
+
+# Frontend dependencies and builds
+node_modules/
+dist/
+.dist/
+
+# Python / Backend environment and cache
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.embedding_cache.pkl
+backend/*.txt
+
+# Environment files
 .env
+.env.local
+.env.*
+.env.*.local
+
+# Project specific ignores
+script.ps
+submission.csv
+backend/rank-smoke-test/
