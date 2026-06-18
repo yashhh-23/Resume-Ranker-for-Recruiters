@@ -22,6 +22,8 @@ const ResultsPanel = ({
   onCreateTalentPool,
   onDeleteTalentPool,
   onRemoveCandidateFromTalentPool,
+  executionTime,
+  onReset,
 }) => {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("rank");
@@ -35,15 +37,18 @@ const ResultsPanel = ({
   const [compareIds, setCompareIds] = useState([]); // up to 2 candidate_ids
   const [showCompareModal, setShowCompareModal] = useState(false);
 
-  // Staged loading messages
+  // Staged loading messages (4 phases)
   const [loadingPhase, setLoadingPhase] = useState(0);
 
   useEffect(() => {
     if (!isLoading) { setLoadingPhase(0); return; }
-    const t1 = setTimeout(() => setLoadingPhase(1), 1800);
-    const t2 = setTimeout(() => setLoadingPhase(2), 3600);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t1 = setTimeout(() => setLoadingPhase(1), 1000);
+    const t2 = setTimeout(() => setLoadingPhase(2), 2000);
+    const t3 = setTimeout(() => setLoadingPhase(3), 3000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [isLoading]);
+
+
 
   const handleToggleCompare = (candidateId) => {
     setCompareIds((prev) => {
@@ -205,6 +210,24 @@ const ResultsPanel = ({
       ? poolCandidatesFiltered
       : filtered;
 
+  // Virtualization window state & scroll tracking hooks
+  const [visibleCount, setVisibleCount] = useState(30);
+
+  useEffect(() => {
+    setVisibleCount(30);
+  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId]);
+
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop - clientHeight < 150) {
+      setVisibleCount((prev) => Math.min(prev + 30, activeList.length));
+    }
+  };
+
+  const slicedList = useMemo(() => {
+    return activeList.slice(0, visibleCount);
+  }, [activeList, visibleCount]);
+
   const stats = useMemo(() => {
     if (activeList.length === 0) {
       return { total: 0, avgScore: "0.0", anomalies: 0, availablePct: "0" };
@@ -285,8 +308,13 @@ const ResultsPanel = ({
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500 font-mono">
               {activeTab === "shortlist" ? "Shortlist Console" : "Talent Pool Console"}
             </p>
-            <h2 className="text-xl font-bold text-white mt-1">
-              {activeTab === "shortlist" ? "Ranked Shortlist" : "Talent Pools"}
+            <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2 flex-wrap">
+              <span>{activeTab === "shortlist" ? "Ranked Shortlist" : "Talent Pools"}</span>
+              {activeTab === "shortlist" && executionTime && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-mono font-bold bg-emerald/10 text-emerald border border-emerald/20">
+                  ⚡ Ranked in {executionTime}s
+                </span>
+              )}
             </h2>
           </div>
           
@@ -351,6 +379,17 @@ const ResultsPanel = ({
               {((activeTab === "shortlist" && rankedResults.length > 0) ||
                 (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
                 <>
+                  {onReset && (
+                    <button
+                      type="button"
+                      onClick={onReset}
+                      className="text-[11px] bg-slate-900 border border-slate-800 hover:border-rose-900/60 hover:bg-rose-950/20 hover:text-rose-400 font-bold px-3 py-1.5 rounded-none font-mono transition-all duration-200"
+                      title="Clear all job descriptions, candidate data streams, and rankings"
+                    >
+                      Reset Workspace
+                    </button>
+                  )}
+
                   <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs rounded-none">
                     {activeList.length} matching
                   </span>
@@ -470,10 +509,56 @@ const ResultsPanel = ({
           : "No candidates ranked yet. Paste a job description and load candidates to begin."}
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20">
+      {/* Methodology Banner */}
+      {((activeTab === "shortlist" && rankedResults.length > 0) || 
+        (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
+        <details className="mx-6 mt-4 border border-slate-800/80 bg-slate-900/10 rounded-none group transition-all duration-300 hover:border-slate-700/60 font-mono text-xs shrink-0">
+          <summary className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 cursor-pointer flex justify-between items-center select-none">
+            <span className="flex items-center gap-1.5 text-emerald">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2" />
+              </svg>
+              RRR Ranking Methodology & Model Weights
+            </span>
+            <span className="text-[10px] text-slate-500 group-open:rotate-180 transition-transform duration-200">▼</span>
+          </summary>
+          <div className="px-4 pb-4 pt-1 text-slate-400 space-y-2 border-t border-slate-900/50 mt-1 leading-relaxed text-[11px]">
+            <p>
+              Candidates are ranked across 5 dimensions using a deterministic local scoring engine:
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2 pt-2 border-t border-slate-900 text-[10px]">
+              <div>
+                <span className="text-[#10B981] font-bold block">Skill Match (35%)</span>
+                <span className="text-slate-500">JD skill similarities and verified Redrob assessments.</span>
+              </div>
+              <div>
+                <span className="text-[#3B82F6] font-bold block">Career Fit (25%)</span>
+                <span className="text-slate-500">Corporate title alignment, experience thresholds & progression.</span>
+              </div>
+              <div>
+                <span className="text-[#6366F1] font-bold block">Signal Mod (15%)</span>
+                <span className="text-slate-500">GitHub code activity, response rate, and profile completeness.</span>
+              </div>
+              <div>
+                <span className="text-[#14B8A6] font-bold block">Education (15%)</span>
+                <span className="text-slate-500">Institutional tier prestige and degree compatibility.</span>
+              </div>
+              <div>
+                <span className="text-[#D97706] font-bold block">Availability (10%)</span>
+                <span className="text-slate-500">Notice period days, work modes and relocatable indicators.</span>
+              </div>
+            </div>
+          </div>
+        </details>
+      )}
+
+      <div
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20"
+      >
         {/* Loading state for shortlist — staged messages + skeleton cards */}
         {isLoading && activeTab === "shortlist" && (
-          <LoadingPhaseDisplay loadingPhase={loadingPhase} />
+          <LoadingPhaseDisplay loadingPhase={loadingPhase} candidatesCount={candidates.length} />
         )}
 
         {/* Talent Pools Grid (when no pool selected) */}
@@ -553,6 +638,7 @@ const ResultsPanel = ({
                     <CandidateCard
                       result={activeList[1].result}
                       candidate={activeList[1].candidate}
+                      filteredRank={2}
                       onSelect={() => onSelectCandidate(activeList[1].result.candidate_id)}
                       talentPools={talentPools}
                       onOpenPoolManager={onOpenPoolManager}
@@ -584,6 +670,7 @@ const ResultsPanel = ({
                     <CandidateCard
                       result={activeList[0].result}
                       candidate={activeList[0].candidate}
+                      filteredRank={1}
                       onSelect={() => onSelectCandidate(activeList[0].result.candidate_id)}
                       talentPools={talentPools}
                       onOpenPoolManager={onOpenPoolManager}
@@ -615,6 +702,7 @@ const ResultsPanel = ({
                     <CandidateCard
                       result={activeList[2].result}
                       candidate={activeList[2].candidate}
+                      filteredRank={3}
                       onSelect={() => onSelectCandidate(activeList[2].result.candidate_id)}
                       talentPools={talentPools}
                       onOpenPoolManager={onOpenPoolManager}
@@ -636,11 +724,12 @@ const ResultsPanel = ({
             </div>
           ) : (
             <div className="divide-y divide-slate-900">
-              {activeList.map(({ result, candidate }) => (
+              {slicedList.map(({ result, candidate }, idx) => (
                 <CandidateCard
                   key={result.candidate_id}
                   result={result}
                   candidate={candidate}
+                  filteredRank={idx + 1}
                   onSelect={() => onSelectCandidate(result.candidate_id)}
                   talentPools={talentPools}
                   onOpenPoolManager={onOpenPoolManager}
