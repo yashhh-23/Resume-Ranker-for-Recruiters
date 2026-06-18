@@ -216,6 +216,10 @@ const CandidateModalReasoning = memo(({
         {sections.map((sect) => {
           const isOpen = openSection === sect.id;
           const apiInsight = signalReasoning?.[sect.id];
+          // Show first meaningful sentence in collapsed preview to avoid misleading truncation
+          const previewText = apiInsight
+            ? (apiInsight.split(/[.;]/)[0] || "").trim()
+            : null;
           return (
             <div key={sect.id} className={`border border-slate-900 bg-slate-950/60 rounded-none overflow-hidden transition-all duration-200 border-l-4 ${sect.color}`}>
               <button
@@ -231,11 +235,11 @@ const CandidateModalReasoning = memo(({
                   <span className="text-slate-500 text-[10px]">{isOpen ? "▲" : "▼"}</span>
                 </div>
               </button>
-              {/* Always-visible 1-line preview of backend insight */}
-              {apiInsight && !isOpen && (
+              {/* Always-visible 1-line preview — first sentence of backend insight */}
+              {previewText && !isOpen && (
                 <div className="px-4 pb-2 text-[10px] font-mono text-emerald/70 flex items-start gap-1.5 border-t border-slate-900/30">
                   <span className="shrink-0 text-emerald/40 mt-0.5">▶</span>
-                  <span className="truncate">{apiInsight}</span>
+                  <span className="truncate">{previewText}</span>
                 </div>
               )}
               {isOpen && (

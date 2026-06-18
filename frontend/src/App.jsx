@@ -271,14 +271,16 @@ const App = () => {
           >
             <span>GitHub Repo</span>
           </a>
-          {/* Scoring Model Info Button */}
+          {/* Scoring Model Info Button — icon-only on mobile, full label on md+ */}
           <button
             type="button"
             onClick={() => setShowWeightsInfo(true)}
-            className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-emerald hover:border-emerald/30 rounded transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-emerald hover:border-emerald/30 rounded transition-colors"
             title="View scoring model weights"
+            aria-label="View scoring model weights"
           >
-            <span>ℹ Scoring Model</span>
+            <span className="hidden md:inline">ℹ Scoring Model</span>
+            <span className="md:hidden" aria-hidden="true">ℹ</span>
           </button>
         </div>
 

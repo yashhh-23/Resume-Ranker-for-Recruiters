@@ -27,6 +27,27 @@ const SCORE_AXES = [
 
 const COLORS = ["#10B981", "#3B82F6", "#D97706"];
 
+/**
+ * Hoisted outside the component so Recharts never remounts ticks on re-render.
+ * Receives radarData + candidateCount as element props via PolarAngleAxis tick prop.
+ */
+const CustomAxisTick = ({ x, y, payload, textAnchor, radarData, candidateCount }) => {
+  const entry = (radarData || []).find(d => d.subject === payload?.value);
+  const scores = entry && candidateCount
+    ? Array.from({ length: candidateCount }, (_, i) =>
+        `${((entry[`cand${i}`] ?? 0) * 100).toFixed(0)}%`
+      ).join(" / ")
+    : "";
+  return (
+    <g>
+      <text x={x} y={y} textAnchor={textAnchor} fill="#94a3b8" fontSize={9} fontFamily="monospace">
+        <tspan x={x} dy="0">{payload?.value}</tspan>
+        <tspan x={x} dy={12} fill="#64748b" fontSize={8}>{scores}</tspan>
+      </text>
+    </g>
+  );
+};
+
 const CompareModal = ({ selectedCandidates = [], onClose }) => {
   if (selectedCandidates.length === 0) return null;
 
@@ -81,21 +102,7 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
     return dataPoint;
   });
 
-  // Custom tick that shows axis label on 2 lines (name + abbreviated scores)
-  const CustomAxisTick = ({ x, y, payload, textAnchor }) => {
-    const entry = radarData.find(d => d.subject === payload.value);
-    const scores = entry
-      ? selectedCandidates.map((_, i) => `${((entry[`cand${i}`] ?? 0) * 100).toFixed(0)}%`).join(" / ")
-      : "";
-    return (
-      <g>
-        <text x={x} y={y} textAnchor={textAnchor} fill="#94a3b8" fontSize={9} fontFamily="monospace">
-          <tspan x={x} dy="0">{payload.value}</tspan>
-          <tspan x={x} dy={12} fill="#64748b" fontSize={8}>{scores}</tspan>
-        </text>
-      </g>
-    );
-  };
+  // (CustomAxisTick is defined at module level — see above)
 
   return (
     <div
@@ -156,10 +163,23 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
             <div className="border border-slate-900 bg-slate-900/20 p-4 rounded-none">
               <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-3 text-center">Score Radar Overlay</p>
               <div className="h-[250px] w-full relative">
+                {/* figure + aria-label for WCAG 2.1 accessibility */}
+                <figure
+                  aria-label={`Radar chart comparing candidate scores across 5 dimensions: Skill Match, Career Fit, Engagement Signals, Education, and Availability`}
+                  className="h-full w-full m-0"
+                >
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="62%" data={radarData}>
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                    <PolarAngleAxis dataKey="subject" tick={<CustomAxisTick />} />
+                    <PolarAngleAxis
+                      dataKey="subject"
+                      tick={
+                        <CustomAxisTick
+                          radarData={radarData}
+                          candidateCount={selectedCandidates.length}
+                        />
+                      }
+                    />
                     <PolarRadiusAxis domain={[0, 1.0]} tick={false} axisLine={false} />
                     <Tooltip
                       contentStyle={{
@@ -188,6 +208,7 @@ const CompareModal = ({ selectedCandidates = [], onClose }) => {
                     <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace', paddingTop: 10 }} />
                   </RadarChart>
                 </ResponsiveContainer>
+                </figure>
               </div>
             </div>
 
