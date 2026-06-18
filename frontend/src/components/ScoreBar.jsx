@@ -63,7 +63,7 @@ const ScoreBar = memo(({ segments }) => {
 
             {/* Segment Hover Tooltip */}
             {segment.tooltipContent && (
-              <div className="opacity-0 group-hover/segment:opacity-100 transition-opacity duration-150 absolute bottom-full left-24 mb-1.5 z-50 pointer-events-none w-60 p-2.5 bg-slate-950 border border-slate-800 text-slate-300 shadow-xl text-[10px] leading-normal font-mono rounded-none">
+              <div className="opacity-0 group-hover/segment:opacity-100 transition-opacity duration-150 absolute bottom-full right-0 sm:right-auto sm:left-24 mb-1.5 z-50 pointer-events-none w-60 p-2.5 bg-slate-950 border border-slate-800 text-slate-300 shadow-xl text-[10px] leading-normal font-mono rounded-none">
                 <span className="text-white font-bold block mb-1 uppercase tracking-wide">{segment.label} Details:</span>
                 {segment.tooltipContent}
               </div>

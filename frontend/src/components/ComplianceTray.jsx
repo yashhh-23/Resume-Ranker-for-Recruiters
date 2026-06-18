@@ -7,24 +7,39 @@ const exportSubmissionCsv = (rankedResults) => {
 
   const escapeField = (value) => {
     const str = String(value ?? "");
-    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
       return `"${str.replace(/"/g, '""')}"`;
     }
     return str;
   };
 
-  const header = "candidate_id,rank,score,reasoning";
-  const rows = rankedResults.map((r) =>
-    [
+  const hasFlags = rankedResults.some(r => r.compliance_flags != null);
+  const header = hasFlags
+    ? "candidate_id,rank,score,reasoning,compliance_flags"
+    : "candidate_id,rank,score,reasoning";
+
+  const rows = rankedResults.map((r, i) => {
+    const rank = r.rank === "-" || r.rank == null ? i + 1 : r.rank;
+    const row = [
       escapeField(r.candidate_id),
-      escapeField(r.rank),
+      escapeField(rank),
       escapeField(r.score),
       escapeField(r.reasoning),
-    ].join(",")
-  );
+    ];
+    if (hasFlags) {
+      const flags = Array.isArray(r.compliance_flags)
+        ? r.compliance_flags.join("; ")
+        : (r.compliance_flags ?? "");
+      row.push(escapeField(flags));
+    }
+    return row.join(",");
+  });
 
-  const csvContent = [header, ...rows].join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const encoder = new TextEncoder();
+  const BOM     = new Uint8Array([0xEF, 0xBB, 0xBF]); // raw UTF-8 BOM bytes
+  const csvContent = [header, ...rows].join("\r\n");
+  const encoded = encoder.encode(csvContent);
+  const blob    = new Blob([BOM, encoded], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;

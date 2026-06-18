@@ -15,11 +15,25 @@ const InputPanel = ({
   jdParsed = null, // parsed JD from backend after first run
 }) => {
   const fileInputRef = useRef(null);
+  const [localJD, setLocalJD] = useState(jobDescription);
   const [fileName, setFileName] = useState("");
   const [parsedCount, setParsedCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [apiOnline, setApiOnline] = useState(null);
+
+  useEffect(() => {
+    setLocalJD(jobDescription);
+  }, [jobDescription]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localJD !== jobDescription) {
+        setJobDescription(localJD);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localJD, jobDescription, setJobDescription]);
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -188,7 +202,7 @@ const InputPanel = ({
         </details>
 
         {/* Collapsible JD Parse Preview Panel */}
-        {jobDescription.trim() && (
+        {localJD.trim() && (
           <details className="border border-slate-800/60 bg-slate-900/10 rounded-lg group transition-all duration-300 hover:border-slate-700/60" open>
             <summary className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 cursor-pointer flex justify-between items-center select-none">
               <span className="flex items-center gap-1.5 text-[#14B8A6]">
@@ -273,9 +287,9 @@ const InputPanel = ({
                   <div className="flex justify-between items-center text-[11px] border-b border-slate-900/50 pb-2">
                     <span>Seniority Level:</span>
                     <span className="text-white font-bold uppercase">
-                      {jobDescription.toLowerCase().includes("senior") || jobDescription.toLowerCase().includes("lead") || jobDescription.toLowerCase().includes("principal")
+                      {localJD.toLowerCase().includes("senior") || localJD.toLowerCase().includes("lead") || localJD.toLowerCase().includes("principal")
                         ? "Senior / Lead"
-                        : jobDescription.toLowerCase().includes("junior")
+                        : localJD.toLowerCase().includes("junior")
                         ? "Junior"
                         : "Mid-Senior"}
                     </span>
@@ -284,7 +298,7 @@ const InputPanel = ({
                     <span>Domain Focus:</span>
                     <span className="text-white font-bold capitalize">
                       {(() => {
-                        const text = jobDescription.toLowerCase();
+                        const text = localJD.toLowerCase();
                         const domains = [];
                         if (text.includes("backend")) domains.push("Backend");
                         if (text.includes("frontend")) domains.push("Frontend");
@@ -297,13 +311,13 @@ const InputPanel = ({
                   <div className="space-y-1.5">
                     <span className="text-[10px] text-slate-500 block">Extracted Skill Tokens (heuristic — run for precise parsing):</span>
                     <div className="flex flex-wrap gap-1">
-                      {extractJdSkills(jobDescription).slice(0, 10).map((token) => (
+                      {extractJdSkills(localJD).slice(0, 10).map((token) => (
                         <span key={token} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 rounded font-semibold">
                           {token}
                         </span>
                       ))}
-                      {extractJdSkills(jobDescription).length > 10 && (
-                        <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{extractJdSkills(jobDescription).length - 10} more</span>
+                      {extractJdSkills(localJD).length > 10 && (
+                        <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{extractJdSkills(localJD).length - 10} more</span>
                       )}
                     </div>
                   </div>
@@ -330,14 +344,17 @@ const InputPanel = ({
             </div>
           </div>
           <textarea
-            value={jobDescription}
-            onChange={(event) => setJobDescription(event.target.value)}
+            value={localJD}
+            onChange={(event) => setLocalJD(event.target.value)}
             placeholder="Paste job description text..."
             onKeyDown={(event) => {
               if (event.ctrlKey && event.key === "Enter") {
                 event.preventDefault();
+                setJobDescription(localJD);
                 if (!isLoading && candidates.length > 0) {
-                  onRun();
+                  setTimeout(() => {
+                    onRun();
+                  }, 0);
                 }
               }
             }}
@@ -345,7 +362,7 @@ const InputPanel = ({
           />
           {(() => {
             const JD_MAX = 5000;
-            const charCount = jobDescription?.length || 0;
+            const charCount = localJD?.length || 0;
             const isNearLimit = charCount > JD_MAX * 0.9;
             return (
               <div className="flex justify-end text-[10px] font-mono mt-1 select-none">
