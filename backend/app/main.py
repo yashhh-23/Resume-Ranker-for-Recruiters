@@ -25,20 +25,27 @@ from ranker.validators import sanitize_candidates
 
 _START_TIME = time.time()
 MAX_CANDIDATES = 1000
+_MODEL_READY = False
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Warm up model on startup
+    global _MODEL_READY
     import asyncio
     loop = asyncio.get_event_loop()
     try:
         await loop.run_in_executor(None, load_model)
+        _MODEL_READY = True
         print("[RRR] Model loaded and ready.")
     except Exception as e:
-        print(f"[RRR] WARNING: Model warm-up failed: {e}. First request will be slow.")
+        print(f"[RRR] WARNING: Model warm-up failed: {e}")
     yield
 
-app = FastAPI(title="RRR Resume Ranker Backend", lifespan=lifespan)
+app = FastAPI(
+    title="RRR Resume Ranker Backend",
+    lifespan=lifespan,
+    docs_url="/docs" if os.getenv("ENV", "development") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENV", "development") != "production" else None,
+)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -106,7 +113,8 @@ async def root():
 
 
 @app.get("/weights")
-async def get_weights():
+@limiter.limit("30/minute")
+async def get_weights(request: Request):
     return {
         "overall_weights": WEIGHTS,
         "signal_weights": SIGNAL_WEIGHTS,
@@ -115,7 +123,8 @@ async def get_weights():
 @app.get("/health")
 async def health():
     return {
-        "status": "ok",
+        "status": "ok" if _MODEL_READY else "degraded",
+        "model_ready": _MODEL_READY,
         "service": "RRR Resume Ranker Backend",
         "version": "1.0.0",
         "model": "sentence-transformers/all-MiniLM-L6-v2",
