@@ -15,6 +15,21 @@ const formatRange = (range) => {
   return `${formatNumber(range.min, 1)} - ${formatNumber(range.max, 1)} LPA`;
 };
 
+const ExpandIcon = ({ className = "h-3.5 w-3.5" }) => (
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 3h6m0 0v6m0-6L14 10M9 21H3m0 0v-6m0 6l7-7" />
+  </svg>
+);
+
+
 const getCompanyCategory = (industry) => {
   if (!industry) return "Unknown";
   return industry.toLowerCase().includes("it") ? "IT Services" : "Product";
@@ -487,9 +502,25 @@ const CandidateModal = ({
             </section>
 
             <section className="space-y-6">
-              <div className="border border-slate-900 bg-slate-900/10 p-5 rounded-none">
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4">
-                  Skills Assessment Ledger
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setExpandedBox("skills")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setExpandedBox("skills");
+                  }
+                }}
+                aria-label="Skills Assessment Ledger. Click to expand."
+                className="border border-slate-900 bg-slate-900/10 p-5 rounded-none cursor-pointer hover:bg-slate-900/30 hover:border-slate-800 transition-colors focus:outline-none focus:ring-1 focus:ring-emerald/50 text-left group"
+              >
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4 flex justify-between items-center">
+                  <span>Skills Assessment Ledger</span>
+                  <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
+                    <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
+                    <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </div>
                 </h4>
                 <div className="space-y-3.5">
                   <div className="grid grid-cols-12 text-[10px] uppercase font-mono tracking-wider text-slate-500 border-b border-slate-900 pb-2">
@@ -517,9 +548,25 @@ const CandidateModal = ({
               </div>
 
               {/* Education Metrics Profile Block */}
-              <div className="border border-slate-900 bg-slate-900/10 p-5 rounded-none">
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4">
-                  Institutional Profiles & Qualifications Matrix
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setExpandedBox("education")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setExpandedBox("education");
+                  }
+                }}
+                aria-label="Institutional Profiles & Qualifications Matrix. Click to expand."
+                className="border border-slate-900 bg-slate-900/10 p-5 rounded-none cursor-pointer hover:bg-slate-900/30 hover:border-slate-800 transition-colors focus:outline-none focus:ring-1 focus:ring-emerald/50 text-left group"
+              >
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono border-b border-slate-900 pb-3 mb-4 flex justify-between items-center">
+                  <span>Institutional Profiles & Qualifications Matrix</span>
+                  <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
+                    <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
+                    <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </div>
                 </h4>
                 <div className="space-y-3.5">
                   <div className="grid grid-cols-12 text-[10px] uppercase font-mono tracking-wider text-slate-500 border-b border-slate-900 pb-2">
@@ -551,20 +598,38 @@ const CandidateModal = ({
 
               {/* Skill Gap Analysis Section */}
               {hasJd && (
-                <div className="border border-slate-900 bg-slate-900/10 p-5 rounded-none">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setExpandedBox("skill_gap")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setExpandedBox("skill_gap");
+                    }
+                  }}
+                  aria-label="JD Skill Gap Analysis. Click to expand."
+                  className="border border-slate-900 bg-slate-900/10 p-5 rounded-none cursor-pointer hover:bg-slate-900/30 hover:border-slate-800 transition-colors focus:outline-none focus:ring-1 focus:ring-emerald/50 text-left group"
+                >
                   <div className="flex items-center justify-between border-b border-slate-900 pb-3 mb-4">
-                    <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono">
-                      JD Skill Gap Analysis
+                    <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
+                      <span>JD Skill Gap Analysis</span>
                     </h4>
-                    {coveragePct !== null && (
-                      <span className={`text-xs font-mono font-bold px-2 py-0.5 border rounded-none ${
-                        coveragePct >= 70 ? "bg-emerald/10 border-emerald/30 text-emerald" :
-                        coveragePct >= 40 ? "bg-cobalt/10 border-cobalt/30 text-cobalt" :
-                        "bg-rose-900/20 border-rose-800/40 text-rose-400"
-                      }`}>
-                        {coveragePct}% coverage
-                      </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {coveragePct !== null && (
+                        <span className={`text-xs font-mono font-bold px-2 py-0.5 border rounded-none ${
+                          coveragePct >= 70 ? "bg-emerald/10 border-emerald/30 text-emerald" :
+                          coveragePct >= 40 ? "bg-cobalt/10 border-cobalt/30 text-cobalt" :
+                          "bg-rose-900/20 border-rose-800/40 text-rose-400"
+                        }`}>
+                          {coveragePct}% coverage
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1.5 text-slate-500 font-normal normal-case text-[10px]">
+                        <span className="group-hover:text-slate-300 transition-colors">Click to expand</span>
+                        <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      </div>
+                    </div>
                   </div>
 
                   {matchedJdSkills.length > 0 && (
@@ -638,9 +703,12 @@ const CandidateModal = ({
                       }
                     }}
                     aria-label="Availability and Compensation details. Click to expand."
-                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50 group"
                   >
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Availability & Compensation</p>
+                    <div className="flex justify-between items-center border-b border-slate-900 pb-1 mb-2">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold font-mono">Availability & Compensation</p>
+                      <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
                     <div className="flex justify-between">
                       <span>Notice Period:</span>
                       <span className={signals.notice_period_days <= 30 ? "text-emerald font-bold" : "text-slate-300"}>{signals.notice_period_days ?? "--"} days</span>
@@ -675,9 +743,12 @@ const CandidateModal = ({
                       }
                     }}
                     aria-label="Engagement Scores details. Click to expand."
-                    className="border border-slate-900 bg-slate-950 p-3 space-y-2.5 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2.5 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50 group"
                   >
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Engagement Scores</p>
+                    <div className="flex justify-between items-center border-b border-slate-900 pb-1 mb-2">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold font-mono">Engagement Scores</p>
+                      <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
                     <div>
                       <div className="flex justify-between text-[11px] mb-1">
                         <span>Recruiter Response:</span>
@@ -722,9 +793,12 @@ const CandidateModal = ({
                       }
                     }}
                     aria-label="Verification Checklist details. Click to expand."
-                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50 group"
                   >
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Verification Checklist</p>
+                    <div className="flex justify-between items-center border-b border-slate-900 pb-1 mb-2">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold font-mono">Verification Checklist</p>
+                      <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
                     <div className="flex justify-between">
                       <span>Email Verified:</span>
                       <span className={signals.verified_email ? "text-emerald" : "text-slate-600"}>{formatBool(signals.verified_email)}</span>
@@ -757,9 +831,12 @@ const CandidateModal = ({
                       }
                     }}
                     aria-label="Activity Signals details. Click to expand."
-                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50 group"
                   >
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Activity Signals (30d)</p>
+                    <div className="flex justify-between items-center border-b border-slate-900 pb-1 mb-2">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold font-mono">Activity Signals (30d)</p>
+                      <ExpandIcon className="h-3 w-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                    </div>
                     <div className="flex justify-between">
                       <span>Profile Completeness:</span>
                       <span className="text-slate-300 font-bold">{formatNumber(signals.profile_completeness_score, 1)}</span>
@@ -790,7 +867,7 @@ const CandidateModal = ({
         </div>
       </div>
 
-      {/* Expanded behavioral signals overlay */}
+      {/* Expanded behavioral signals / details overlay */}
       {(() => {
         if (!expandedBox) return null;
 
@@ -801,41 +878,44 @@ const CandidateModal = ({
           case "availability":
             title = "Availability & Compensation";
             content = (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Notice Period</span>
-                    <span
-                      className={`text-sm font-bold ${signals.notice_period_days <= 30 ? "text-emerald" : "text-slate-200"}`}
-                      style={signals.notice_period_days <= 30 ? { animation: "pulse 2s ease-in-out 2" } : undefined}
-                      role={signals.notice_period_days <= 30 ? "alert" : undefined}
-                      aria-live={signals.notice_period_days <= 30 ? "polite" : undefined}
-                    >
-                      {signals.notice_period_days ?? "--"} days
-                      {signals.notice_period_days <= 30 && " (Immediate Availability)"}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Salary Expected</span>
-                    <span className="text-sm text-slate-200 font-semibold">{formatRange(signals.expected_salary_range_inr_lpa)}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Work Mode</span>
-                    <span className="text-sm text-slate-200 capitalize">{signals.preferred_work_mode ?? "--"}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Open To Work</span>
-                    <span className="text-sm text-slate-200 font-semibold">{formatBool(signals.open_to_work_flag)}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Relocation Intent</span>
-                    <span className="text-sm text-slate-200 font-semibold">{formatBool(signals.willing_to_relocate)}</span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
                   Operational availability is evaluated based on the candidate's notice period duration and relocation parameters. 
                   Notice periods under 30 days are classified as immediate-hire signals, aligning with dynamic resource allocation models.
                 </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 space-y-1">
+                    <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">Notice Period</span>
+                    <span className={`text-xl font-bold font-mono ${signals.notice_period_days <= 30 ? "text-emerald" : "text-slate-100"}`}>
+                      {signals.notice_period_days ?? "--"} Days
+                      {signals.notice_period_days <= 30 && " (Immediate)"}
+                    </span>
+                  </div>
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 space-y-1">
+                    <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">Expected Salary</span>
+                    <span className="text-xl font-bold font-mono text-slate-100">
+                      {formatRange(signals.expected_salary_range_inr_lpa)}
+                    </span>
+                  </div>
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 space-y-1">
+                    <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">Preferred Work Mode</span>
+                    <span className="text-xl font-bold font-mono text-slate-100 capitalize">
+                      {signals.preferred_work_mode ?? "--"}
+                    </span>
+                  </div>
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 space-y-1">
+                    <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">Open to Work</span>
+                    <span className={`text-xl font-bold font-mono ${signals.open_to_work_flag ? "text-emerald" : "text-slate-400"}`}>
+                      {formatBool(signals.open_to_work_flag)}
+                    </span>
+                  </div>
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 space-y-1 md:col-span-2">
+                    <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">Willing to Relocate</span>
+                    <span className={`text-xl font-bold font-mono ${signals.willing_to_relocate ? "text-emerald" : "text-rose-400"}`}>
+                      {formatBool(signals.willing_to_relocate)}
+                    </span>
+                  </div>
+                </div>
               </div>
             );
             break;
@@ -843,42 +923,43 @@ const CandidateModal = ({
           case "engagement":
             title = "Engagement Scores";
             content = (
-              <div className="space-y-6">
-                <div className="space-y-4 font-mono text-slate-400">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-400">Recruiter Response Velocity:</span>
-                      <span className="text-emerald font-bold">{formatPercent(signals.recruiter_response_rate)}</span>
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
+                  Engagement scores represent the candidate's interaction consistency, activity rates, and response velocity on recruitment platforms. 
+                  High completion rates and low response times suggest strong pipeline velocity.
+                </p>
+                <div className="space-y-4">
+                  {[
+                    { label: "Recruiter Response Velocity", value: signals.recruiter_response_rate, color: "bg-emerald", textColor: "text-emerald" },
+                    { label: "Interview Completion Rate", value: signals.interview_completion_rate, color: "bg-cobalt", textColor: "text-cobalt" },
+                    { label: "Offer Acceptance Rate", value: signals.offer_acceptance_rate, color: "bg-emerald", textColor: "text-emerald" },
+                  ].map(({ label, value, color, textColor }) => (
+                    <div key={label} className="bg-slate-900/40 border border-slate-900 p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-slate-400 text-sm font-semibold">{label}</span>
+                        <span className={`text-xl font-bold ${textColor}`}>
+                          {value === -1 ? "N/A" : formatPercent(value)}
+                        </span>
+                      </div>
+                      {value !== -1 ? (
+                        <div className="h-3 w-full bg-slate-950 border border-slate-900 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${color} transition-all duration-700`}
+                            style={{ width: `${Math.round((value || 0) * 100)}%` }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-xs text-slate-500 italic">No Prior Offer Transactions Recorded</div>
+                      )}
                     </div>
-                    <ProgressBar value={signals.recruiter_response_rate || 0} color="bg-emerald" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-400">Interview Completion Rate:</span>
-                      <span className="text-cobalt font-bold">{formatPercent(signals.interview_completion_rate)}</span>
-                    </div>
-                    <ProgressBar value={signals.interview_completion_rate || 0} color="bg-cobalt" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-400">Offer Acceptance Rate:</span>
-                      <span className={signals.offer_acceptance_rate === -1 ? "text-slate-500 italic font-normal" : "text-emerald font-bold"}>
-                        {signals.offer_acceptance_rate === -1 ? "No Prior Offer Transactions Recorded" : formatPercent(signals.offer_acceptance_rate)}
-                      </span>
-                    </div>
-                    {signals.offer_acceptance_rate !== -1 && (
-                      <ProgressBar value={signals.offer_acceptance_rate || 0} color="bg-emerald" />
-                    )}
-                  </div>
-                  <div className="flex justify-between text-xs border-t border-slate-900 pt-3 text-slate-400">
-                    <span>Average Response Delay:</span>
-                    <span className="text-slate-200 font-semibold">{formatNumber(signals.avg_response_time_hours, 1)} hours</span>
+                  ))}
+                  <div className="bg-slate-900/40 border border-slate-900 p-4 flex justify-between items-center">
+                    <span className="text-slate-400 text-sm font-semibold">Average Response Delay</span>
+                    <span className="text-xl font-bold text-slate-100 font-mono">
+                      {formatNumber(signals.avg_response_time_hours, 1)} Hours
+                    </span>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-                  Engagement scores metric represents interaction consistency on recruiter platforms. 
-                  High completion rates and low response times indicate strong pipeline velocity and proactive communication patterns.
-                </p>
               </div>
             );
             break;
@@ -886,41 +967,33 @@ const CandidateModal = ({
           case "verification":
             title = "Verification Checklist";
             content = (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
-                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
-                    <span className="text-slate-400">Email Address</span>
-                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.verified_email ? "text-emerald" : "text-slate-500"}`}>
-                      {signals.verified_email ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
-                      {signals.verified_email ? "Verified" : "Unverified"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
-                    <span className="text-slate-400">Phone Contact</span>
-                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.verified_phone ? "text-emerald" : "text-slate-500"}`}>
-                      {signals.verified_phone ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
-                      {signals.verified_phone ? "Verified" : "Unverified"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
-                    <span className="text-slate-400">LinkedIn Connect</span>
-                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.linkedin_connected ? "text-cobalt" : "text-slate-500"}`}>
-                      {signals.linkedin_connected ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
-                      {signals.linkedin_connected ? "Linked" : "Disconnected"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
-                    <span className="text-slate-400">GitHub Profile</span>
-                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.github_activity_score !== -1 ? "text-indigo-400" : "text-slate-500"}`}>
-                      {signals.github_activity_score !== -1 ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
-                      {signals.github_activity_score !== -1 ? "Connected" : "No Activity"}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
                   Verification checks map professional identity trust levels. Linked networks and verified contacts 
                   minimise candidate spoofing risks and ensure authenticity in communication pipelines.
                 </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { label: "Email Address", value: signals.verified_email, trueColor: "text-emerald", bgStyle: "bg-emerald/5 border-emerald/10" },
+                    { label: "Phone Contact", value: signals.verified_phone, trueColor: "text-emerald", bgStyle: "bg-emerald/5 border-emerald/10" },
+                    { label: "LinkedIn Connect", value: signals.linkedin_connected, trueColor: "text-cobalt", bgStyle: "bg-cobalt/5 border-cobalt/10" },
+                    { label: "GitHub Profile", value: signals.github_activity_score !== -1, trueColor: "text-indigo-400", bgStyle: "bg-indigo-500/5 border-indigo-500/10" },
+                  ].map(({ label, value, trueColor, bgStyle }) => (
+                    <div key={label} className={`flex justify-between items-center p-4 border ${value ? bgStyle : 'bg-slate-900/20 border-slate-900'}`}>
+                      <span className="text-slate-300 text-sm font-semibold">{label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-base font-bold ${value ? trueColor : "text-rose-400"}`}>
+                          {value ? "Verified" : "Unverified"}
+                        </span>
+                        {value ? (
+                          <CheckIcon className={`h-5 w-5 ${trueColor}`} />
+                        ) : (
+                          <XIcon className="h-5 w-5 text-rose-400" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
             break;
@@ -928,35 +1001,184 @@ const CandidateModal = ({
           case "activity":
             title = "Activity Signals (30d)";
             content = (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Profile Completeness</span>
-                    <span className="text-sm text-slate-200 font-bold">{formatNumber(signals.profile_completeness_score, 1)}%</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Profile Views</span>
-                    <span className="text-sm text-slate-200 font-semibold">{signals.profile_views_received_30d ?? 0}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Applications Sent</span>
-                    <span className="text-sm text-slate-200 font-semibold">{signals.applications_submitted_30d ?? 0}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Search Appearances</span>
-                    <span className="text-sm text-slate-200 font-semibold">{signals.search_appearance_30d ?? 0}</span>
-                  </div>
-                  {signals.github_activity_score !== -1 && (
-                    <div className="col-span-2 space-y-1 border-t border-slate-900 pt-3">
-                      <span className="text-indigo-400 block text-[10px] uppercase tracking-wider">GitHub Activity Index</span>
-                      <span className="text-sm text-indigo-400 font-bold">{formatNumber(signals.github_activity_score, 1)}</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
                   Activity telemetry assesses active sourcing engagement metrics within a rolling 30-day window. 
                   High application and view numbers denote a highly active job-seeker footprint.
                 </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { label: "Profile Completeness", value: `${formatNumber(signals.profile_completeness_score, 1)}%` },
+                    { label: "Profile Views (30d)", value: signals.profile_views_received_30d ?? 0 },
+                    { label: "Applications Sent (30d)", value: signals.applications_submitted_30d ?? 0 },
+                    { label: "Search Appearances (30d)", value: signals.search_appearance_30d ?? 0 },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-slate-900/40 border border-slate-900 p-4 space-y-1">
+                      <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold block">{label}</span>
+                      <span className="text-xl font-bold font-mono text-slate-100">{value}</span>
+                    </div>
+                  ))}
+                  {signals.github_activity_score !== -1 && (
+                    <div className="bg-indigo-950/20 border border-indigo-900/30 p-4 space-y-1 md:col-span-2">
+                      <span className="text-indigo-400 text-xs uppercase tracking-wider font-semibold block">GitHub Activity Score</span>
+                      <span className="text-xl font-bold font-mono text-indigo-400">
+                        {formatNumber(signals.github_activity_score, 1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+            break;
+
+          case "skills":
+            title = "Skills Assessment Ledger";
+            content = (
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
+                  This ledger displays the candidate's proficiency levels and verified test assessment scores for both declared skills and platform evaluations.
+                </p>
+                <div className="border border-slate-900 bg-slate-950 overflow-hidden">
+                  <div className="grid grid-cols-12 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-900 p-4 font-semibold bg-slate-900/20">
+                    <span className="col-span-5">Skill Name</span>
+                    <span className="col-span-4 text-center">Declared Prof.</span>
+                    <span className="col-span-3 text-right">Assessed Score</span>
+                  </div>
+                  <div className="divide-y divide-slate-900 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                    {skillRows.length === 0 && (
+                      <div className="p-8 text-center text-slate-500 italic text-sm">
+                        No skills catalogued in this ledger.
+                      </div>
+                    )}
+                    {skillRows.map((skill) => (
+                      <div key={skill.name} className="grid grid-cols-12 items-center text-sm p-4 hover:bg-slate-900/10 transition-colors">
+                        <span className="col-span-5 font-bold text-slate-100">{skill.name}</span>
+                        <span className="col-span-4 text-center">
+                          <span className={`inline-flex px-3 py-1 border text-xs font-semibold capitalize rounded-none ${getProficiencyStyle(skill.proficiency)}`}>
+                            {skill.proficiency || "--"}
+                          </span>
+                        </span>
+                        <span className="col-span-3 text-right font-mono font-bold text-emerald text-base">
+                          {skill.assessment != null ? `${formatNumber(skill.assessment, 0)}%` : "--"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+            break;
+
+          case "education":
+            title = "Institutional Profiles & Qualifications Matrix";
+            content = (
+              <div className="space-y-6 text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed font-mono">
+                  Comprehensive profile of academic history, credential tiers, and graduation timelines mapped to institutional prestige coefficients.
+                </p>
+                <div className="border border-slate-900 bg-slate-950 overflow-hidden">
+                  <div className="grid grid-cols-12 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-900 p-4 font-semibold bg-slate-900/20">
+                    <span className="col-span-3">Degree Level</span>
+                    <span className="col-span-3">Field of Study</span>
+                    <span className="col-span-3">Institution</span>
+                    <span className="col-span-1 text-center">Grad</span>
+                    <span className="col-span-2 text-right">Prestige</span>
+                  </div>
+                  <div className="divide-y divide-slate-900 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                    {(!candidate.education || candidate.education.length === 0) ? (
+                      <div className="p-8 text-center text-slate-500 italic text-sm">
+                        No education records registered in this matrix.
+                      </div>
+                    ) : (
+                      candidate.education.map((edu, idx) => (
+                        <div key={idx} className="grid grid-cols-12 items-center text-sm p-4 hover:bg-slate-900/10 transition-colors">
+                          <span className="col-span-3 font-semibold text-slate-100">{edu.degree || "--"}</span>
+                          <span className="col-span-3 text-slate-300">{edu.field_of_study || "--"}</span>
+                          <span className="col-span-3 text-slate-400">{edu.institution || "--"}</span>
+                          <span className="col-span-1 text-center text-slate-500">{edu.end_year || "--"}</span>
+                          <span className="col-span-2 text-right font-bold text-indigo-400">
+                            {edu.tier || "unknown"}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+            break;
+
+          case "skill_gap":
+            title = "JD Skill Gap Analysis";
+            content = (
+              <div className="space-y-6 text-slate-300">
+                <div className="flex justify-between items-center border-b border-slate-900 pb-3">
+                  <p className="text-sm text-slate-400 leading-relaxed font-mono">
+                    Detailed mapping of candidate's skills against job description requirements, highlighting credentials coverage and missing skill segments.
+                  </p>
+                  {coveragePct !== null && (
+                    <span className={`text-sm font-mono font-bold px-3 py-1 border rounded-none ml-4 shrink-0 ${
+                      coveragePct >= 70 ? "bg-emerald/10 border-emerald/30 text-emerald" :
+                      coveragePct >= 40 ? "bg-cobalt/10 border-cobalt/30 text-cobalt" :
+                      "bg-rose-900/20 border-rose-800/40 text-rose-400"
+                    }`}>
+                      {coveragePct}% Coverage
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-6 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2">
+                  {matchedJdSkills.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs uppercase tracking-wider text-emerald font-bold flex items-center gap-1.5 font-mono">
+                        <CheckIcon className="h-4 w-4 shrink-0" />
+                        <span>Matched JD Skills ({matchedJdSkills.length})</span>
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {matchedJdSkills.map((skill) => (
+                          <span key={skill.name} className="px-3 py-1.5 bg-emerald/10 text-emerald text-sm rounded-none border border-emerald/20 inline-flex items-center gap-2 font-mono">
+                            <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+                            <span className="font-semibold">{skill.name}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-slate-900 border ${
+                              skill.proficiency === 'expert' ? 'text-emerald border-emerald/20 bg-emerald/5' :
+                              skill.proficiency === 'advanced' ? 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' :
+                              skill.proficiency === 'intermediate' ? 'text-amber border-amber/20 bg-amber/5' : 'text-slate-400 border-slate-700'
+                            }`}>
+                              {skill.proficiency}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {missingSkills.length > 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-xs uppercase tracking-wider text-rose-400 font-bold flex items-center gap-1.5 font-mono">
+                        <XIcon className="h-4 w-4 shrink-0" />
+                        <span>Missing / Skill Gaps ({missingSkills.length})</span>
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {missingSkills.map((s) => (
+                          <span key={s} className="px-3 py-1.5 bg-red-900/20 text-rose-400 text-sm rounded-none border border-red-800/20 inline-flex items-center gap-2 font-mono">
+                            <XIcon className="h-3.5 w-3.5 shrink-0" />
+                            <span className="font-semibold">{s}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-emerald italic bg-emerald/5 border border-emerald/10 p-4 font-mono">
+                      No skill gaps detected — candidate covers all extracted JD requirements.
+                    </p>
+                  )}
+
+                  {!hasJd && (
+                    <p className="text-sm text-slate-500 italic bg-slate-900/20 border border-slate-900 p-4 font-mono">
+                      Paste a Job Description in the input panel to enable gap analysis.
+                    </p>
+                  )}
+                </div>
               </div>
             );
             break;
@@ -966,19 +1188,28 @@ const CandidateModal = ({
         }
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-slate-950 border border-slate-900 shadow-2xl p-6 font-mono relative flex flex-col rounded-none">
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setExpandedBox(null);
+            }}
+            className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-3xl bg-slate-950 border border-slate-900 shadow-2xl p-6 font-mono relative flex flex-col rounded-none max-h-[90vh]"
+            >
               <div className="flex justify-between items-center border-b border-slate-900 pb-3 mb-4">
                 <h5 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{title}</h5>
                 <button
                   type="button"
                   onClick={() => setExpandedBox(null)}
-                  className="text-slate-500 hover:text-slate-200 text-xs uppercase tracking-wider font-bold"
+                  className="text-slate-500 hover:text-slate-200 p-1 hover:bg-slate-900 hover:border-slate-800 border border-transparent transition-colors flex items-center justify-center rounded-none"
+                  aria-label="Close details popup"
                 >
-                  Close
+                  <XIcon className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {content}
               </div>
             </div>
