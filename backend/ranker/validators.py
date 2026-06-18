@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 MAX_TEXT_LEN = 2000
 
 def _truncate_candidate(c: dict) -> dict:
@@ -64,7 +66,6 @@ def validate_candidate(c: dict) -> list:
         flags.append("Missing career history")
     else:
         try:
-            from datetime import date, datetime
             declared_years = float(profile.get("years_of_experience") or 0)
             if declared_years > 0:
                 total_months = 0
@@ -111,13 +112,11 @@ def validate_candidate(c: dict) -> list:
             pass
 
     # Career history: future start_date
-    from datetime import date
     today = date.today()
     for role in career:
         start = str(role.get("start_date") or "")
         if start:
             try:
-                from datetime import datetime
                 # Clean up if ISO format might end with Z or timezone offset
                 clean_start = start
                 if clean_start.endswith("Z"):
@@ -137,7 +136,6 @@ def validate_candidate(c: dict) -> list:
         end_str = str(role.get("end_date") or "")
         if start_str and end_str and end_str.lower() != "present":
             try:
-                from datetime import datetime
                 clean_start = start_str[:-1] if start_str.endswith("Z") else start_str
                 clean_end = end_str[:-1] if end_str.endswith("Z") else end_str
                 s_date = datetime.fromisoformat(clean_start[:10]).date()

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -33,7 +34,6 @@ _MODEL_READY = False
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _MODEL_READY
-    import asyncio
     loop = asyncio.get_event_loop()
     try:
         await loop.run_in_executor(None, load_model)
