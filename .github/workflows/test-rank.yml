@@ -8,5 +8,11 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r backend/requirements.txt
-      - run: python rank.py --candidates ./data/sample_candidates.json --jd ./data/job_description.txt --out /tmp/test_submission.csv
+      - name: Run rank.py smoke test
+        working-directory: backend
+        run: |
+          python rank.py \
+            --candidates ../data/sample_candidates.json \
+            --jd ../data/job_description.txt \
+            --out /tmp/test_submission.csv
       - run: python validate_submission.py --submission /tmp/test_submission.csv
