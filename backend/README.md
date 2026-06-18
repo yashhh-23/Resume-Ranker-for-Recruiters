@@ -119,15 +119,15 @@ submission_metadata.yaml
 validate_submission.py
 ```
 
-## Deployment
+## Deployment & Local Dev Setup
 
-Deploy to HuggingFace Spaces using Docker runtime. The provided `Dockerfile` starts FastAPI on port `7860`.
-
-Set CORS origins with:
+For local development or local docker runs, set CORS origins to allow your local frontend (e.g. Vite running on port 5173 or 4173):
 
 ```env
-RRR_ALLOWED_ORIGINS=https://your-frontend.vercel.app
+RRR_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
+
+For hosting on HuggingFace Spaces or other private setups, adjust this variable accordingly to allow your specific frontend domain.
 
 ## Compute Metadata
 

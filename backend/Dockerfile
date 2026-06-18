@@ -10,7 +10,7 @@ COPY --chown=appuser:appuser . .
 USER appuser
 
 ENV PORT=7860
-ENV RRR_ALLOWED_ORIGINS=https://*.vercel.app
+ENV RRR_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173
 ENV ENV=development
 
 EXPOSE 7860
