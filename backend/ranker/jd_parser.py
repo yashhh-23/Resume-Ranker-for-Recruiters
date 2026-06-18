@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
-
 DEFAULT_JD = {
     "required_skills": [],
     "raw_required_skills": [],
@@ -21,31 +20,127 @@ REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
 PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desired"]
 
 TECH_SKILLS = [
-    "Python", "SQL", "Spark", "PySpark", "Airflow", "Apache Beam", "Kafka",
-    "AWS", "GCP", "Azure", "Snowflake", "BigQuery", "Docker", "Kubernetes",
-    "MLflow", "NLP", "TensorFlow", "PyTorch", "Scikit-learn", "LLM",
-    "Fine-tuning LLMs", "React", "Next.js", "Node.js", "Java", "TypeScript",
-    "Angular", "Apache Flink", "BM25", "BentoML", "CI/CD", "CNN", "CSS",
-    "Computer Vision", "Data Pipelines", "Data Science", "Databricks",
-    "Deep Learning", "Django", "ETL", "Elasticsearch", "Embeddings",
-    "FAISS", "FastAPI", "Feature Engineering", "Flask", "Forecasting",
-    "GANs", "Go", "GraphQL", "HTML", "Hadoop", "Haystack",
-    "Hugging Face Transformers", "Image Classification", "Information Retrieval",
-    "JavaScript", "Kubeflow", "LangChain", "LoRA", "MLOps", "Machine Learning",
-    "Microservices", "Milvus", "MongoDB", "Object Detection", "OpenCV",
-    "OpenSearch", "PEFT", "Pinecone", "PostgreSQL", "Prompt Engineering",
-    "Qdrant", "REST APIs", "Recommendation Systems", "Redis", "Redux",
-    "Reinforcement Learning", "Rust", "SEO", "Sentence Transformers",
-    "Speech Recognition", "Spring Boot", "Statistical Modeling", "TTS",
-    "Tailwind", "Terraform", "Vector Search", "Vue.js", "Weaviate", "Webpack",
-    "Weights & Biases", "YOLO", "dbt", "gRPC", "GitHub Actions", "Polars",
-    "DuckDB", "OpenAI API", "Prisma", "Ray", "LlamaIndex",
+    "Python",
+    "SQL",
+    "Spark",
+    "PySpark",
+    "Airflow",
+    "Apache Beam",
+    "Kafka",
+    "AWS",
+    "GCP",
+    "Azure",
+    "Snowflake",
+    "BigQuery",
+    "Docker",
+    "Kubernetes",
+    "MLflow",
+    "NLP",
+    "TensorFlow",
+    "PyTorch",
+    "Scikit-learn",
+    "LLM",
+    "Fine-tuning LLMs",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Java",
+    "TypeScript",
+    "Angular",
+    "Apache Flink",
+    "BM25",
+    "BentoML",
+    "CI/CD",
+    "CNN",
+    "CSS",
+    "Computer Vision",
+    "Data Pipelines",
+    "Data Science",
+    "Databricks",
+    "Deep Learning",
+    "Django",
+    "ETL",
+    "Elasticsearch",
+    "Embeddings",
+    "FAISS",
+    "FastAPI",
+    "Feature Engineering",
+    "Flask",
+    "Forecasting",
+    "GANs",
+    "Go",
+    "GraphQL",
+    "HTML",
+    "Hadoop",
+    "Haystack",
+    "Hugging Face Transformers",
+    "Image Classification",
+    "Information Retrieval",
+    "JavaScript",
+    "Kubeflow",
+    "LangChain",
+    "LoRA",
+    "MLOps",
+    "Machine Learning",
+    "Microservices",
+    "Milvus",
+    "MongoDB",
+    "Object Detection",
+    "OpenCV",
+    "OpenSearch",
+    "PEFT",
+    "Pinecone",
+    "PostgreSQL",
+    "Prompt Engineering",
+    "Qdrant",
+    "REST APIs",
+    "Recommendation Systems",
+    "Redis",
+    "Redux",
+    "Reinforcement Learning",
+    "Rust",
+    "SEO",
+    "Sentence Transformers",
+    "Speech Recognition",
+    "Spring Boot",
+    "Statistical Modeling",
+    "TTS",
+    "Tailwind",
+    "Terraform",
+    "Vector Search",
+    "Vue.js",
+    "Weaviate",
+    "Webpack",
+    "Weights & Biases",
+    "YOLO",
+    "dbt",
+    "gRPC",
+    "GitHub Actions",
+    "Polars",
+    "DuckDB",
+    "OpenAI API",
+    "Prisma",
+    "Ray",
+    "LlamaIndex",
 ]
 
 SOFT_SKILLS = [
-    "Accounting", "Agile", "Content Writing", "Excel", "Figma", "Illustrator",
-    "Marketing", "Photoshop", "PowerPoint", "Project Management", "SAP",
-    "Sales", "Salesforce CRM", "Scrum", "Six Sigma", "Tally",
+    "Accounting",
+    "Agile",
+    "Content Writing",
+    "Excel",
+    "Figma",
+    "Illustrator",
+    "Marketing",
+    "Photoshop",
+    "PowerPoint",
+    "Project Management",
+    "SAP",
+    "Sales",
+    "Salesforce CRM",
+    "Scrum",
+    "Six Sigma",
+    "Tally",
 ]
 
 TITLE_PATTERNS = [
@@ -119,7 +214,11 @@ def _split_skill_lines(lines: List[str]) -> List[str]:
             if (
                 1 <= len(cleaned.split()) <= 4
                 and len(cleaned) <= 32
-                and not re.search(r"\b(this|that|beyond|practical|probably|terms|range|used)\b", cleaned, re.IGNORECASE)
+                and not re.search(
+                    r"\b(this|that|beyond|practical|probably|terms|range|used)\b",
+                    cleaned,
+                    re.IGNORECASE,
+                )
             ):
                 skills.append(cleaned)
     return _dedupe(skills)
@@ -146,8 +245,7 @@ def _extract_title(text: str) -> str:
 def _extract_experience(text: str) -> int:
     # Try to find a range first: "2-5 years", "3 to 7 years"
     range_match = re.search(
-        r"(\d+)\s*(?:-|to)\s*(\d+)\+?\s*(?:years?|yrs?)",
-        text, flags=re.IGNORECASE
+        r"(\d+)\s*(?:-|to)\s*(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE
     )
     if range_match:
         return int(range_match.group(2))  # use upper bound as min_experience
@@ -159,7 +257,9 @@ def _extract_experience(text: str) -> int:
 
 
 def _extract_industry(text: str) -> str:
-    match = re.search(r"(?:industry|domain)[:\s]+([A-Za-z &/-]{3,40})", text, flags=re.IGNORECASE)
+    match = re.search(
+        r"(?:industry|domain)[:\s]+([A-Za-z &/-]{3,40})", text, flags=re.IGNORECASE
+    )
     if not match:
         return DEFAULT_JD["target_industry"]
     return match.group(1).strip(" .")
@@ -185,25 +285,44 @@ def _extract_field(text: str) -> str:
 
 
 def _extract_salary_range(text: str) -> tuple[float, float]:
-    match = re.search(r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text)
+    match = re.search(
+        r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text
+    )
     if match:
         min_val = float(match.group(1))
         max_val = float(match.group(2))
-        return (min_val * 1000 if min_val < 1000 else min_val,
-                max_val * 1000 if max_val < 1000 else max_val)
+        return (
+            min_val * 1000 if min_val < 1000 else min_val,
+            max_val * 1000 if max_val < 1000 else max_val,
+        )
     return 0.0, 0.0
 
 
 MAX_JD_CHARS = 10_000
 
 SENIORITY_MAP = {
-    "lead":   ["principal engineer", "staff engineer", "architect", "head of engineering",
-                "engineering manager", "lead engineer"],
+    "lead": [
+        "principal engineer",
+        "staff engineer",
+        "architect",
+        "head of engineering",
+        "engineering manager",
+        "lead engineer",
+    ],
     "senior": ["senior", "sr.", "5+ years", "6+ years", "7+ years", "8+ years"],
-    "mid":    ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years", "3 years"],
-    "junior": ["junior", "entry level", "entry-level", "fresher", "0-2 years",
-                "1+ year", "intern", "graduate"],
+    "mid": ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years", "3 years"],
+    "junior": [
+        "junior",
+        "entry level",
+        "entry-level",
+        "fresher",
+        "0-2 years",
+        "1+ year",
+        "intern",
+        "graduate",
+    ],
 }
+
 
 def _extract_seniority(text: str) -> str:
     lowered = text.lower()
@@ -223,14 +342,33 @@ def parse_jd_text(text: str) -> Dict[str, object]:
 
     tech_hits = _known_skill_hits(text, TECH_SKILLS)
     soft_hits = _known_skill_hits(text, SOFT_SKILLS)
-    
-    required = _dedupe([skill for skill in required if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}])
-    preferred = _dedupe([skill for skill in preferred if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}])
+
+    required = _dedupe(
+        [
+            skill
+            for skill in required
+            if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}
+        ]
+    )
+    preferred = _dedupe(
+        [
+            skill
+            for skill in preferred
+            if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}
+        ]
+    )
 
     if not required:
         required = tech_hits[:8] if tech_hits else soft_hits[:6]
     else:
-        preferred = _dedupe(preferred + [skill for skill in tech_hits if skill.lower() not in {item.lower() for item in required}])
+        preferred = _dedupe(
+            preferred
+            + [
+                skill
+                for skill in tech_hits
+                if skill.lower() not in {item.lower() for item in required}
+            ]
+        )
 
     if not raw_required:
         raw_required = list(required)
@@ -240,7 +378,9 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
     # (Sales, Finance, Design), semantic cosine scores will be lower on average.
     # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.
-    skills_text = " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
+    skills_text = (
+        " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
+    )
     salary_min, salary_max = _extract_salary_range(text)
 
     return {
@@ -271,7 +411,7 @@ def parse_jd_docx(path: str) -> Dict[str, object]:
 def parse_jd(path: str) -> Dict[str, object]:
     """Parse a JD from .docx, .txt, or raw string fallback."""
     jd_path = Path(path)
-    
+
     if jd_path.exists():
         if jd_path.suffix.lower() == ".docx":
             return parse_jd_docx(path)
@@ -282,7 +422,7 @@ def parse_jd(path: str) -> Dict[str, object]:
     else:
         # If path doesn't exist, treat it as raw text
         text = str(path)
-        
+
     parsed = parse_jd_text(text)
     for key, value in DEFAULT_JD.items():
         parsed.setdefault(key, value)

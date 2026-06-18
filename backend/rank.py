@@ -9,7 +9,6 @@ from pathlib import Path
 from ranker import parse_jd, rank_candidates
 from ranker.validators import sanitize_candidates
 
-
 CSV_HEADER = ["candidate_id", "rank", "score", "reasoning"]
 
 
@@ -25,6 +24,7 @@ def parse_candidates_stream(handle, limit: int = 5000):
                     break
             except json.JSONDecodeError:
                 continue
+
 
 def load_candidates(path: Path):
     if path.suffix.lower() == ".jsonl":
@@ -51,12 +51,22 @@ def write_submission(rows, out_path: Path):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Rank RRR candidates and write submission.csv")
-    parser.add_argument("--candidates", required=True, help="Path to candidates JSON or JSONL")
-    parser.add_argument("--jd", default="data/job_description.docx", help="Path to job_description.docx")
+    parser = argparse.ArgumentParser(
+        description="Rank RRR candidates and write submission.csv"
+    )
+    parser.add_argument(
+        "--candidates", required=True, help="Path to candidates JSON or JSONL"
+    )
+    parser.add_argument(
+        "--jd", default="data/job_description.docx", help="Path to job_description.docx"
+    )
     parser.add_argument("--out", default="submission.csv", help="Output CSV path")
-    parser.add_argument("--cache", default=".embedding_cache.pkl", help="Embedding cache path")
-    parser.add_argument("--clear-cache", action="store_true", help="Delete embedding cache before run")
+    parser.add_argument(
+        "--cache", default=".embedding_cache.pkl", help="Embedding cache path"
+    )
+    parser.add_argument(
+        "--clear-cache", action="store_true", help="Delete embedding cache before run"
+    )
     return parser.parse_args()
 
 
@@ -73,16 +83,21 @@ def main():
     jd = parse_jd(args.jd)
     ranked = rank_candidates(valid_candidates, jd, cache_path=args.cache, limit=100)
     if len(ranked) < 100:
-        print(f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.", file=sys.stderr)
+        print(
+            f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.",
+            file=sys.stderr,
+        )
         dummy_rank = len(ranked) + 1
         while len(ranked) < 100:
             dummy_id = f"CAND_9{dummy_rank:06d}"
-            ranked.append({
-                "candidate_id": dummy_id,
-                "score": 0.0,
-                "reasoning": f"Dummy candidate for padding; rank {dummy_rank}.",
-                "rank": dummy_rank
-            })
+            ranked.append(
+                {
+                    "candidate_id": dummy_id,
+                    "score": 0.0,
+                    "reasoning": f"Dummy candidate for padding; rank {dummy_rank}.",
+                    "rank": dummy_rank,
+                }
+            )
             dummy_rank += 1
     write_submission(ranked, Path(args.out))
 

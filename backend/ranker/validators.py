@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 MAX_TEXT_LEN = 2000
 
+
 def _truncate_candidate(c: dict) -> dict:
     profile = c.get("profile", {})
     for key in ["headline", "summary", "current_title", "current_company", "location"]:
@@ -15,7 +16,9 @@ def _truncate_candidate(c: dict) -> dict:
             role["title"] = role["title"][:200]
     return c
 
+
 REQUIRED_CANDIDATE_KEYS = {"candidate_id", "profile", "skills"}
+
 
 def sanitize_candidates(candidates: list) -> tuple[list, list]:
     """Returns (valid_candidates, skipped_ids)."""
@@ -25,11 +28,13 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
             skipped.append({"index": idx, "candidate_id": None, "reason": "not_a_dict"})
             continue
         if not any(k in c for k in REQUIRED_CANDIDATE_KEYS):
-            skipped.append({
-                "index": idx,
-                "candidate_id": c.get("candidate_id", f"unknown-{idx}"),
-                "reason": "missing_required_keys"
-            })
+            skipped.append(
+                {
+                    "index": idx,
+                    "candidate_id": c.get("candidate_id", f"unknown-{idx}"),
+                    "reason": "missing_required_keys",
+                }
+            )
             continue
         # Ensure required fields have safe defaults
         c.setdefault("skills", [])
@@ -37,16 +42,15 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
         c.setdefault("redrob_signals", {})
         c.setdefault("profile", {})
         if not c.get("candidate_id"):
-            skipped.append({
-                "index": idx,
-                "candidate_id": None,
-                "reason": "missing_candidate_id"
-            })
+            skipped.append(
+                {"index": idx, "candidate_id": None, "reason": "missing_candidate_id"}
+            )
             continue
         if not c.get("name"):
             c["name"] = c.get("candidate_id", "Unknown Candidate")
         valid.append(_truncate_candidate(c))
     return valid, skipped
+
 
 def validate_candidate(c: dict) -> list:
     flags = []
@@ -75,14 +79,22 @@ def validate_candidate(c: dict) -> list:
                     if not start_str:
                         continue
                     try:
-                        clean_start = start_str[:-1] if start_str.endswith("Z") else start_str
+                        clean_start = (
+                            start_str[:-1] if start_str.endswith("Z") else start_str
+                        )
                         start_d = datetime.fromisoformat(clean_start[:10]).date()
                         if end_str and end_str.lower() != "present":
-                            clean_end = end_str[:-1] if end_str.endswith("Z") else end_str
+                            clean_end = (
+                                end_str[:-1] if end_str.endswith("Z") else end_str
+                            )
                             end_d = datetime.fromisoformat(clean_end[:10]).date()
                         else:
                             end_d = date.today()
-                        total_months += max(0, (end_d.year - start_d.year) * 12 + (end_d.month - start_d.month))
+                        total_months += max(
+                            0,
+                            (end_d.year - start_d.year) * 12
+                            + (end_d.month - start_d.month),
+                        )
                     except ValueError:
                         pass
                 computed_years = total_months / 12
@@ -97,10 +109,17 @@ def validate_candidate(c: dict) -> list:
 
     # ── NEW CHECKS ────────────────────────────────────────────────────────
 
-    # Duplicate skill names
-    skill_names = [s.get("name", "").lower() for s in skills if s.get("name")]
-    if len(skill_names) != len(set(skill_names)):
-        flags.append("Duplicate skill entries detected")
+    # Duplicate skill names and deduplication
+    seen_skills = set()
+    deduped_skills = []
+    for sk in c.get("skills") or []:
+        name = str(sk.get("name", "")).strip().lower()
+        if name and name not in seen_skills:
+            seen_skills.add(name)
+            deduped_skills.append(sk)
+        elif name in seen_skills:
+            flags.append(f"Duplicate skill: {sk.get('name')}")
+    c["skills"] = deduped_skills
 
     # Implausibly high endorsements (>500 on a single skill = suspicious)
     for s in skills:
@@ -154,7 +173,9 @@ def validate_candidate(c: dict) -> list:
     try:
         completeness = float(profile.get("profile_completeness_score") or 0)
         if completeness > 90 and not skills:
-            flags.append("High completeness_score but missing skills (data inconsistency)")
+            flags.append(
+                "High completeness_score but missing skills (data inconsistency)"
+            )
     except (TypeError, ValueError):
         pass
 
