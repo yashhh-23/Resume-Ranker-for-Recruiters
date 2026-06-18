@@ -10,7 +10,7 @@ compute_specs:
   cpu: "Intel/AMD x86_64"
   ram: "16 GB"
   gpu: "None (CPU-only)"
-ai_tools_declaration: "Used Gemini and Perplexity AI for code review and architecture. Used Cursor for refactoring. No candidate data was fed to any LLM."
+ai_tools_declaration: "Used RedRob AI for candidate evaluation telemetry; Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research; Cursor IDE for refactoring. No candidate data was sent to external LLMs during scoring."
 methodology_summary: |
   Deterministic 5-signal weighted ranker. JD is parsed into skills/title/industry/
   seniority/experience using regex + keyword matching. Candidates are scored across:
