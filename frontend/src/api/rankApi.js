@@ -26,7 +26,7 @@ export const rankCandidates = async ({ jobDescription, candidates }) => {
   const baseUrl = import.meta.env.VITE_API_URL;
 
   if (!baseUrl) {
-    throw new Error("VITE_API_URL is not set.");
+    throw new Error("Backend server is not configured. Check VITE_API_URL.");
   }
 
   const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rank`, {
@@ -41,7 +41,22 @@ export const rankCandidates = async ({ jobDescription, candidates }) => {
   });
 
   if (!response.ok) {
-    throw new Error(`Rank API failed with status ${response.status}.`);
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        const errorData = await response.json();
+        const detail = errorData.detail || errorData.message || JSON.stringify(errorData);
+        throw new Error(`Server error (${response.status}): ${detail}`);
+      } catch (e) {
+        // Fallback
+      }
+    }
+    throw new Error(`Server returned ${response.status}: ${response.statusText || 'Error'}`);
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new Error("Server returned non-JSON response.");
   }
 
   const data = await response.json();

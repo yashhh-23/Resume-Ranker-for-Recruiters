@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, lazy, Suspense } from "react";
+import CryptoJS from "crypto-js";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
 import ComplianceTray from "./components/ComplianceTray";
@@ -25,6 +26,7 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [runCount, setRunCount] = useState(0);
   const [showWeightsInfo, setShowWeightsInfo] = useState(false);
+  const [passphraseWarning, setPassphraseWarning] = useState(false);
 
   // ─── Theme Mode ───────────────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => {
@@ -36,6 +38,11 @@ const App = () => {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("rrr_theme", theme);
+    
+    const link = document.querySelector("link[rel~='icon']");
+    if (link) {
+      link.href = theme === "dark" ? "/favicon.svg" : "/favicon-light.svg";
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -43,6 +50,17 @@ const App = () => {
   };
 
   const handleAuthenticate = (phrase) => {
+    const verifierKey = "rrr_passphrase_verifier";
+    const lastVerifier = localStorage.getItem(verifierKey);
+    const hash = CryptoJS.SHA256(phrase).toString();
+    
+    if (lastVerifier && lastVerifier !== hash) {
+      setPassphraseWarning(true);
+    } else {
+      setPassphraseWarning(false);
+    }
+    localStorage.setItem(verifierKey, hash);
+
     setPassphrase(phrase);           // store passphrase in memory only
     setTalentPools(getTalentPools()); // decrypt & load this recruiter's pools
     setIsAuthenticated(true);
@@ -51,6 +69,7 @@ const App = () => {
   const handleLogout = () => {
     clearPassphrase();
     setIsAuthenticated(false);
+    setPassphraseWarning(false);
     setTalentPools([]);
     setJobDescription("");
     setCandidates([]);
@@ -227,18 +246,38 @@ const App = () => {
       setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
       setRankedResults(fallback);
       setRunCount((prev) => prev + 1);
+      
+      const hasApiUrl = !!(import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== "");
+      const message = err instanceof Error ? err.message : "API unavailable.";
       setError(
-        err instanceof Error
-          ? `API unavailable. Loaded local ranking. ${err.message}`
-          : "API unavailable. Loaded local ranking."
+        hasApiUrl
+          ? `Local fallback active. ${message}`
+          : "Offline mode: All scoring runs locally using all-MiniLM-L6-v2."
       );
       if (!isDesktop) {
         setActiveMobileTab("results");
       }
     } finally {
-      setIsLoading(false);
+      // Yield control to let React paint the heavy render update first (prevents blank visual lag)
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 60);
     }
   };
+
+  // Global Ctrl+Shift+R shortcut to trigger rank run
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        if (!isLoading && candidates.length > 0 && jobDescription.trim()) {
+          handleRun();
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [isLoading, candidates.length, jobDescription]);
 
   // ─── Passphrase gate ─────────────────────────────────────────────────────
   if (!isAuthenticated) {
@@ -341,6 +380,24 @@ const App = () => {
             <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-slate-950 border border-slate-800 text-slate-400 font-mono">
               {rankedResults.length}
             </span>
+          </button>
+        </div>
+      )}
+
+      {passphraseWarning && (
+        <div className="bg-amber/10 border-b border-amber/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber font-mono shrink-0">
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true">⚠️</span>
+            <span>
+              Previous watchlist and talent pools were encrypted under a different passphrase. Register/enter the correct passphrase to restore access, or proceed with new pools.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPassphraseWarning(false)}
+            className="text-slate-500 hover:text-slate-200 uppercase tracking-wider font-bold text-[10px]"
+          >
+            Dismiss
           </button>
         </div>
       )}
