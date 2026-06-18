@@ -217,7 +217,7 @@ def _extract_section_lines(text: str, anchors: List[str]) -> List[str]:
 def _split_skill_lines(lines: List[str]) -> List[str]:
     skills = []
     for line in lines:
-        parts = re.split(r"[,;/|]|\band\b", line)
+        parts = re.split(r"[,;/|]|\band\b|\.\s+", line)
         for part in parts:
             cleaned = re.sub(r"^[\-•*]\s*", "", part).strip()
             if (
