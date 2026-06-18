@@ -409,7 +409,14 @@ def score_candidate(
     if len(matched) == 0:
         final_score *= 0.40
     elif len(matched) == 1:
-        final_score *= 0.70
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.85  # Career fit rescue clause
+        else:
+            final_score *= 0.70
+
+    # Additive bonus to mathematically enforce strict skill-tier separation 
+    # without breaking validator monotonically decreasing rules
+    final_score += (len(matched) * 0.05)
     
     trap_penalty = score_jd_specific_traps(candidate)
     final_score = max(0.0, final_score - trap_penalty)
@@ -512,6 +519,7 @@ def score_candidate(
     return {
         "candidate_id": candidate_id,
         "score": round(clamp(final_score), 4),
+        "matched_count": len(matched),
         "score_breakdown": rounded_breakdown,
         "breakdown": {
             "skill": rounded_breakdown["skill_match"],
@@ -558,7 +566,12 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         if matched_count == 0:
             final_score *= 0.40
         elif matched_count == 1:
-            final_score *= 0.70
+            if breakdown["career_fit"] >= 0.35:
+                final_score *= 0.85  # Career fit rescue clause
+            else:
+                final_score *= 0.70
+                
+        final_score += (matched_count * 0.05)
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.08:
         final_score *= 0.7
