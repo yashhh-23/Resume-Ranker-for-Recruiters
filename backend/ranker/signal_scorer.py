@@ -66,7 +66,17 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
 
     salary_fit = score_salary_fit(signals, jd)
 
-    return clamp(mean([github_score, response_rate, interview_completion, assessment_score, offer_score, completeness_score, salary_fit]))
+    weighted_sum = (
+        github_score +
+        (response_rate * 5.0) +
+        interview_completion +
+        assessment_score +
+        offer_score +
+        completeness_score +
+        salary_fit
+    )
+    # Total weight is 1 + 5 + 1 + 1 + 1 + 1 + 1 = 11
+    return clamp(weighted_sum / 11.0)
 
 
 def score_availability(signals: Dict[str, Any]) -> float:
