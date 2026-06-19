@@ -13,6 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -45,6 +46,17 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content={
             "error": exc.detail,
             "status_code": exc.status_code,
+            "path": str(request.url.path)
+        }
+    )
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "Rate limit exceeded. Please try again later.",
+            "status_code": 429,
             "path": str(request.url.path)
         }
     )
