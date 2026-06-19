@@ -11,6 +11,10 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def load_model(model_name: str = MODEL_NAME):
+    import sys
+    # Workaround for broken torchvision installations causing BertModel import failures
+    sys.modules["torchvision"] = None
+
     from sentence_transformers import SentenceTransformer
 
     return SentenceTransformer(model_name)
@@ -40,7 +44,13 @@ def candidate_embedding_text(candidate: Dict) -> str:
         for field in ("headline", "summary", "current_title", "current_industry")
     )
 
-    return " ".join([profile_text, " ".join(skill_tokens)]).strip()
+    career_history = candidate.get("career_history") or []
+    career_titles = " ".join(
+        str(role.get("title") or "")
+        for role in career_history
+    )
+
+    return " ".join([profile_text, career_titles, " ".join(skill_tokens)]).strip()
 
 
 def cache_key(candidate: Dict) -> str:
