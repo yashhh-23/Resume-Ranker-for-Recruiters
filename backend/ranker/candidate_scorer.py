@@ -34,6 +34,24 @@ EDUCATION_TIER_WEIGHT = {
     "unknown": 0.2,
 }
 
+# Config-driven mapping: core education domains keyed by JD target_field.
+# When target_field is "General" or not in the map, core_domains is empty → no off-domain penalty.
+FIELD_CORE_DOMAINS = {
+    "computer science": ["computer", "data", "machine", "artificial", "software", "information", "it", "cs", "ai", "math", "statistic"],
+    "data science": ["data", "statistics", "math", "computer", "ai", "machine", "quantitative"],
+    "information technology": ["computer", "information", "it", "software", "data", "network", "system"],
+    "engineering": ["engineer", "computer", "electrical", "mechanical", "software", "system"],
+    "statistics": ["statistics", "math", "data", "quantitative", "actuarial", "economics"],
+    "mathematics": ["math", "statistics", "quantitative", "computational", "applied"],
+    "marketing": ["marketing", "business", "communication", "media", "advertising", "brand"],
+    "business": ["business", "management", "commerce", "economics", "marketing", "finance"],
+    "design": ["design", "art", "media", "communication", "architecture", "creative"],
+    "general": [],
+}
+
+# Tech/ML fields used to gate domain-specific penalty logic
+TECH_FIELDS = {"computer science", "data science", "information technology", "engineering", "statistics", "mathematics"}
+
 
 COMPOUND_SKILLS = [
     "machine learning",
@@ -74,6 +92,12 @@ SKILL_ALIASES = {
     "fine-tuning llms": {"fine-tuning", "finetuning", "fine tuning", "peft", "lora", "qlora", "rlhf", "sft", "instruction tuning", "fine-tuning llms"},
 }
 
+import time
+
+_time_bouncer = 0.0
+_time_career_fit = 0.0
+
+@functools.lru_cache(maxsize=16384)
 def is_skill_match(r: str, c: str) -> bool:
     r_clean = r.lower().strip()
     c_clean = c.lower().strip()
@@ -88,18 +112,35 @@ def is_skill_match(r: str, c: str) -> bool:
             return True
     return False
 
-
 def calibrate_score(score: float) -> float:
     s = max(0.0, min(1.0, score))
-    return (math.exp(1.8 * s) - 1.0) / (math.exp(1.8) - 1.0)
+    return (math.exp(1.2 * s) - 1.0) / (math.exp(1.2) - 1.0)
 
 
-def text_match(value: Any, target: Any) -> float:
+def text_match(value: Any, target: Any, target_tokens: frozenset = None) -> float:
     source = tokenize(value)
-    wanted = tokenize(target)
+    wanted = target_tokens if target_tokens is not None else tokenize(target)
     if not source or not wanted:
         return 0.0
     return clamp(len(source & wanted) / len(wanted))
+
+def preprocess_jd(jd: Dict[str, Any]) -> None:
+    if "_preprocessed" in jd:
+        return
+    
+    target_title = (jd.get("target_title") or "").lower()
+    target_field = (jd.get("target_field") or "Computer Science").lower()
+    
+    jd["_cached_target_title"] = target_title
+    jd["_cached_target_title_tokens"] = tokenize(target_title)
+    jd["_cached_target_field"] = target_field
+    jd["_cached_target_field_tokens"] = tokenize(target_field)
+    jd["_cached_is_tech_field"] = target_field in TECH_FIELDS
+    jd["_cached_core_domains"] = FIELD_CORE_DOMAINS.get(target_field, [])
+    jd["_cached_min_experience"] = safe_float(jd.get("min_experience_years"), 0.0)
+    jd["_cached_seniority"] = jd.get("seniority_level", "mid")
+    jd["_cached_target_industry"] = jd.get("target_industry") or ""
+    jd["_preprocessed"] = True
 
 
 def years_ago(value: Any) -> float:
@@ -122,9 +163,15 @@ PROFICIENCY_WEIGHTS = {
 }
 
 
-def apply_pass_1_bouncer(candidate: Dict[str, Any]) -> tuple[bool, bool]:
+def apply_pass_1_bouncer(candidate: Dict[str, Any], jd: Dict[str, Any] = None) -> tuple[bool, bool]:
+    """Pass-1 bouncer: fraud detection + JD-derived title mismatch penalty.
+    
+    Instead of a hardcoded blacklist, compares candidate title against JD
+    target_title using text_match() for domain-agnostic filtering.
+    """
     fraudulent_timeline = False
     blacklist_penalty = False
+    jd = jd or {}
 
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience", 0.0))
@@ -149,17 +196,17 @@ def apply_pass_1_bouncer(candidate: Dict[str, Any]) -> tuple[bool, bool]:
     if years_exp * 12 > total_duration_months and total_duration_months > 0:
         fraudulent_timeline = True
 
+    # JD-derived title mismatch: compare candidate title against JD target_title
     current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
     if not current_title and career_history:
         current_title = str(career_history[0].get("title") or "").lower()
-        
-    blacklist = ["civil", "mechanical", "hr", "marketing", "accountant", "analyst", "manager", "sales", "content", "designer", "frontend", "net", ".net", "graphic", "writer", "customer support", "cloud", "devops", "qa"]
-    import re
-    for b in blacklist:
-        pattern = r"(?<!\w)" + re.escape(b) + r"(?!\w)"
-        if re.search(pattern, current_title):
+
+    target_title = jd.get("_cached_target_title", (jd.get("target_title") or "").lower())
+    if target_title and target_title != "any" and current_title:
+        target_tokens = jd.get("_cached_target_title_tokens")
+        title_overlap = text_match(current_title, target_title, target_tokens=target_tokens)
+        if title_overlap == 0.0:
             blacklist_penalty = True
-            break
 
     for skill in candidate.get("skills") or []:
         dur = safe_float(skill.get("duration_months"), 0.0)
@@ -296,28 +343,33 @@ def _seniority_score(candidate_years: float, jd_seniority: str) -> float:
 
 
 def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
-    target_title = jd.get("target_title") or ""
-    target_industry = jd.get("target_industry") or ""
-    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    target_title = jd.get("_cached_target_title", jd.get("target_title") or "")
+    target_industry = jd.get("_cached_target_industry", jd.get("target_industry") or "")
+    min_experience = jd.get("_cached_min_experience", safe_float(jd.get("min_experience_years"), 0.0))
     profile = candidate.get("profile") or {}
-    seniority = jd.get("seniority_level", "mid")
+    seniority = jd.get("_cached_seniority", jd.get("seniority_level", "mid"))
     years_exp = safe_float(profile.get("years_of_experience"))
     seniority_align = _seniority_score(years_exp, seniority)
 
     best_role_score = 0.0
     career_history = candidate.get("career_history") or []
-    penalty_companies = {"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini"}
-    
-    it_consulting_count = sum(
-        1 for role in career_history 
-        if any(p in str(role.get("company") or "").lower() for p in penalty_companies)
-    )
-    it_penalty = 0.2 if (len(career_history) > 0 and it_consulting_count == len(career_history)) else 0.0
 
+    # IT consulting penalty: only apply for tech/engineering JDs
+    it_penalty = 0.0
+    is_tech_field = jd.get("_cached_is_tech_field", (jd.get("target_field") or "General").lower() in TECH_FIELDS)
+    if is_tech_field:
+        penalty_companies = {"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini"}
+        it_consulting_count = sum(
+            1 for role in career_history 
+            if any(p in str(role.get("company") or "").lower() for p in penalty_companies)
+        )
+        it_penalty = 0.2 if (len(career_history) > 0 and it_consulting_count == len(career_history)) else 0.0
+
+    target_tokens = jd.get("_cached_target_title_tokens")
     for role in career_history:
         months_ago = years_ago(role.get("start_date")) * 12
         decay = recency_weight(months_ago, seniority)
-        title_score = text_match(role.get("title"), target_title)
+        title_score = text_match(role.get("title"), target_title, target_tokens=target_tokens)
         industry_score = (
             1.0
             if str(target_industry).lower() == "any"
@@ -343,11 +395,11 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
     
-    # Penalize career_fit for completely irrelevant roles (Mobile/Java/etc for ML)
+    # Penalize career_fit for completely irrelevant roles
     if role_score < 0.08:
         role_score *= 0.1
 
-    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15 - it_penalty)
+    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -361,8 +413,10 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
             years_exp = 0.0
         return clamp(years_exp / 20.0) * 0.5
 
-    target_field = jd.get("target_field") or "Computer Science"
-    core_domains = ["computer", "data", "machine", "artificial", "software", "information", "it", "cs", "ai", "math", "statistic", "quantitative"]
+    target_field = (jd.get("target_field") or "Computer Science").lower()
+    # Config-driven: look up core domains from FIELD_CORE_DOMAINS mapping
+    core_domains = jd.get("_cached_core_domains", FIELD_CORE_DOMAINS.get(target_field, []))
+    target_field_tokens = jd.get("_cached_target_field_tokens")
 
     best = 0.0
     DEGREE_WEIGHT = {"phd": 1.0, "ph.d": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
@@ -371,14 +425,18 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
             str(item.get("tier") or "unknown").lower(), 0.2
         )
         field = str(item.get("field_of_study") or "").lower()
-        field_match = (
-            1.0 if text_match(field, target_field) > 0 or any(d in field for d in core_domains) else 0.4
-        )
+        if core_domains:
+            field_match = (
+                1.0 if text_match(field, target_field, target_tokens=target_field_tokens) > 0 or any(d in field for d in core_domains) else 0.4
+            )
+        else:
+            # No core domains defined (e.g. "General") → no off-domain penalty
+            field_match = 1.0 if text_match(field, target_field, target_tokens=target_field_tokens) > 0 else 0.7
         degree = str(item.get("degree") or "").lower()
         degree_mult = next((v for k, v in DEGREE_WEIGHT.items() if k in degree), 0.6)
 
-        # Domain relevance penalty: cap off-domain degrees severely
-        if not any(d in field for d in core_domains):
+        # Domain relevance penalty: only apply when core_domains are defined
+        if core_domains and not any(d in field for d in core_domains):
             degree_mult = min(degree_mult, 0.4)  # 40% cap for completely irrelevant degrees
 
         best = max(best, tier * field_match * degree_mult)
@@ -415,7 +473,11 @@ def build_reasoning(
 
 
 def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
+    """Domain-gated trap penalties. Job-hopping is universal;
+    CV/speech and LangChain traps only fire for tech/ML JDs."""
     penalty = 0.0
+
+    # Job-hopping penalty: domain-agnostic, always apply
     career_history = candidate.get("career_history") or []
     if career_history:
         total_duration = 0.0
@@ -458,7 +520,7 @@ def score_candidate(
     jd: Dict[str, Any],
     jd_similarity: float,
 ) -> Dict[str, Any]:
-    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate)
+    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate, jd)
 
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     signals = candidate.get("redrob_signals") or {}
@@ -541,7 +603,11 @@ def score_candidate(
     # without breaking validator monotonically decreasing rules
     final_score += (len(matched) * 0.06)
     
-    trap_penalty = score_jd_specific_traps(candidate)
+    if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
+        trap_penalty = score_jd_specific_traps(candidate)
+    else:
+        trap_penalty = 0.0
+        
     final_score = max(0.0, final_score - trap_penalty)
 
     if blacklist_penalty:
@@ -686,12 +752,21 @@ def score_candidate(
 
 
 def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
-    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate)
+    global _time_bouncer, _time_career_fit
+    
+    t0 = time.perf_counter()
+    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate, jd)
+    _time_bouncer += (time.perf_counter() - t0)
+    
     signals = candidate.get("redrob_signals") or {}
+
+    t0 = time.perf_counter()
+    cf = score_career_fit(candidate, jd)
+    _time_career_fit += (time.perf_counter() - t0)
 
     breakdown = {
         "skill_match": score_required_skill_coverage(candidate, jd),
-        "career_fit": score_career_fit(candidate, jd),
+        "career_fit": cf,
         "signal_modifier": score_signal_modifier(signals, jd),
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
@@ -759,7 +834,11 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     if breakdown["career_fit"] < 0.08:
         final_score *= 0.7
 
-    trap_penalty = score_jd_specific_traps(candidate)
+    if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
+        trap_penalty = score_jd_specific_traps(candidate)
+    else:
+        trap_penalty = 0.0
+        
     final_score = max(0.0, final_score - trap_penalty)
 
     if blacklist_penalty:
@@ -788,9 +867,16 @@ def rank_candidates(
         return []
 
     # STAGE 1: Fast Retrieval Pass (Heuristics over all candidates)
+    global _time_bouncer, _time_career_fit
+    _time_bouncer = 0.0
+    _time_career_fit = 0.0
+    
+    preprocess_jd(jd)
     fast_scored = []
     for c in valid_candidates:
         fast_scored.append((fast_score_candidate(c, jd), c))
+        
+    print(f"Profile: bouncer={_time_bouncer:.2f}s, career_fit={_time_career_fit:.2f}s (inner hot-loop timers removed for performance)", file=sys.stderr)
     
     fast_scored.sort(key=lambda x: -x[0])
     
@@ -821,7 +907,7 @@ def rank_candidates(
     from functools import cmp_to_key
 
     def compare_candidates(a, b):
-        if abs(a["score"] - b["score"]) < 0.005:
+        if abs(a["score"] - b["score"]) < 0.015:
             if a["matched_count"] != b["matched_count"]:
                 return b["matched_count"] - a["matched_count"]
         if a["score"] != b["score"]:
