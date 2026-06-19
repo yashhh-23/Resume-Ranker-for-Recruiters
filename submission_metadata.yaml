@@ -3,6 +3,15 @@ members:
   - name: "Yash Dedhia"
     email: "yashdedhia05@gmail.com"
     role: "Full Stack + ML"
+
+  - name: "Sahil Rane"
+    email: "sahil.s.rane13012007@gmail.com"
+    role: "Frontend development"
+
+  - name: "Shubham Pawar"
+    email: "shubhmapawar@gmail.com"
+    role: "Documentation"
+
 github_url: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
 huggingface_sandbox_link: "https://huggingface.co/spaces/<YOUR_HF_SPACE_URL>"
 reproduce_command: "python rank.py --candidates ./data/sample_candidates.json --out ./submission.csv"
