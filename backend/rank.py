@@ -3,6 +3,7 @@ import argparse
 import csv
 import json
 import time
+import sys
 from pathlib import Path
 
 from ranker import parse_jd, rank_candidates
@@ -54,11 +55,11 @@ def main():
     candidates = load_candidates(Path(args.candidates))
     valid_candidates, skipped = sanitize_candidates(candidates)
     if skipped:
-        print(f"Skipped {len(skipped)} invalid candidates.")
+        print(f"Skipped {len(skipped)} invalid candidates.", file=sys.stderr)
     jd = parse_jd(args.jd)
     ranked = rank_candidates(valid_candidates, jd, cache_path=args.cache, limit=100)
     if len(ranked) < 100:
-        print(f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.")
+        print(f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.", file=sys.stderr)
         dummy_rank = len(ranked) + 1
         while len(ranked) < 100:
             dummy_id = f"CAND_9{dummy_rank:06d}"
@@ -73,9 +74,9 @@ def main():
 
     elapsed = time.perf_counter() - started
     top_ids = ", ".join(row["candidate_id"] for row in ranked[:5])
-    print(f"Ranked {len(candidates)} candidates in {elapsed:.2f}s")
-    print(f"Wrote {args.out} with {len(ranked)} rows")
-    print(f"Top 5: {top_ids}")
+    print(f"Ranked {len(candidates)} candidates in {elapsed:.2f}s", file=sys.stderr)
+    print(f"Wrote {args.out} with {len(ranked)} rows", file=sys.stderr)
+    print(f"Top 5: {top_ids}", file=sys.stderr)
 
 
 if __name__ == "__main__":

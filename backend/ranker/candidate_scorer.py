@@ -124,18 +124,21 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     profile = candidate.get("profile") or {}
 
     raw_score = 0.0
-    for role in candidate.get("career_history") or []:
+    career_history = candidate.get("career_history") or []
+    for role in career_history:
         months_ago = years_ago(role.get("start_date")) * 12
         decay = recency_weight(months_ago)
         title_score = text_match(role.get("title"), target_title)
         industry_score = 1.0 if str(target_industry).lower() == "any" else text_match(role.get("industry"), target_industry)
         raw_score += decay * (0.6 * title_score + 0.4 * industry_score)
 
-    if min_experience > 0:
-        experience_score = clamp(safe_float(profile.get("years_of_experience")) / min_experience)
-        raw_score += experience_score * 0.5
+    role_score = raw_score / max(1, len(career_history))
 
-    return clamp(raw_score / MAX_CAREER_SCORE)
+    exp_score = 0.0
+    if min_experience > 0:
+        exp_score = clamp(safe_float(profile.get("years_of_experience")) / min_experience)
+
+    return clamp(role_score * 0.7 + exp_score * 0.3)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:

@@ -1,5 +1,8 @@
 from ranker.validators import sanitize_candidates
 from ranker.jd_parser import parse_jd_text
+from ranker.candidate_scorer import score_career_fit, score_education, rank_candidates
+from ranker.signal_scorer import score_availability
+import numpy as np
 
 def test_sanitize_candidates():
     candidates = [{"id": 1}, {"candidate_id": "C1", "name": "Test"}]
@@ -14,3 +17,36 @@ def test_parse_jd_text():
     assert "Python" in jd["required_skills"]
     assert "SQL" in jd["required_skills"]
     assert "Docker" in jd["preferred_skills"]
+
+def test_score_education():
+    jd = {"target_field": "Computer Science"}
+    cand_no_edu_no_exp = {"education": [], "profile": {"years_of_experience": 2}}
+    assert score_education(cand_no_edu_no_exp, jd) == 0.0
+
+    cand_no_edu_high_exp = {"education": [], "profile": {"years_of_experience": 12}}
+    assert score_education(cand_no_edu_high_exp, jd) == 0.5
+
+    cand_phd = {"education": [{"degree": "PhD", "field_of_study": "Computer Science", "tier": "tier_1"}]}
+    assert score_education(cand_phd, jd) > 0.8
+
+def test_score_career_fit():
+    jd = {"target_title": "Engineer", "min_experience_years": 5.0}
+    cand = {
+        "profile": {"years_of_experience": 6.0},
+        "career_history": [{"title": "Software Engineer", "start_date": "2020-01-01"}]
+    }
+    score = score_career_fit(cand, jd)
+    assert score > 0.0
+
+def test_score_availability():
+    signals = {"open_to_work_flag": True, "notice_period_days": 30}
+    assert score_availability(signals) > 0.5
+
+def test_rank_candidates():
+    jd = {"skills_text": "Python"}
+    cands = [{"candidate_id": "C1", "skills": [{"name": "Python"}]}]
+    class DummyModel:
+        def encode(self, texts, **kwargs):
+            return np.ones((len(texts), 384))
+    res = rank_candidates(cands, jd, model=DummyModel(), cache_path=".test_cache.pkl")
+    assert len(res) == 1
