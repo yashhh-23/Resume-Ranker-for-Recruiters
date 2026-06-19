@@ -17,7 +17,7 @@ WEIGHTS = {
     "availability": 0.10,
 }
 
-MAX_CAREER_SCORE = 3.0
+MAX_CAREER_SCORE = 5.0
 
 EDUCATION_TIER_WEIGHT = {
     "tier_1": 1.0,
@@ -142,7 +142,12 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     education = candidate.get("education") or []
     target_field = jd.get("target_field") or "Computer Science"
     if not education:
-        return 0.0
+        profile = candidate.get("profile") or {}
+        try:
+            years_exp = float(profile.get("years_of_experience") or 0.0)
+        except (ValueError, TypeError):
+            years_exp = 0.0
+        return 0.5 if years_exp >= 10 else 0.0
 
     best = 0.0
     DEGREE_WEIGHT = {"phd": 1.0, "master": 0.9, "bachelor": 0.75, "diploma": 0.5}
