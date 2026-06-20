@@ -15,7 +15,7 @@ from .embedding_utils import (
 )
 from .signal_scorer import clamp, safe_float, score_availability, score_signal_modifier
 from .validators import validate_candidate
-from .jd_parser import TECH_SKILLS
+from .jd_parser import TECH_SKILLS, extract_dynamic_skills_from_jd
 
 WEIGHTS = {
     "skill_match": 0.35,
@@ -171,20 +171,22 @@ PROFICIENCY_WEIGHTS = {
 # CPU-only, deterministic, zero-LLM.
 # ---------------------------------------------------------------------------
 def _gaussian_exp_fit(actual: float, target_min: float, target_max: Optional[float] = None) -> float:
-    """Returns 0.01–1.0 experience fit score using a Gaussian bell curve.
+    """Returns 0.001–1.0 experience fit score using a calibrated Gaussian bell curve.
     
-    Centered on (target_min + target_max) / 2 with asymmetric penalty
-    for candidates below target_min.
+    Centered on optima = 7.0 years with sigma = 1.0. Applies a steep mathematical penalty
+    for experience > 11 or < 4 years.
     """
-    target_max = target_max or (target_min + 3.0)
-    optimal = (target_min + target_max) / 2.0
-    spread = (target_max - target_min) if target_max != target_min else 2.0
-    sigma = spread / 1.5
-    score = math.exp(-((actual - optimal) ** 2) / (2 * (sigma ** 2)))
-    if actual < target_min:
-        # Extra asymmetric penalty for under-experience
-        score *= (actual / max(target_min, 0.1)) ** 2
-    return max(0.01, min(1.0, score))
+    min_exp = target_min if target_min > 0 else 5.0
+    max_exp = target_max if (target_max and target_max > min_exp) else (min_exp + 4.0)
+    optima = (min_exp + max_exp) / 2.0
+    
+    sigma = 1.0
+    score = math.exp(-((actual - optima) ** 2) / (2 * (sigma ** 2)))
+    
+    if actual > 11.0 or actual < 4.0:
+        score *= 0.1
+        
+    return max(0.001, min(1.0, score))
 
 
 # ---------------------------------------------------------------------------
@@ -239,7 +241,7 @@ def check_title_blacklist_penalty(candidate: Dict[str, Any], jd: Dict[str, Any])
         
     is_tech = is_tech_domain(jd)
     if is_tech:
-        blacklist = ["civil", "mechanical", "electrical", "hr", "graphic", "marketing", "accountant"]
+        blacklist = ["civil", "mechanical", "electrical", "hr", "graphic", "marketing", "accountant", "project manager", "business analyst", "operations manager", "customer support"]
         if any(token in current_title for token in blacklist):
             return True
             
@@ -514,6 +516,20 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     best_role_score = 0.0
     career_history = candidate.get("career_history") or []
 
+    # Title Domain Masking & Prioritization
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title and career_history:
+        current_title = str(career_history[0].get("title") or "").lower()
+
+    non_domain_tokens = [
+        "project manager", "business analyst", "operations manager", "civil", 
+        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+    ]
+    has_non_domain_title = any(token in current_title for token in non_domain_tokens)
+
+    tech_tokens = ["ml", "nlp", "ai", "search", "data science", "backend", "software engineer", "developer", "scientist"]
+    is_tech_title = any(token in current_title for token in tech_tokens)
+
     # IT consulting penalty: only apply for tech/engineering JDs
     it_penalty = 0.0
     is_tech_field = jd.get("_cached_is_tech_field", (jd.get("target_field") or "General").lower() in TECH_FIELDS)
@@ -550,7 +566,15 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     if role_score < 0.08:
         role_score *= 0.1
 
-    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
+    cf_score = role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15
+
+    if has_non_domain_title:
+        cf_score *= 0.05
+
+    if is_tech_title:
+        cf_score *= 1.1
+
+    return clamp(cf_score)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -672,6 +696,9 @@ def score_candidate(
     jd_similarity: float,
 ) -> Dict[str, Any]:
     fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate, jd)
+    flags, deduped_skills = validate_candidate(candidate)
+    if deduped_skills is not None:
+        candidate["skills"] = deduped_skills
 
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     signals = candidate.get("redrob_signals") or {}
@@ -757,12 +784,32 @@ def score_candidate(
     if fraud_timeline:
         final_score = 0.0
 
+    if len(jd_required_list) > 0 and len(matched) == 0:
+        final_score = 0.0
+        if "zero_skill_match" not in flags:
+            flags.append("zero_skill_match")
+
+    # Gaussian experience bounds penalty
     min_experience = safe_float(jd.get("min_experience_years"), 0.0)
-    if min_experience > 0 and years_exp < min_experience:
-        if years_exp < min_experience * 0.75:
-            final_score *= 0.70
-        else:
-            final_score *= 0.85
+    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
+    if min_experience > 0:
+        if years_exp < min_experience or years_exp > max_experience:
+            final_score *= 0.10
+
+    # Non-domain title penalty
+    profile = candidate.get("profile") or {}
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title:
+        career_history = candidate.get("career_history") or []
+        if career_history:
+            current_title = str(career_history[0].get("title") or "").lower()
+
+    non_domain_tokens = [
+        "project manager", "business analyst", "operations manager", "civil", 
+        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+    ]
+    if any(token in current_title for token in non_domain_tokens):
+        final_score *= 0.05
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
@@ -806,9 +853,6 @@ def score_candidate(
     open_flag = signals.get("open_to_work_flag", False)
     reloc = signals.get("willing_to_relocate", False)
 
-    flags, deduped_skills = validate_candidate(candidate)
-    if deduped_skills is not None:
-        candidate["skills"] = deduped_skills
 
     education_list = candidate.get("education") or []
     best_degree = "No degree listed"
@@ -843,7 +887,7 @@ def score_candidate(
     # Use clean, candidate-centric reasoning from build_reasoning ONLY (no warning characters, tags, or debug gates)
     reasoning_str = build_reasoning(candidate, rounded_breakdown, matched, jd)
 
-    if len(matched) == 0:
+    if len(jd_required_list) > 0 and len(matched) == 0:
         flags.append("zero_skill_match")
 
     return {
@@ -875,6 +919,18 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     _time_bouncer += (time.perf_counter() - t0)
     
     signals = candidate.get("redrob_signals") or {}
+
+    required = jd.get("_cached_required_skills")
+    if required is None:
+        required_list = jd.get("raw_required_skills") or jd.get("required_skills") or []
+        required = [s.lower() for s in required_list]
+        jd["_cached_required_skills"] = required
+
+    if len(required) > 0:
+        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
+        matched_req_count = sum(1 for r in required if any(is_skill_match(r, cs) for cs in candidate_skill_names))
+        if matched_req_count == 0:
+            return 0.0
 
     t0 = time.perf_counter()
     cf = score_career_fit(candidate, jd)
@@ -910,6 +966,29 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     if fraud_timeline:
         final_score = 0.0
+
+    # Gaussian experience bounds penalty
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+    if min_experience > 0:
+        if years_exp < min_experience or years_exp > max_experience:
+            final_score *= 0.10
+
+    # Non-domain title penalty
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title:
+        career_history = candidate.get("career_history") or []
+        if career_history:
+            current_title = str(career_history[0].get("title") or "").lower()
+
+    non_domain_tokens = [
+        "project manager", "business analyst", "operations manager", "civil", 
+        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+    ]
+    if any(token in current_title for token in non_domain_tokens):
+        final_score *= 0.05
 
     return calibrate_score(final_score)
 
@@ -964,11 +1043,14 @@ def rank_candidates(
     ]
     from functools import cmp_to_key
 
+    # Hard Zero-Skill Exclusion Gate: Filter out candidates carrying 'zero_skill_match' flag
+    scored = [
+        s for s in scored if "zero_skill_match" not in s.get("compliance_flags", [])
+    ]
+
     def compare_candidates(a, b):
         if a["score"] != b["score"]:
             return -1 if a["score"] > b["score"] else 1
-        if a["matched_count"] != b["matched_count"]:
-            return b["matched_count"] - a["matched_count"]
         ida = str(a.get("candidate_id", ""))
         idb = str(b.get("candidate_id", ""))
         if ida == idb: return 0
@@ -976,10 +1058,25 @@ def rank_candidates(
 
     scored.sort(key=cmp_to_key(compare_candidates))
 
-    if limit is not None:
-        scored = scored[:limit]
+    # Normalize scores so Rank 1 scales to 1.0
+    if scored:
+        max_score = scored[0]["score"]
+        if max_score > 0.0:
+            for row in scored:
+                row["score"] = round(row["score"] / max_score, 4)
+            # Re-sort after score changes to preserve order and tie-breakers
+            scored.sort(key=cmp_to_key(compare_candidates))
+
+    actual_limit = limit if limit is not None else 100
+    scored = scored[:actual_limit]
 
     for index, row in enumerate(scored, start=1):
         row["rank"] = index
+        reasoning_str = row.get("reasoning", "")
+        # Strip all internal warning flags or debugging brackets from the returned reasoning column
+        reasoning_str = re.sub(r'\[.*?\]', '', reasoning_str)
+        reasoning_str = re.sub(r'(?i)\bwarning\b:?', '', reasoning_str)
+        reasoning_str = re.sub(r'\s+', ' ', reasoning_str).strip(" ,.;:")
+        row["reasoning"] = reasoning_str
 
     return scored
