@@ -7,6 +7,7 @@ import numpy as np
 
 from .embedding_utils import cosine_similarity, embed_texts, get_candidate_embeddings, load_model
 from .signal_scorer import clamp, safe_float, score_availability, score_signal_modifier
+from .validators import validate_candidate
 
 
 WEIGHTS = {
@@ -86,7 +87,17 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
                 best_level = max(best_level, PROFICIENCY_MAP.get(level, 0.5))
         matched_score += best_level
 
-    return clamp(matched_score / len(required))
+    base_coverage = matched_score / len(required)
+
+    preferred = [s.lower() for s in jd.get("preferred_skills", [])]
+    if preferred:
+        pref_matched = sum(
+            1 for p in preferred
+            if any(p in s.get("name", "").lower() for s in (candidate.get("skills") or []))
+        )
+        preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
+        return clamp(base_coverage + preferred_bonus)
+    return clamp(base_coverage)
 
 
 def score_skill_match(
@@ -213,13 +224,24 @@ def score_candidate(
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
-    from .validators import validate_candidate
-
     profile = candidate.get("profile") or {}
     years = safe_float(profile.get("years_of_experience"))
     skills = candidate.get("skills") or []
-    jd_required = set(s.lower() for s in jd.get("raw_required_skills", jd.get("required_skills", [])))
-    matched_skills = sum(1 for s in skills if s.get("name","").lower() in jd_required)
+    
+    jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
+    candidate_skill_names = {s.get("name", "").lower() for s in skills if s.get("name")}
+    matched = [r for r in jd_required_list if r.lower() in candidate_skill_names]
+    missing = [r for r in jd_required_list if r.lower() not in candidate_skill_names]
+    
+    seen = set()
+    missing_dedup = [x for x in missing if not (x.lower() in seen or seen.add(x.lower()))]
+    missing_preview = ", ".join(missing_dedup[:3]) + ("..." if len(missing_dedup) > 3 else "")
+    
+    skill_match_desc = (
+        f"{len(matched)}/{len(jd_required_list)} skills matched"
+        + (f"; missing: {missing_preview}" if missing_dedup else "; all required skills present")
+    )
+    
     career_history = candidate.get("career_history") or []
     min_exp = safe_float(jd.get("min_experience_years"), 0.0)
     response_rate = safe_float(signals.get("recruiter_response_rate"))
@@ -229,6 +251,25 @@ def score_candidate(
     reloc = signals.get("willing_to_relocate", False)
 
     flags = validate_candidate(candidate)
+    
+    education_list = candidate.get("education") or []
+    best_degree = "No degree listed"
+    best_tier = "unknown"
+    best_field = "unknown"
+    if education_list:
+        best_edu = max(
+            education_list,
+            key=lambda e: next(
+                (v for k, v in {"phd": 4, "master": 3, "bachelor": 2, "diploma": 1}.items() if k in str(e.get("degree", "")).lower()),
+                0
+            ),
+            default={}
+        )
+        best_degree = best_edu.get("degree", "No degree listed")
+        best_tier = best_edu.get("tier", "unknown")
+        best_field = best_edu.get("field_of_study", "unknown")
+        
+    education_desc = f"Best: {best_degree} ({best_field}), {best_tier} tier; {years:.1f}y exp"
 
     return {
         "candidate_id": candidate_id,
@@ -242,10 +283,10 @@ def score_candidate(
         },
         "reasoning": build_reasoning(candidate, rounded_breakdown, jd),
         "signal_reasoning": {
-            "skill_match": f"{matched_skills}/{len(jd_required)} skills matched",
+            "skill_match": skill_match_desc,
             "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min",
             "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
-            "education": f"Score based on education and {years:.1f}y exp",
+            "education": education_desc,
             "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
         },
         "compliance_flags": flags,

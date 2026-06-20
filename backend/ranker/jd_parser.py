@@ -14,6 +14,7 @@ DEFAULT_JD = {
     "skills_text": "",
     "salary_min": 0.0,
     "salary_max": 0.0,
+    "seniority_level": "mid",
 }
 
 REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
@@ -275,6 +276,21 @@ def _extract_salary_range(text: str) -> tuple[float, float]:
 
 MAX_JD_CHARS = 10_000
 
+SENIORITY_MAP = {
+    "junior": ["junior", "entry level", "entry-level", "fresher", "0-2 years", "intern"],
+    "mid":    ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years"],
+    "senior": ["senior", "5+ years", "7+ years", "lead", "principal", "staff engineer"],
+    "lead":   ["lead", "principal", "staff", "architect", "head of engineering"],
+}
+
+def _extract_seniority(text: str) -> str:
+    lowered = text.lower()
+    for level, keywords in SENIORITY_MAP.items():
+        if any(kw in lowered for kw in keywords):
+            return level
+    return "mid"  # safe default
+
+
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
@@ -311,6 +327,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         "skills_text": skills_text.strip() or text,
         "salary_min": salary_min,
         "salary_max": salary_max,
+        "seniority_level": _extract_seniority(text),
     }
 
 
