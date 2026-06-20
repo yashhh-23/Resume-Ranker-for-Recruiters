@@ -20,125 +20,32 @@ DEFAULT_JD = {
 REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
 PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desired"]
 
-KNOWN_SKILLS = [
-    "Python",
-    "SQL",
-    "Spark",
-    "PySpark",
-    "Airflow",
-    "Apache Beam",
-    "Kafka",
-    "AWS",
-    "GCP",
-    "Azure",
-    "Snowflake",
-    "BigQuery",
-    "Docker",
-    "Kubernetes",
-    "MLflow",
-    "NLP",
-    "TensorFlow",
-    "PyTorch",
-    "Scikit-learn",
-    "LLM",
-    "Fine-tuning LLMs",
-    "React",
-    "Next.js",
-    "Node.js",
-    "Java",
-    "TypeScript",
-    "Accounting",
-    "Agile",
-    "Angular",
-    "Apache Flink",
-    "BM25",
-    "BentoML",
-    "CI/CD",
-    "CNN",
-    "CSS",
-    "Computer Vision",
-    "Content Writing",
-    "Data Pipelines",
-    "Data Science",
-    "Databricks",
-    "Deep Learning",
-    "Django",
-    "ETL",
-    "Elasticsearch",
-    "Embeddings",
-    "Excel",
-    "FAISS",
-    "FastAPI",
-    "Feature Engineering",
-    "Figma",
-    "Flask",
-    "Forecasting",
-    "GANs",
-    "Go",
-    "GraphQL",
-    "HTML",
-    "Hadoop",
-    "Haystack",
-    "Hugging Face Transformers",
-    "Illustrator",
-    "Image Classification",
-    "Information Retrieval",
-    "JavaScript",
-    "Kubeflow",
-    "LangChain",
-    "LoRA",
-    "MLOps",
-    "Machine Learning",
-    "Marketing",
-    "Microservices",
-    "Milvus",
-    "MongoDB",
-    "Object Detection",
-    "OpenCV",
-    "OpenSearch",
-    "PEFT",
-    "Photoshop",
-    "Pinecone",
-    "PostgreSQL",
-    "PowerPoint",
-    "Project Management",
-    "Prompt Engineering",
-    "Qdrant",
-    "REST APIs",
-    "Recommendation Systems",
-    "Redis",
-    "Redux",
-    "Reinforcement Learning",
-    "Rust",
-    "SAP",
-    "SEO",
-    "Sales",
-    "Salesforce CRM",
-    "Scrum",
-    "Sentence Transformers",
-    "Six Sigma",
-    "Speech Recognition",
-    "Spring Boot",
-    "Statistical Modeling",
-    "TTS",
-    "Tailwind",
-    "Tally",
-    "Terraform",
-    "Vector Search",
-    "Vue.js",
-    "Weaviate",
-    "Webpack",
-    "Weights & Biases",
-    "YOLO",
-    "dbt",
-    "gRPC",
-    "GitHub Actions",
-    "Polars",
-    "DuckDB",
-    "OpenAI API",
-    "Prisma",
-    "Ray",
-    "LlamaIndex",
+TECH_SKILLS = [
+    "Python", "SQL", "Spark", "PySpark", "Airflow", "Apache Beam", "Kafka",
+    "AWS", "GCP", "Azure", "Snowflake", "BigQuery", "Docker", "Kubernetes",
+    "MLflow", "NLP", "TensorFlow", "PyTorch", "Scikit-learn", "LLM",
+    "Fine-tuning LLMs", "React", "Next.js", "Node.js", "Java", "TypeScript",
+    "Angular", "Apache Flink", "BM25", "BentoML", "CI/CD", "CNN", "CSS",
+    "Computer Vision", "Data Pipelines", "Data Science", "Databricks",
+    "Deep Learning", "Django", "ETL", "Elasticsearch", "Embeddings",
+    "FAISS", "FastAPI", "Feature Engineering", "Flask", "Forecasting",
+    "GANs", "Go", "GraphQL", "HTML", "Hadoop", "Haystack",
+    "Hugging Face Transformers", "Image Classification", "Information Retrieval",
+    "JavaScript", "Kubeflow", "LangChain", "LoRA", "MLOps", "Machine Learning",
+    "Microservices", "Milvus", "MongoDB", "Object Detection", "OpenCV",
+    "OpenSearch", "PEFT", "Pinecone", "PostgreSQL", "Prompt Engineering",
+    "Qdrant", "REST APIs", "Recommendation Systems", "Redis", "Redux",
+    "Reinforcement Learning", "Rust", "SEO", "Sentence Transformers",
+    "Speech Recognition", "Spring Boot", "Statistical Modeling", "TTS",
+    "Tailwind", "Terraform", "Vector Search", "Vue.js", "Weaviate", "Webpack",
+    "Weights & Biases", "YOLO", "dbt", "gRPC", "GitHub Actions", "Polars",
+    "DuckDB", "OpenAI API", "Prisma", "Ray", "LlamaIndex",
+]
+
+SOFT_SKILLS = [
+    "Accounting", "Agile", "Content Writing", "Excel", "Figma", "Illustrator",
+    "Marketing", "Photoshop", "PowerPoint", "Project Management", "SAP",
+    "Sales", "Salesforce CRM", "Scrum", "Six Sigma", "Tally",
 ]
 
 TITLE_PATTERNS = [
@@ -213,10 +120,10 @@ def _split_skill_lines(lines: List[str]) -> List[str]:
     return _dedupe(skills)
 
 
-def _known_skill_hits(text: str) -> List[str]:
+def _known_skill_hits(text: str, skill_list: List[str]) -> List[str]:
     hits = []
     lowered = text.lower()
-    for skill in KNOWN_SKILLS:
+    for skill in skill_list:
         if skill.lower() in lowered:
             hits.append(skill)
     return _dedupe(hits)
@@ -232,10 +139,18 @@ def _extract_title(text: str) -> str:
 
 
 def _extract_experience(text: str) -> int:
-    match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
-    if not match:
-        return 0
-    return int(match.group(1))
+    # Try to find a range first: "2-5 years", "3 to 7 years"
+    range_match = re.search(
+        r"(\d+)\s*(?:-|to)\s*(\d+)\+?\s*(?:years?|yrs?)",
+        text, flags=re.IGNORECASE
+    )
+    if range_match:
+        return int(range_match.group(2))  # use upper bound as min_experience
+    # Fallback to single number
+    single_match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
+    if single_match:
+        return int(single_match.group(1))
+    return 0
 
 
 def _extract_industry(text: str) -> str:
@@ -277,10 +192,12 @@ def _extract_salary_range(text: str) -> tuple[float, float]:
 MAX_JD_CHARS = 10_000
 
 SENIORITY_MAP = {
-    "junior": ["junior", "entry level", "entry-level", "fresher", "0-2 years", "intern"],
-    "mid":    ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years"],
-    "senior": ["senior", "5+ years", "7+ years", "lead", "principal", "staff engineer"],
-    "lead":   ["lead", "principal", "staff", "architect", "head of engineering"],
+    "lead":   ["principal engineer", "staff engineer", "architect", "head of engineering",
+                "engineering manager", "lead engineer"],
+    "senior": ["senior", "sr.", "5+ years", "6+ years", "7+ years", "8+ years"],
+    "mid":    ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years", "3 years"],
+    "junior": ["junior", "entry level", "entry-level", "fresher", "0-2 years",
+                "1+ year", "intern", "graduate"],
 }
 
 def _extract_seniority(text: str) -> str:
@@ -299,14 +216,16 @@ def parse_jd_text(text: str) -> Dict[str, object]:
 
     raw_required = list(required)
 
-    known_hits = _known_skill_hits(text)
-    required = _dedupe([skill for skill in required if skill.lower() in {hit.lower() for hit in known_hits}])
-    preferred = _dedupe([skill for skill in preferred if skill.lower() in {hit.lower() for hit in known_hits}])
+    tech_hits = _known_skill_hits(text, TECH_SKILLS)
+    soft_hits = _known_skill_hits(text, SOFT_SKILLS)
+    
+    required = _dedupe([skill for skill in required if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}])
+    preferred = _dedupe([skill for skill in preferred if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}])
 
     if not required:
-        required = known_hits[:8]
+        required = tech_hits[:8]
     else:
-        preferred = _dedupe(preferred + [skill for skill in known_hits if skill.lower() not in {item.lower() for item in required}])
+        preferred = _dedupe(preferred + [skill for skill in tech_hits if skill.lower() not in {item.lower() for item in required}])
 
     if not raw_required:
         raw_required = list(required)
