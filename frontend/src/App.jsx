@@ -243,6 +243,16 @@ const App = () => {
       const startTime = performance.now();
 
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const jdText = jobDescription;
+      const candidatesFile = "dataset/sample_candidates.json";
+
+      console.log("[API TRACE] Emitting validation payload over the wire...");
+
+      const payload = {
+        jd_text: jdText,
+        candidates_path: candidatesFile || "",
+        candidates: candidates
+      };
 
       const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rank`, {
         method: 'POST',
@@ -252,10 +262,7 @@ const App = () => {
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        body: JSON.stringify({
-          job_description: jobDescription,
-          candidates: candidates
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -268,9 +275,7 @@ const App = () => {
       // Extract the raw JSON array sent from our high-accuracy backend model
       const candidatesArray = resultData.ranked_candidates || resultData.candidates || resultData;
 
-      if (Array.isArray(candidatesArray) && candidatesArray.length > 0) {
-        console.log(`[DIAGNOSTIC SUCCESS] Populating table view with ${candidatesArray.length} LIVE database rows.`);
-        
+      if (Array.isArray(candidatesArray)) {
         const normalizedResults = normalizeRankedResults(candidatesArray, candidates);
         setRankedCandidates(normalizedResults);
         

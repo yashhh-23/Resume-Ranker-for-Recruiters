@@ -7,7 +7,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from contextlib import asynccontextmanager
 
 import torch
@@ -16,7 +16,7 @@ from threadpoolctl import threadpool_limits
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.middleware.gzip import GZipMiddleware
@@ -107,7 +107,7 @@ from fastapi.exceptions import RequestValidationError
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"Validation error on {request.url.path}: {exc.errors()}")
+    print("[VALIDATION CRITICAL ERROR]:", exc.errors())
     return JSONResponse(
         status_code=422,
         content={
@@ -151,8 +151,18 @@ app.add_middleware(
 
 class RankRequest(BaseModel):
     model_config = {"extra": "ignore"}
-    job_description: str
-    candidates: List[Dict[str, Any]]
+    jd_text: Optional[str] = None
+    job_description: Optional[str] = None
+    candidates_path: Optional[str] = ""
+    candidates: Optional[List[Dict[str, Any]]] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_jd_text(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "job_description" in data and "jd_text" not in data:
+                data["jd_text"] = data["job_description"]
+        return data
 
 
 @app.get("/")
@@ -260,25 +270,53 @@ def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)
 async def rank(request: Request, req: RankRequest):
-    if not req.job_description.strip():
-        raise HTTPException(status_code=400, detail="job_description is required")
-    if not req.candidates:
-        raise HTTPException(status_code=400, detail="candidates array is required")
-    if len(req.candidates) > MAX_CANDIDATES:
+    jd_text = req.jd_text or req.job_description or ""
+    if not jd_text.strip():
+        raise HTTPException(status_code=400, detail="jd_text is required")
+
+    candidates = req.candidates
+    if not candidates and req.candidates_path:
+        path = req.candidates_path
+        if not os.path.exists(path):
+            alt_path = os.path.join(os.path.dirname(__file__), "..", path)
+            if os.path.exists(alt_path):
+                path = alt_path
+            else:
+                path = "dataset/sample_candidates.json"
+                if not os.path.exists(path):
+                    path = os.path.join(os.path.dirname(__file__), "..", path)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                candidates = json.load(f)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to read candidates from file: {e}")
+
+    if not candidates:
+        # Fall back to default
+        path = "dataset/sample_candidates.json"
+        if not os.path.exists(path):
+            path = os.path.join(os.path.dirname(__file__), "..", path)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                candidates = json.load(f)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to read fallback candidates: {e}")
+
+    if len(candidates) > MAX_CANDIDATES:
         raise HTTPException(
             status_code=422,
-            detail=f"Too many candidates: {len(req.candidates)} exceeds limit of {MAX_CANDIDATES}. "
+            detail=f"Too many candidates: {len(candidates)} exceeds limit of {MAX_CANDIDATES}. "
             f"Use the standalone rank.py script for larger batches.",
         )
 
     t0 = time.perf_counter()
-    valid_candidates, skipped = sanitize_candidates(req.candidates)
-    jd = parse_jd_text(req.job_description)
+    valid_candidates, skipped = sanitize_candidates(candidates)
+    jd = parse_jd_text(jd_text)
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
     return _build_rank_response(
-        ranked, skipped, len(req.candidates), len(valid_candidates), elapsed_ms, jd
+        ranked, skipped, len(candidates), len(valid_candidates), elapsed_ms, jd
     )
 
 
