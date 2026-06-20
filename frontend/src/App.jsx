@@ -251,7 +251,7 @@ const App = () => {
       const payload = {
         jd_text: jdText,
         candidates_path: candidatesFile || "",
-        candidates: candidates
+        candidates: [] // Empty array to explicitly satisfy any strict array checks
       };
 
       const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rank`, {

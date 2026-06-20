@@ -151,10 +151,9 @@ app.add_middleware(
 
 class RankRequest(BaseModel):
     model_config = {"extra": "ignore"}
-    jd_text: Optional[str] = None
-    job_description: Optional[str] = None
+    jd_text: str
     candidates_path: Optional[str] = ""
-    candidates: Optional[List[Dict[str, Any]]] = None
+    candidates: Optional[List[Any]] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -270,13 +269,18 @@ def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)
 async def rank(request: Request, req: RankRequest):
-    jd_text = req.jd_text or req.job_description or ""
-    if not jd_text.strip():
+    if not req.jd_text.strip():
         raise HTTPException(status_code=400, detail="jd_text is required")
 
-    candidates = req.candidates
-    if not candidates and req.candidates_path:
-        path = req.candidates_path
+    # Determine the source of candidate records
+    if req.candidates and len(req.candidates) > 0:
+        candidates_data = req.candidates
+    else:
+        # Fallback to loading the local file path provided by the frontend
+        file_target = req.candidates_path or "dataset/sample_candidates.json"
+        print(f"[API INGESTION] Loading candidates data from file path path: {file_target}")
+        
+        path = file_target
         if not os.path.exists(path):
             alt_path = os.path.join(os.path.dirname(__file__), "..", path)
             if os.path.exists(alt_path):
@@ -287,36 +291,28 @@ async def rank(request: Request, req: RankRequest):
                     path = os.path.join(os.path.dirname(__file__), "..", path)
         try:
             with open(path, "r", encoding="utf-8") as f:
-                candidates = json.load(f)
+                candidates_data = json.load(f)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to read candidates from file: {e}")
 
-    if not candidates:
-        # Fall back to default
-        path = "dataset/sample_candidates.json"
-        if not os.path.exists(path):
-            path = os.path.join(os.path.dirname(__file__), "..", path)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                candidates = json.load(f)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to read fallback candidates: {e}")
+    if not candidates_data:
+        raise HTTPException(status_code=400, detail="No candidates found or loaded")
 
-    if len(candidates) > MAX_CANDIDATES:
+    if len(candidates_data) > MAX_CANDIDATES:
         raise HTTPException(
             status_code=422,
-            detail=f"Too many candidates: {len(candidates)} exceeds limit of {MAX_CANDIDATES}. "
+            detail=f"Too many candidates: {len(candidates_data)} exceeds limit of {MAX_CANDIDATES}. "
             f"Use the standalone rank.py script for larger batches.",
         )
 
     t0 = time.perf_counter()
-    valid_candidates, skipped = sanitize_candidates(candidates)
-    jd = parse_jd_text(jd_text)
+    valid_candidates, skipped = sanitize_candidates(candidates_data)
+    jd = parse_jd_text(req.jd_text)
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
     return _build_rank_response(
-        ranked, skipped, len(candidates), len(valid_candidates), elapsed_ms, jd
+        ranked, skipped, len(candidates_data), len(valid_candidates), elapsed_ms, jd
     )
 
 
