@@ -103,6 +103,21 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logging.error(f"Validation error on {request.url.path}: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "Unprocessable Content",
+            "detail": exc.errors(),
+            "status_code": 422,
+        },
+    )
+
+
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_id = str(uuid.uuid4())[:8]
