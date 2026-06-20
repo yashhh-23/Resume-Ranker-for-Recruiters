@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import ScoreBar from "./ScoreBar";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
@@ -28,37 +27,6 @@ const CandidateCard = ({
   // Extract JD skill tokens for matching
   const jdSkillTokens = extractJdSkills(jobDescription);
   const hasJdSkills = jdSkillTokens.length > 0;
-
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipCoords, setTooltipCoords] = useState({ top: 0, left: 0, placeBelow: false });
-  const containerRef = useRef(null);
-
-  const updateTooltipPosition = () => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const tooltipHeight = 190;
-    const placeBelow = rect.top - tooltipHeight < 10;
-    setTooltipCoords({
-      top: placeBelow ? rect.bottom + 8 : rect.top - 8,
-      left: rect.left + rect.width / 2,
-      placeBelow,
-    });
-  };
-
-  const handleMouseEnter = () => { updateTooltipPosition(); setShowTooltip(true); };
-  const handleMouseMove = () => { updateTooltipPosition(); };
-  const handleMouseLeave = () => { setShowTooltip(false); };
-
-  useEffect(() => {
-    if (!showTooltip) return;
-    const handleScroll = () => updateTooltipPosition();
-    window.addEventListener("scroll", handleScroll, true);
-    window.addEventListener("resize", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, [showTooltip]);
 
   const getScoreColor = (score) => {
     const val = score <= 1 ? score * 100 : score;
@@ -92,6 +60,9 @@ const CandidateCard = ({
             {onToggleCompare && (
               <button
                 type="button"
+                role="checkbox"
+                aria-checked={isCompareSelected}
+                aria-label={`Select ${profile.anonymized_name || "candidate"} for comparison`}
                 onClick={(e) => { e.stopPropagation(); onToggleCompare(result.candidate_id); }}
                 title={isCompareSelected ? "Deselect from comparison" : "Select for comparison"}
                 className={`h-4 w-4 shrink-0 border transition-all duration-200 flex items-center justify-center rounded-none ${
@@ -101,9 +72,7 @@ const CandidateCard = ({
                 }`}
               >
                 {isCompareSelected && (
-                  <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon className="h-2.5 w-2.5 text-amber shrink-0" />
                 )}
               </button>
             )}
@@ -119,9 +88,7 @@ const CandidateCard = ({
             {/* JD skill match indicator badge */}
             {hasJdSkills && matchedSkillCount > 0 && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-mono rounded-none">
-                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                <CheckIcon className="h-2.5 w-2.5 shrink-0" />
                 {matchedSkillCount} JD match{matchedSkillCount !== 1 ? "es" : ""}
               </span>
             )}
@@ -182,11 +149,7 @@ const CandidateCard = ({
 
       {/* ═══ ANALYSIS PANEL — the main result ═══ */}
       <div
-        ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="relative mt-4 rounded-none border border-slate-700/60 bg-slate-950/60 overflow-hidden"
+        className="relative mt-4 rounded-none border border-slate-700/60 bg-slate-950/60 overflow-visible group"
         style={{
           borderLeft: '3px solid rgba(16,185,129,0.5)',
           boxShadow: '0 2px 20px rgba(0,0,0,0.3), inset 0 0 40px rgba(16,185,129,0.02)',
@@ -216,47 +179,33 @@ const CandidateCard = ({
           />
         </div>
 
-        {/* Hover Tooltip Frame */}
-        {showTooltip && (
-          <div
-            style={{
-              position: "fixed",
-              top: `${tooltipCoords.top}px`,
-              left: `${tooltipCoords.left}px`,
-              transform: tooltipCoords.placeBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
-              zIndex: 9999,
-              backgroundColor: "var(--obsidian)",
-              border: "1px solid var(--borderline)",
-              color: "var(--slate-300)",
-            }}
-            className="w-72 p-4 shadow-2xl rounded-none pointer-events-none font-mono text-[11px]"
-          >
-            <div style={{ borderBottom: "1px solid var(--borderline)" }} className="pb-2 mb-2">
-              <span style={{ color: "var(--slate-100)" }} className="text-xs font-bold">SCORE BREAKDOWN COMPOSITION</span>
-            </div>
-            <div className="space-y-1.5">
-              {[
-                { label: "Skill Match (35%)", color: "#10B981", val: breakdown.skill_match * 0.35 },
-                { label: "Career Fit (25%)", color: "#3B82F6", val: breakdown.career_fit * 0.25 },
-                { label: "Signal Mod (15%)", color: "#6366F1", val: breakdown.signal_modifier * 0.15 },
-                { label: "Education (15%)", color: "#14B8A6", val: breakdown.education * 0.15 },
-                { label: "Availability (10%)", color: "#D97706", val: breakdown.availability * 0.10 },
-              ].map(({ label, color, val }) => (
-                <div key={label} className="flex justify-between items-center">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: color }} />
-                    {label}:
-                  </span>
-                  <strong style={{ color }}>{formatPercent(val)}</strong>
-                </div>
-              ))}
-            </div>
-            <div style={{ borderTop: "1px solid var(--borderline)", color: "var(--slate-100)" }} className="pt-2 mt-2 flex justify-between items-center font-bold">
-              <span>Overall Fit Index:</span>
-              <span className="text-emerald">{formatPercent(result.score)}</span>
-            </div>
+        {/* Hover Tooltip Frame (CSS-only) */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 pointer-events-none w-72 p-4 shadow-2xl rounded-none font-mono text-[11px] bg-slate-950 border border-slate-800 text-slate-300">
+          <div className="pb-2 mb-2 border-b border-slate-800">
+            <span className="text-slate-100 text-xs font-bold uppercase">SCORE BREAKDOWN COMPOSITION</span>
           </div>
-        )}
+          <div className="space-y-1.5">
+            {[
+              { label: "Skill Match (35%)", color: "#10B981", val: breakdown.skill_match * 0.35 },
+              { label: "Career Fit (25%)", color: "#3B82F6", val: breakdown.career_fit * 0.25 },
+              { label: "Signal Mod (15%)", color: "#6366F1", val: breakdown.signal_modifier * 0.15 },
+              { label: "Education (15%)", color: "#14B8A6", val: breakdown.education * 0.15 },
+              { label: "Availability (10%)", color: "#D97706", val: breakdown.availability * 0.10 },
+            ].map(({ label, color, val }) => (
+              <div key={label} className="flex justify-between items-center">
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <span className="w-2.5 h-2.5 shrink-0" style={{ backgroundColor: color }} />
+                  {label}:
+                </span>
+                <strong style={{ color }}>{formatPercent(val)}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="pt-2 mt-2 border-t border-slate-800 text-slate-100 flex justify-between items-center font-bold">
+            <span>Overall Fit Index:</span>
+            <span className="text-emerald">{formatPercent(result.score)}</span>
+          </div>
+        </div>
       </div>
 
       {/* Reasoning text — bigger and more visible */}
@@ -288,7 +237,12 @@ const CandidateCard = ({
       )}
 
       {anomaly && (
-        <div className="mt-3 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber border border-amber/20 bg-amber/5 rounded-none p-2 shadow-sm animate-pulse">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mt-3 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-amber border border-amber/20 bg-amber/5 rounded-none p-2 shadow-sm"
+          style={{ animation: "pulse 2s ease-in-out 2" }}
+        >
           <svg className="h-4 w-4 shrink-0 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>

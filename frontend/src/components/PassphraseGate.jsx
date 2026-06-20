@@ -55,6 +55,7 @@ const PassphraseGate = ({ onAuthenticate }) => {
   const [showPhrase, setShowPhrase] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [pulse, setPulse] = useState(false);
+  const [error, setError] = useState(null);
   const inputRef = useRef(null);
 
   // Focus input on mount
@@ -65,6 +66,7 @@ const PassphraseGate = ({ onAuthenticate }) => {
   const handleSubmit = () => {
     if (!phrase.trim()) {
       setIsShaking(true);
+      setError("Passphrase cannot be empty");
       setTimeout(() => setIsShaking(false), 600);
       inputRef.current?.focus();
       return;
@@ -155,7 +157,7 @@ const PassphraseGate = ({ onAuthenticate }) => {
 
         {/* Input */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-mono text-slate-500 uppercase tracking-wider">
+          <label className="text-xs font-mono text-slate-500 uppercase tracking-wider" htmlFor="passphrase-input">
             Passphrase
           </label>
           <div className="relative">
@@ -164,7 +166,12 @@ const PassphraseGate = ({ onAuthenticate }) => {
               id="passphrase-input"
               type={showPhrase ? "text" : "password"}
               value={phrase}
-              onChange={(e) => setPhrase(e.target.value)}
+              aria-invalid={!!error}
+              aria-describedby={error ? "passphrase-error" : undefined}
+              onChange={(e) => {
+                setPhrase(e.target.value);
+                if (error) setError(null);
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Enter your private passphrase…"
               autoComplete="new-password"
@@ -183,6 +190,11 @@ const PassphraseGate = ({ onAuthenticate }) => {
               {showPhrase ? <EyeOffIcon /> : <EyeIcon />}
             </button>
           </div>
+          {error && (
+            <p id="passphrase-error" role="alert" className="text-xs text-rose-500 font-mono mt-1">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* Submit */}
