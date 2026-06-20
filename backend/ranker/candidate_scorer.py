@@ -213,6 +213,23 @@ def score_candidate(
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
+    from .validators import validate_candidate
+
+    profile = candidate.get("profile") or {}
+    years = safe_float(profile.get("years_of_experience"))
+    skills = candidate.get("skills") or []
+    jd_required = set(s.lower() for s in jd.get("raw_required_skills", jd.get("required_skills", [])))
+    matched_skills = sum(1 for s in skills if s.get("name","").lower() in jd_required)
+    career_history = candidate.get("career_history") or []
+    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+    response_rate = safe_float(signals.get("recruiter_response_rate"))
+    github_score = safe_float(signals.get("github_activity_score"), 0.0)
+    notice_days = safe_float(signals.get("notice_period_days"), 180.0)
+    open_flag = signals.get("open_to_work_flag", False)
+    reloc = signals.get("willing_to_relocate", False)
+
+    flags = validate_candidate(candidate)
+
     return {
         "candidate_id": candidate_id,
         "score": round(clamp(final_score), 4),
@@ -224,6 +241,16 @@ def score_candidate(
             **rounded_breakdown,
         },
         "reasoning": build_reasoning(candidate, rounded_breakdown, jd),
+        "signal_reasoning": {
+            "skill_match": f"{matched_skills}/{len(jd_required)} skills matched",
+            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min",
+            "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
+            "education": f"Score based on education and {years:.1f}y exp",
+            "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
+        },
+        "compliance_flags": flags,
+        "is_suspicious": len(flags) > 0,
+        "profile_completeness": round(safe_float(signals.get("profile_completeness_score", 0.0))),
     }
 
 

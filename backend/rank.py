@@ -13,10 +13,24 @@ from ranker.validators import sanitize_candidates
 CSV_HEADER = ["candidate_id", "rank", "score", "reasoning"]
 
 
+def parse_candidates_stream(handle, limit: int = 5000):
+    count = 0
+    for line in handle:
+        line = line.strip()
+        if line:
+            try:
+                yield json.loads(line)
+                count += 1
+                if count >= limit:
+                    break
+            except json.JSONDecodeError:
+                continue
+
 def load_candidates(path: Path):
+    if path.suffix.lower() == ".jsonl":
+        with path.open("r", encoding="utf-8") as handle:
+            return list(parse_candidates_stream(handle))
     with path.open("r", encoding="utf-8") as handle:
-        if path.suffix.lower() == ".jsonl":
-            return [json.loads(line) for line in handle if line.strip()]
         payload = json.load(handle)
     return payload if isinstance(payload, list) else [payload]
 

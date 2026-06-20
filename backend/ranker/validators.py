@@ -32,3 +32,17 @@ def sanitize_candidates(candidates: list) -> tuple[list, list]:
             c["name"] = c.get("candidate_id", "Unknown Candidate")
         valid.append(_truncate_candidate(c))
     return valid, skipped
+
+def validate_candidate(c: dict) -> list:
+    flags = []
+    profile = c.get("profile") or {}
+    try:
+        if float(profile.get("years_of_experience") or 0) > 30:
+            flags.append("Unusually high years of experience (>30)")
+    except (TypeError, ValueError):
+        pass
+    if not c.get("skills"):
+        flags.append("Missing skills section")
+    if not c.get("career_history"):
+        flags.append("Missing career history")
+    return flags
