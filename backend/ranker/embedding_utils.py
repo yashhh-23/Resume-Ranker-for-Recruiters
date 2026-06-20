@@ -3,6 +3,7 @@ import pickle
 from pathlib import Path
 from typing import Dict, Iterable, List
 
+from collections import OrderedDict
 import numpy as np
 
 
@@ -56,8 +57,6 @@ def cache_key(candidate: Dict) -> str:
     return f"{candidate_id}:{digest}"
 
 
-from collections import OrderedDict
-
 MAX_CACHE_ENTRIES = 20_000   # ~30MB cap for 384-dim embeddings
 
 class LRUEmbeddingCache:
@@ -80,14 +79,6 @@ class LRUEmbeddingCache:
 
 _EMBEDDING_CACHE = LRUEmbeddingCache()
 
-def load_cache(cache_path: str = ".embedding_cache.pkl"):
-    return _EMBEDDING_CACHE
-
-
-def save_cache(cache, cache_path: str = None) -> None:
-    """No-op: embeddings are stored in-memory (_EMBEDDING_CACHE).
-    Retained for CLI backward-compatibility only."""
-    pass
 
 
 def embed_texts(model, texts: Iterable[str]) -> np.ndarray:
@@ -107,7 +98,7 @@ def get_candidate_embeddings(
     model,
     cache_path: str = ".embedding_cache.pkl",
 ) -> Dict[str, np.ndarray]:
-    cache = load_cache(cache_path)
+    cache = _EMBEDDING_CACHE
     missing_candidates = []
     missing_keys = []
     missing_texts = []
@@ -123,7 +114,6 @@ def get_candidate_embeddings(
         vectors = embed_texts(model, missing_texts)
         for key, vector in zip(missing_keys, vectors):
             cache.set(key, vector)
-        save_cache(cache, cache_path)
 
     result = {}
     for candidate in candidates:
@@ -136,7 +126,7 @@ def get_candidate_embeddings(
 def get_jd_embedding(jd: dict, model, cache_path: str = ".embedding_cache.pkl") -> np.ndarray:
     skills_text = str(jd.get("skills_text") or "")
     jd_key = "jd:" + hashlib.md5(skills_text.encode()).hexdigest()
-    cache = load_cache(cache_path)
+    cache = _EMBEDDING_CACHE
     cached = cache.get(jd_key)
     if cached is not None:
         return cached

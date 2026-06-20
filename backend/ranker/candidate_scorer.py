@@ -1,5 +1,6 @@
 import math
 import re
+import sys
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
@@ -300,7 +301,6 @@ def score_candidate(
     reasoning_str = build_reasoning(candidate, rounded_breakdown, jd)
     if flags:
         flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
-        import sys
         try:
             encoding = sys.stdout.encoding if sys.stdout else None
         except Exception:
