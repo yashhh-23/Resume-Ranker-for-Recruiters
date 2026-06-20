@@ -33,11 +33,17 @@ class ResultsErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      const { candidateId, candidateName } = this.props;
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-slate-950/40 border border-slate-900 font-mono">
           <p className="text-xs uppercase tracking-[0.2em] text-rose-500 mb-2">System Error</p>
-          <p className="text-sm font-bold text-slate-200">Results failed to render.</p>
-          <p className="text-xs text-slate-500 mt-2 mb-4">Please check candidate data format and retry.</p>
+          <p className="text-sm font-bold text-slate-200">
+            {candidateName ? `Failed to render profile: ${candidateName}` : "Results failed to render."}
+          </p>
+          {candidateId && (
+            <p className="text-[10px] text-slate-500 mt-1 mb-2">Candidate ID: {candidateId}</p>
+          )}
+          <p className="text-xs text-slate-500 mb-4">Please check candidate data format and retry.</p>
           <button
             type="button"
             onClick={this.handleRetry}
