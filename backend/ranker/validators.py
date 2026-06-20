@@ -62,6 +62,37 @@ def validate_candidate(c: dict) -> list:
         flags.append("Missing skills section")
     if not career:
         flags.append("Missing career history")
+    else:
+        try:
+            from datetime import date, datetime
+            declared_years = float(profile.get("years_of_experience") or 0)
+            if declared_years > 0:
+                total_months = 0
+                for role in career:
+                    start_str = str(role.get("start_date") or "")
+                    end_str = str(role.get("end_date") or "")
+                    if not start_str:
+                        continue
+                    try:
+                        clean_start = start_str[:-1] if start_str.endswith("Z") else start_str
+                        start_d = datetime.fromisoformat(clean_start[:10]).date()
+                        if end_str and end_str.lower() != "present":
+                            clean_end = end_str[:-1] if end_str.endswith("Z") else end_str
+                            end_d = datetime.fromisoformat(clean_end[:10]).date()
+                        else:
+                            end_d = date.today()
+                        total_months += max(0, (end_d.year - start_d.year) * 12 + (end_d.month - start_d.month))
+                    except ValueError:
+                        pass
+                computed_years = total_months / 12
+                # Flag if declared years exceed computed by more than 5 years
+                if declared_years > computed_years + 5:
+                    flags.append(
+                        f"Declared experience ({declared_years:.0f}y) "
+                        f"inconsistent with career history ({computed_years:.1f}y computed)"
+                    )
+        except Exception:
+            pass
 
     # ── NEW CHECKS ────────────────────────────────────────────────────────
 

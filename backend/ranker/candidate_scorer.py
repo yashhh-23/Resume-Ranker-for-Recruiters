@@ -170,7 +170,8 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     if min_experience > 0:
         exp_score = clamp(years_exp / min_experience)
 
-    return clamp(role_score * 0.6 + exp_score * 0.25 + seniority_align * 0.15)
+    gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
+    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -299,7 +300,13 @@ def score_candidate(
     reasoning_str = build_reasoning(candidate, rounded_breakdown, jd)
     if flags:
         flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
-        reasoning_str += f" | ⚠ Flags: {flag_summary}"
+        import sys
+        try:
+            encoding = sys.stdout.encoding if sys.stdout else None
+        except Exception:
+            encoding = None
+        WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
+        reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
 
     return {
         "candidate_id": candidate_id,
