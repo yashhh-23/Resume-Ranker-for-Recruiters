@@ -3,6 +3,7 @@ import re
 import sys
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
+import functools
 
 import numpy as np
 
@@ -92,11 +93,6 @@ SKILL_ALIASES = {
     "fine-tuning llms": {"fine-tuning", "finetuning", "fine tuning", "peft", "lora", "qlora", "rlhf", "sft", "instruction tuning", "fine-tuning llms"},
 }
 
-import time
-
-_time_bouncer = 0.0
-_time_career_fit = 0.0
-
 @functools.lru_cache(maxsize=16384)
 def is_skill_match(r: str, c: str) -> bool:
     r_clean = r.lower().strip()
@@ -140,9 +136,16 @@ def preprocess_jd(jd: Dict[str, Any]) -> None:
     jd["_cached_min_experience"] = safe_float(jd.get("min_experience_years"), 0.0)
     jd["_cached_seniority"] = jd.get("seniority_level", "mid")
     jd["_cached_target_industry"] = jd.get("target_industry") or ""
+    
+    raw_skills = jd.get("raw_required_skills") or jd.get("required_skills") or []
+    jd_required_list = list(raw_skills)
+    jd["_cached_raw_req"] = jd_required_list
+    jd["_cached_req_zip"] = [(r, str(r).lower()) for r in jd_required_list]
+    
     jd["_preprocessed"] = True
 
 
+@functools.lru_cache(maxsize=8192)
 def years_ago(value: Any) -> float:
     if not value:
         return 10.0
@@ -276,7 +279,7 @@ def _get_skill_cross_field_multiplier(skill_name: str, career_history: list) -> 
             return 1.0
     return 0.3
 
-def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
+def score_required_skill_coverage(candidate: dict, jd: dict, candidate_skill_names: Optional[List[str]] = None) -> float:
     required = jd.get("_cached_required_skills")
     if required is None:
         required_list = jd.get("raw_required_skills")
@@ -296,6 +299,9 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
 
     career_history = candidate.get("career_history") or []
     education_list = candidate.get("education") or []
+    if candidate_skill_names is None:
+        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
+        
     matched_score = 0.0
     total_possible_score = 0.0
     missing_tier1_count = 0
@@ -303,6 +309,13 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         weight = skill_weights_lower.get(r, 1.0)
         best_level = 0.0
         best_cs = ""
+        
+        if not any(is_skill_match(r, cs) for cs in candidate_skill_names):
+            if weight >= 2.0:
+                missing_tier1_count += 1
+            total_possible_score += 1.10 * weight
+            continue
+            
         for s in candidate.get("skills") or []:
             cs = s.get("name", "").lower()
             if is_skill_match(r, cs):
@@ -353,9 +366,8 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         preferred = [s.lower() for s in jd.get("preferred_skills", [])]
         jd["_cached_preferred_skills"] = preferred
     if preferred:
-        candidate_skills_lower = _get_candidate_skill_names(candidate.get("skills") or [])
         pref_matched = sum(
-            1 for p in preferred if any(is_skill_match(p, cs) for cs in candidate_skills_lower)
+            1 for p in preferred if any(is_skill_match(p, cs) for cs in candidate_skill_names)
         )
         preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
         return clamp(base_coverage + preferred_bonus)
@@ -531,7 +543,7 @@ def build_reasoning(
     )
 
 
-def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
+def score_jd_specific_traps(candidate: Dict[str, Any], skill_names_cache=None) -> float:
     """Domain-gated trap penalties. Job-hopping is universal;
     CV/speech and LangChain traps only fire for tech/ML JDs."""
     penalty = 0.0
@@ -559,7 +571,7 @@ def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
             penalty += 0.15
 
     skills = candidate.get("skills") or []
-    skill_names = {str(s.get("name", "")).lower() for s in skills}
+    skill_names = skill_names_cache if skill_names_cache is not None else {str(s.get("name", "")).lower() for s in skills}
     
     has_cv_speech = any(x in n for n in skill_names for x in ["computer vision", "speech", "robotics"])
     has_nlp_ir = any(x in n for n in skill_names for x in ["nlp", "retrieval", "search", "ir "])
@@ -572,6 +584,132 @@ def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
         penalty += 0.15
 
     return penalty
+
+
+def populate_candidate_explanation(row: Dict[str, Any], jd: Dict[str, Any]) -> None:
+    candidate = row.pop("_candidate")
+    matched = row.pop("_matched")
+    missing = row.pop("_missing")
+    candidate_skill_names = row.pop("_candidate_skill_names")
+    trap_penalty = row.pop("_trap_penalty")
+    rounded_breakdown = row["score_breakdown"]
+    
+    profile = candidate.get("profile") or {}
+    years = safe_float(profile.get("years_of_experience"))
+    years_exp = years
+    
+    jd_required_list = jd.get("_cached_raw_req") or []
+    
+    seen = set()
+    missing_dedup = [
+        x for x in missing if not (x.lower() in seen or seen.add(x.lower()))
+    ]
+    missing_preview = ", ".join(missing_dedup[:3]) + (
+        "..." if len(missing_dedup) > 3 else ""
+    )
+
+    preferred_jd_val = jd.get("_cached_raw_pref")
+    if preferred_jd_val is None:
+        preferred_jd_val = jd.get("preferred_skills") or []
+        jd["_cached_raw_pref"] = preferred_jd_val
+    preferred_jd = list(preferred_jd_val)
+    preferred_jd_lower = [str(p).lower() for p in preferred_jd]
+    preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(is_skill_match(pl, cs) for cs in candidate_skill_names)]
+
+    skill_match_desc = (
+        f"{len(matched)}/{len(jd_required_list)} required skills matched"
+        + (
+            f"; missing: {missing_preview}"
+            if missing_dedup
+            else "; all required skills present"
+        )
+        + (
+            f"; {len(preferred_matched)}/{len(preferred_jd)} preferred skills matched"
+            if preferred_jd
+            else ""
+        )
+    )
+
+    signals = candidate.get("redrob_signals") or {}
+    career_history = candidate.get("career_history") or []
+    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+    response_rate = safe_float(signals.get("recruiter_response_rate"))
+    github_score = max(0.0, safe_float(signals.get("github_activity_score"), 0.0))
+    notice_days = safe_float(signals.get("notice_period_days"), 180.0)
+    open_flag = signals.get("open_to_work_flag", False)
+    reloc = signals.get("willing_to_relocate", False)
+
+    flags, deduped_skills = validate_candidate(candidate)
+    if deduped_skills is not None:
+        candidate["skills"] = deduped_skills
+
+    education_list = candidate.get("education") or []
+    best_degree = "No degree listed"
+    best_tier = "unknown"
+    best_field = "unknown"
+    if education_list:
+        best_edu = max(
+            education_list,
+            key=lambda e: next(
+                (
+                    v
+                    for k, v in {
+                        "phd": 4,
+                        "master": 3,
+                        "bachelor": 2,
+                        "diploma": 1,
+                    }.items()
+                    if k in str(e.get("degree", "")).lower()
+                ),
+                0,
+            ),
+            default={},
+        )
+        best_degree = best_edu.get("degree", "No degree listed")
+        best_tier = best_edu.get("tier", "unknown")
+        best_field = best_edu.get("field_of_study", "unknown")
+
+    education_desc = (
+        f"Best: {best_degree} ({best_field}), {best_tier} tier; {years:.1f}y exp"
+    )
+
+    reasoning_str = build_reasoning(candidate, rounded_breakdown, matched, jd)
+    try:
+        encoding = sys.stdout.encoding if sys.stdout else None
+    except Exception:
+        encoding = None
+    WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
+
+    if len(matched) == 0:
+        reasoning_str += f" | {WARNING_CHAR} 0 skills matched"
+        flags.append("zero_skill_match")
+
+    tags = []
+    if len(matched) >= len(jd_required_list) * 0.5 and years_exp < min_exp:
+        tags.append(f"{WARNING_CHAR} Under-experienced but high-skill match")
+    if tags:
+        reasoning_str += " | " + " | ".join(tags)
+
+    if flags:
+        flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
+        reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
+        
+    if rounded_breakdown["career_fit"] < 0.35:
+        reasoning_str += f" | {WARNING_CHAR} role title mismatch"
+
+    if row["matched_count"] < 2:
+        reasoning_str += f" | {WARNING_CHAR} Skill gate applied: <2 required skills matched"
+
+    row["reasoning"] = reasoning_str
+    row["signal_reasoning"] = {
+        "skill_match": skill_match_desc,
+        "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}" + (f"; Trap penalty: {trap_penalty:.2f}" if trap_penalty > 0 else ""),
+        "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
+        "education": education_desc,
+        "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
+    }
+    row["compliance_flags"] = flags
+    row["is_suspicious"] = len(flags) > 0
 
 
 def score_candidate(
@@ -657,7 +795,7 @@ def score_candidate(
     final_score += (len(matched) * 0.06)
     
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
-        trap_penalty = score_jd_specific_traps(candidate)
+        trap_penalty = score_jd_specific_traps(candidate, skill_names_cache=candidate_skill_names)
     else:
         trap_penalty = 0.0
         
@@ -680,6 +818,7 @@ def score_candidate(
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
+<<<<<<< Updated upstream
     profile = candidate.get("profile") or {}
     years = safe_float(profile.get("years_of_experience"))
 
@@ -780,48 +919,70 @@ def score_candidate(
         final_score *= 0.50
         reasoning_str += f" | {WARNING_CHAR} Skill gate applied: <2 required skills matched"
 
+=======
+>>>>>>> Stashed changes
     return {
         "candidate_id": candidate_id,
         "score": round(clamp(calibrate_score(final_score)), 4),
         "matched_count": len(matched),
         "score_breakdown": rounded_breakdown,
-        "reasoning": reasoning_str,
-        "signal_reasoning": {
-            "skill_match": skill_match_desc,
-            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}" + (f"; Trap penalty: {trap_penalty:.2f}" if trap_penalty > 0 else ""),
-            "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
-            "education": education_desc,
-            "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
-        },
-        "compliance_flags": flags,
-        "is_suspicious": len(flags) > 0,
         "profile_completeness": round(
             safe_float(signals.get("profile_completeness_score", 0.0))
         ),
+        "_candidate": candidate,
+        "_matched": matched,
+        "_missing": missing,
+        "_candidate_skill_names": candidate_skill_names,
+        "_trap_penalty": trap_penalty,
     }
 
 
 def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     global _time_bouncer, _time_career_fit
     
-    t0 = time.perf_counter()
-    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate, jd)
-    _time_bouncer += (time.perf_counter() - t0)
-    
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+    career_history = candidate.get("career_history") or []
+    candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
     signals = candidate.get("redrob_signals") or {}
 
-    t0 = time.perf_counter()
+    fraud_timeline, blacklist_penalty = apply_pass_1_bouncer(candidate, jd)
+    
+    # ── Phase 2: Hard early-exit for clearly unqualifiable candidates ──
+    if fraud_timeline:
+        return 0.0
+    if blacklist_penalty:
+        # Still compute a rough score but cap it immediately
+        # so they never reach the top-500 cutoff
+        return 0.001
+
+    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+    if min_exp > 0 and years_exp < min_exp * 0.5:
+        return 0.002  # Hard under-exp exit — saves all downstream scoring
+
+    req_zip_val = jd.get("_cached_req_zip")
+    req_zip = list(req_zip_val) if req_zip_val is not None else []
+    if len(req_zip) >= 4:
+        matched_count = sum(
+            1 for r, rl in req_zip
+            if any(is_skill_match(rl, cs) for cs in candidate_skill_names)
+        )
+        if matched_count == 0:
+            return 0.003  # Zero skill match on a skill-heavy JD — hard exit
+    # ── end Phase 2 early-exit ──
+    
     cf = score_career_fit(candidate, jd)
-    _time_career_fit += (time.perf_counter() - t0)
+    
 
     breakdown = {
-        "skill_match": score_required_skill_coverage(candidate, jd),
+        "skill_match": score_required_skill_coverage(candidate, jd, candidate_skill_names),
         "career_fit": cf,
         "signal_modifier": score_signal_modifier(signals, jd),
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
 
+<<<<<<< Updated upstream
     jd_required_list = jd.get("_cached_raw_req")
     if jd_required_list is None:
         jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
@@ -829,13 +990,13 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         jd["_cached_req_zip"] = [(r, r.lower()) for r in jd_required_list]
 
     req_zip = jd.get("_cached_req_zip", [])
+=======
+    req_zip_val = jd.get("_cached_req_zip")
+    req_zip = list(req_zip_val) if req_zip_val is not None else []
+>>>>>>> Stashed changes
     matched_count = 0
     if req_zip:
-        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
         matched_count = sum(1 for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names))
-
-    profile = candidate.get("profile") or {}
-    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
 
     # Dampen education contribution if career fit is weak
     if breakdown["career_fit"] < 0.30:
@@ -879,7 +1040,7 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         final_score *= 0.7
 
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
-        trap_penalty = score_jd_specific_traps(candidate)
+        trap_penalty = score_jd_specific_traps(candidate, skill_names_cache=candidate_skill_names)
     else:
         trap_penalty = 0.0
         
@@ -908,21 +1069,22 @@ def rank_candidates(
     ]
     if not valid_candidates:
         return []
-
-    global _time_bouncer, _time_career_fit
-    _time_bouncer = 0.0
-    _time_career_fit = 0.0
     
     preprocess_jd(jd)
     fast_scored = []
     for c in valid_candidates:
         fast_scored.append((fast_score_candidate(c, jd), c))
-        
-    print(f"Profile: bouncer={_time_bouncer:.2f}s, career_fit={_time_career_fit:.2f}s (inner hot-loop timers removed for performance)", file=sys.stderr)
+    
     
     fast_scored.sort(key=lambda x: -x[0])
     
-    top_candidates = [x[1] for x in fast_scored[:1000]]
+    top_score = fast_scored[0][0] if fast_scored else 0.0
+    cutoff_threshold = top_score * 0.35
+    dynamic_top = [
+        c for s, c in fast_scored
+        if s >= cutoff_threshold
+    ]
+    top_candidates = dynamic_top[:500]
 
     model = model or load_model()
     jd_embedding = get_jd_embedding(jd, model)
@@ -958,12 +1120,13 @@ def rank_candidates(
         if ida == idb: return 0
         return -1 if ida < idb else 1
 
-    scored.sort(key=cmp_to_key(compare_candidates))
+    scored.sort(key=lambda x: (-x["score"], -x["matched_count"], x.get("candidate_id", "")))
 
     if limit is not None:
         scored = scored[:limit]
 
     for index, row in enumerate(scored, start=1):
         row["rank"] = index
+        populate_candidate_explanation(row, jd)
 
     return scored
