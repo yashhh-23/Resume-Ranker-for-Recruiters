@@ -1,6 +1,6 @@
 import regex as re
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 DEFAULT_JD = {
     "required_skills": [],
@@ -184,7 +184,7 @@ def _extract_docx_text(path: Path) -> str:
     try:
         from docx import Document
 
-        document = Document(path)
+        document = Document(str(path))
         chunks = [paragraph.text for paragraph in document.paragraphs]
         for table in document.tables:
             for row in table.rows:
@@ -406,7 +406,34 @@ def _extract_skill_weights(text: str, skills: list) -> dict:
         weights[skill] = weight
     return weights
 
-def parse_jd_text(text: str) -> Dict[str, object]:
+def segment_jd_text(text: str) -> Dict[str, str]:
+    zones = {
+        "Company info": "",
+        "Key Qualifications": "",
+        "Preferred Skills": ""
+    }
+    
+    parts = text.split("##")
+    zones["Company info"] += parts[0]
+    
+    for part in parts[1:]:
+        lines = part.splitlines()
+        if not lines:
+            continue
+        header = lines[0].strip().lower().strip(":")
+        content = "\n".join(lines[1:])
+        
+        if any(h in header for h in ["qualification", "required", "key", "must", "essential", "requirement", "core"]):
+            zones["Key Qualifications"] += "\n" + content
+        elif any(h in header for h in ["preferred", "nice", "bonus", "good", "desired", "plus"]):
+            zones["Preferred Skills"] += "\n" + content
+        else:
+            zones["Company info"] += "\n" + content
+            
+    return zones
+
+
+def parse_jd_text(text: str) -> Dict[str, Any]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
     
@@ -420,13 +447,32 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         cleaned_lines.append(line)
     text = "\n".join(cleaned_lines)
 
-    required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
-    preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
+    # Segment JD
+    zones = segment_jd_text(text)
+    if "##" not in text:
+        key_qual_text = text
+        pref_skills_text = ""
+    else:
+        key_qual_text = zones["Key Qualifications"]
+        pref_skills_text = zones["Preferred Skills"]
 
-    raw_required = list(required)
+    # Restrict automated token extraction to Key Qualifications zone
+    tech_hits = _known_skill_hits(key_qual_text, TECH_SKILLS)
+    soft_hits = _known_skill_hits(key_qual_text, SOFT_SKILLS)
 
-    tech_hits = _known_skill_hits(text, TECH_SKILLS)
-    soft_hits = _known_skill_hits(text, SOFT_SKILLS)
+    # For preferred skills, scan both Key Qualifications and Preferred Skills (all non-corporate text)
+    non_corporate_text = key_qual_text + "\n" + pref_skills_text
+    tech_hits_pref = _known_skill_hits(non_corporate_text, TECH_SKILLS)
+    soft_hits_pref = _known_skill_hits(non_corporate_text, SOFT_SKILLS)
+
+    if "##" in text:
+        required = _split_skill_lines(key_qual_text.splitlines())
+        preferred = _split_skill_lines(pref_skills_text.splitlines())
+        if not preferred:
+            preferred = _split_skill_lines(_extract_section_lines(key_qual_text, PREFERRED_HEADERS))
+    else:
+        required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
+        preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
 
     required = _dedupe(
         [
@@ -439,7 +485,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         [
             skill
             for skill in preferred
-            if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}
+            if skill.lower() in {hit.lower() for hit in tech_hits_pref + soft_hits_pref}
         ]
     )
 
@@ -450,13 +496,23 @@ def parse_jd_text(text: str) -> Dict[str, object]:
             preferred
             + [
                 skill
-                for skill in tech_hits
+                for skill in tech_hits_pref
                 if skill.lower() not in {item.lower() for item in required}
             ]
         )
 
-    if not raw_required:
-        raw_required = list(required)
+    # Deduplicate preferred skills that are already required
+    required_set = {s.lower() for s in required}
+    preferred = [p for p in preferred if p.lower() not in required_set]
+
+    # Assign Tier 1 (1.0) and Tier 2 (0.4) weights
+    skill_weights = {}
+    for skill in required:
+        skill_weights[skill] = 1.0
+    for skill in preferred:
+        skill_weights[skill] = 0.4
+
+    raw_required = list(required)
 
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
@@ -475,11 +531,6 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     for skill in required:
         if skill.strip().isdigit():
             raise ValueError(f"Validation failed: purely numeric skill token found '{skill}'.")
-    # min_exp defaults to 0 when not found — this is a valid state;
-    # the scorer handles min_experience_years=0 gracefully (skips exp scoring)
-
-    # Extract skill weights based on JD text
-    skill_weights = _extract_skill_weights(text, required)
 
     return {
         "required_skills": required,
@@ -497,7 +548,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     }
 
 
-def parse_jd_docx(path: str) -> Dict[str, object]:
+def parse_jd_docx(path: str) -> Dict[str, Any]:
     """Parse a .docx JD. Safe defaults are returned if parsing fails."""
     jd_path = Path(path)
     text = _extract_docx_text(jd_path) if jd_path.exists() else ""
@@ -507,7 +558,7 @@ def parse_jd_docx(path: str) -> Dict[str, object]:
     return parsed
 
 
-def parse_jd(path: str) -> Dict[str, object]:
+def parse_jd(path: str) -> Dict[str, Any]:
     """Parse a JD from .docx, .txt, or raw string fallback."""
     jd_path = Path(path)
 

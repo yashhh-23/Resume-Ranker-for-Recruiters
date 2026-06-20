@@ -215,3 +215,105 @@ def test_extract_salary_range():
     assert _extract_salary_range("Up to 20 LPA") == (2_000_000.0, 2_000_000.0)
     assert _extract_salary_range("No salary mentioned") == (0.0, 0.0)
     assert _extract_salary_range("$80k-$120k") == (80_000.0, 120_000.0)
+
+
+def test_segment_jd_text():
+    from ranker.jd_parser import segment_jd_text
+    jd_text = """
+Company Introduction
+We are a premier fintech firm.
+
+## Key Qualifications
+* Python
+* Machine Learning
+* SQL
+
+## Preferred Skills
+* Docker
+* AWS
+"""
+    zones = segment_jd_text(jd_text)
+    assert "fintech" in zones["Company info"].lower()
+    assert "python" in zones["Key Qualifications"].lower()
+    assert "docker" in zones["Preferred Skills"].lower()
+
+
+def test_tiered_weights():
+    from ranker.jd_parser import parse_jd_text
+    jd_text = """
+## Key Qualifications
+* Python
+* SQL
+
+## Preferred Skills
+* Docker
+"""
+    jd = parse_jd_text(jd_text)
+    weights = jd["skill_weights"]
+    assert weights["Python"] == 1.0
+    assert weights["SQL"] == 1.0
+    assert weights["Docker"] == 0.4
+
+
+def test_title_blacklist_penalty():
+    from ranker.candidate_scorer import check_title_blacklist_penalty, score_required_skill_coverage
+    jd = {
+        "target_title": "ML Engineer",
+        "target_field": "Computer Science",
+        "required_skills": ["python", "sql"],
+        "preferred_skills": []
+    }
+    
+    cand_tech = {
+        "profile": {"current_title": "ML Engineer"},
+        "skills": [{"name": "python", "proficiency": "expert"}, {"name": "sql", "proficiency": "expert"}],
+        "career_history": [],
+        "education": []
+    }
+    assert not check_title_blacklist_penalty(cand_tech, jd)
+    score_tech = score_required_skill_coverage(cand_tech, jd)
+    
+    cand_civil = {
+        "profile": {"current_title": "Civil Engineer"},
+        "skills": [{"name": "python", "proficiency": "expert"}, {"name": "sql", "proficiency": "expert"}],
+        "career_history": [],
+        "education": []
+    }
+    assert check_title_blacklist_penalty(cand_civil, jd)
+    score_civil = score_required_skill_coverage(cand_civil, jd)
+    
+    assert score_civil == round(score_tech * 0.10, 4) or score_civil < 0.15
+
+
+def test_multiplicative_scoring_and_availability_decay():
+    from ranker.candidate_scorer import score_candidate
+    
+    jd = {
+        "target_title": "Software Engineer",
+        "target_field": "Computer Science",
+        "required_skills": ["python", "sql"],
+        "preferred_skills": []
+    }
+    
+    cand_immediate = {
+        "candidate_id": "C_IMMEDIATE",
+        "profile": {"years_of_experience": 5.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "python", "proficiency": "expert"}, {"name": "sql", "proficiency": "expert"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"notice_period_days": 30.0, "recruiter_response_rate": 1.0}
+    }
+    
+    cand_delayed = {
+        "candidate_id": "C_DELAYED",
+        "profile": {"years_of_experience": 5.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "python", "proficiency": "expert"}, {"name": "sql", "proficiency": "expert"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"notice_period_days": 120.0, "recruiter_response_rate": 1.0}
+    }
+    
+    res_immediate = score_candidate(cand_immediate, jd, 1.0)
+    res_delayed = score_candidate(cand_delayed, jd, 1.0)
+    
+    assert res_immediate["score"] > res_delayed["score"]
