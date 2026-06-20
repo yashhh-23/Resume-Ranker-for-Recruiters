@@ -20,8 +20,14 @@ def test_parse_jd_text():
 
 def test_score_education():
     jd = {"target_field": "Computer Science"}
-    cand_no_edu_no_exp = {"education": [], "profile": {"years_of_experience": 2}}
+    cand_no_edu_no_exp = {"education": [], "profile": {"years_of_experience": 0}}
     assert score_education(cand_no_edu_no_exp, jd) == 0.0
+    
+    cand_no_edu_low_exp = {"education": [], "profile": {"years_of_experience": 2}}
+    assert score_education(cand_no_edu_low_exp, jd) == 0.1
+
+    cand_no_edu_med_exp = {"education": [], "profile": {"years_of_experience": 7}}
+    assert score_education(cand_no_edu_med_exp, jd) == 0.3
 
     cand_no_edu_high_exp = {"education": [], "profile": {"years_of_experience": 12}}
     assert score_education(cand_no_edu_high_exp, jd) == 0.5
@@ -31,12 +37,18 @@ def test_score_education():
 
 def test_score_career_fit():
     jd = {"target_title": "Engineer", "min_experience_years": 5.0}
-    cand = {
+    cand_1_role = {
         "profile": {"years_of_experience": 6.0},
         "career_history": [{"title": "Software Engineer", "start_date": "2020-01-01"}]
     }
-    score = score_career_fit(cand, jd)
-    assert score > 0.0
+    cand_6_roles = {
+        "profile": {"years_of_experience": 6.0},
+        "career_history": [{"title": "Software Engineer", "start_date": "2020-01-01"}] * 6
+    }
+    score_1 = score_career_fit(cand_1_role, jd)
+    score_6 = score_career_fit(cand_6_roles, jd)
+    assert score_1 > 0.0
+    assert abs(score_1 - score_6) < 0.01
 
 def test_score_availability():
     signals = {"open_to_work_flag": True, "notice_period_days": 30}

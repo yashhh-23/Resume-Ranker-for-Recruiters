@@ -1,6 +1,15 @@
 import math
 from typing import Any, Dict
 
+SIGNAL_WEIGHTS = {
+    "github_score": 0.1,
+    "response_rate": 0.4,
+    "interview_completion": 0.1,
+    "assessment_score": 0.1,
+    "offer_score": 0.1,
+    "completeness_score": 0.1,
+    "salary_fit": 0.1,
+}
 
 def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
@@ -66,16 +75,6 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
     completeness_score = clamp(completeness / 100.0)
 
     salary_fit = score_salary_fit(signals, jd)
-
-    SIGNAL_WEIGHTS = {
-        "github_score": 0.1,
-        "response_rate": 0.4,
-        "interview_completion": 0.1,
-        "assessment_score": 0.1,
-        "offer_score": 0.1,
-        "completeness_score": 0.1,
-        "salary_fit": 0.1,
-    }
 
     weighted_sum = (
         github_score * SIGNAL_WEIGHTS["github_score"] +
