@@ -273,9 +273,11 @@ def _extract_salary_range(text: str) -> tuple[float, float]:
     return 0.0, 0.0
 
 
+MAX_JD_CHARS = 10_000
+
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
-    text = text or ""
+    text = (text or "")[:MAX_JD_CHARS]
     required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
     preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
 

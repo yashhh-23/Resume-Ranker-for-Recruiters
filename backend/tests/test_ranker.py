@@ -54,6 +54,50 @@ def test_score_availability():
     signals = {"open_to_work_flag": True, "notice_period_days": 30}
     assert score_availability(signals) > 0.5
 
+def test_score_signal_modifier():
+    from ranker.signal_scorer import score_signal_modifier
+    # Full signals — should score high
+    signals_full = {
+        "github_activity_score": 80,
+        "recruiter_response_rate": 0.9,
+        "interview_completion_rate": 0.85,
+        "skill_assessment_scores": {"python": 90, "sql": 85},
+        "offer_acceptance_rate": 0.8,
+        "profile_completeness_score": 95,
+        "salary_expectation_min": 80000,
+        "salary_expectation_max": 110000,
+    }
+    jd = {"salary_min": 90000, "salary_max": 120000}
+    score_full = score_signal_modifier(signals_full, jd)
+    assert score_full > 0.6
+
+    # Empty signals — should not crash, returns neutral baseline
+    score_empty = score_signal_modifier({}, {})
+    assert 0.0 <= score_empty <= 1.0
+
+    # String signal values — safe_float coercion test
+    signals_str = {"github_activity_score": "high", "recruiter_response_rate": "medium"}
+    score_str = score_signal_modifier(signals_str, {})
+    assert 0.0 <= score_str <= 1.0  # must not crash
+
+def test_sanitize_truncation():
+    from ranker.validators import sanitize_candidates
+    long_headline = "A" * 5000
+    c = {"candidate_id": "C99", "profile": {"headline": long_headline}}
+    valid, skipped = sanitize_candidates([c])
+    assert len(valid) == 1
+    assert len(valid[0]["profile"]["headline"]) <= 2000
+
+def test_build_reasoning_empty_title():
+    from ranker.candidate_scorer import build_reasoning
+    jd = {"target_title": "", "required_skills": []}
+    candidate = {"profile": {"current_title": "Engineer", "years_of_experience": 3},
+                "skills": [], "redrob_signals": {}}
+    breakdown = {"skill_match": 0.5, "career_fit": 0.4, "signal_modifier": 0.3,
+                 "education": 0.2, "availability": 0.1}
+    result = build_reasoning(candidate, breakdown, jd)  # must not raise IndexError
+    assert isinstance(result, str)
+
 def test_rank_candidates():
     jd = {"skills_text": "Python"}
     cands = [{"candidate_id": "C1", "skills": [{"name": "Python"}]}]
