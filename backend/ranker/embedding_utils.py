@@ -6,7 +6,6 @@ from typing import Dict, Iterable, List
 from collections import OrderedDict
 import numpy as np
 
-
 CACHE_VERSION = "rrr-embeddings-v1"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -42,10 +41,7 @@ def candidate_embedding_text(candidate: Dict) -> str:
     )
 
     career_history = candidate.get("career_history") or []
-    career_titles = " ".join(
-        str(role.get("title") or "")
-        for role in career_history
-    )
+    career_titles = " ".join(str(role.get("title") or "") for role in career_history)
 
     return " ".join([profile_text, career_titles, " ".join(skill_tokens)]).strip()
 
@@ -53,11 +49,14 @@ def candidate_embedding_text(candidate: Dict) -> str:
 def cache_key(candidate: Dict) -> str:
     candidate_id = str(candidate.get("candidate_id") or candidate.get("id") or "")
     text = candidate_embedding_text(candidate)
-    digest = hashlib.sha256(f"{CACHE_VERSION}|{candidate_id}|{text}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(
+        f"{CACHE_VERSION}|{candidate_id}|{text}".encode("utf-8")
+    ).hexdigest()
     return f"{candidate_id}:{digest}"
 
 
-MAX_CACHE_ENTRIES = 20_000   # ~30MB cap for 384-dim embeddings
+MAX_CACHE_ENTRIES = 20_000  # ~30MB cap for 384-dim embeddings
+
 
 class LRUEmbeddingCache:
     def __init__(self, maxsize: int = MAX_CACHE_ENTRIES):
@@ -77,20 +76,40 @@ class LRUEmbeddingCache:
         if len(self._cache) > self._maxsize:
             self._cache.popitem(last=False)  # evict oldest
 
+
 _EMBEDDING_CACHE = LRUEmbeddingCache()
 
 
+ENCODE_BATCH_SIZE = 64  # Safe for 512MB RAM on CPU
+
 
 def embed_texts(model, texts: Iterable[str]) -> np.ndarray:
-    return np.asarray(
-        model.encode(
-            list(texts),
-            batch_size=64,
-            show_progress_bar=False,
-            normalize_embeddings=True,
-        ),
-        dtype=np.float32,
-    )
+    texts = list(texts)
+    if not texts:
+        return np.array([])
+    if len(texts) <= ENCODE_BATCH_SIZE:
+        return np.asarray(
+            model.encode(
+                texts,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+                normalize_embeddings=True,
+            ),
+            dtype=np.float32,
+        )
+    # Batch encode for large inputs
+    results = []
+    for i in range(0, len(texts), ENCODE_BATCH_SIZE):
+        batch = texts[i : i + ENCODE_BATCH_SIZE]
+        results.append(
+            model.encode(
+                batch,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+                normalize_embeddings=True,
+            )
+        )
+    return np.asarray(np.vstack(results), dtype=np.float32)
 
 
 def get_candidate_embeddings(
@@ -123,7 +142,10 @@ def get_candidate_embeddings(
             result[cid] = vec
     return result
 
-def get_jd_embedding(jd: dict, model, cache_path: str = ".embedding_cache.pkl") -> np.ndarray:
+
+def get_jd_embedding(
+    jd: dict, model, cache_path: str = ".embedding_cache.pkl"
+) -> np.ndarray:
     skills_text = str(jd.get("skills_text") or "")
     jd_key = "jd:" + hashlib.md5(skills_text.encode()).hexdigest()
     cache = _EMBEDDING_CACHE

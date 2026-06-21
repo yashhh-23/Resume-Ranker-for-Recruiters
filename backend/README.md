@@ -83,24 +83,20 @@ Endpoints:
 }
 ```
 
-## Scoring Model
+## Scoring Formula
 
 ```text
-final_score =
-  0.35 * skill_match_score
-+ 0.25 * career_fit_score
-+ 0.15 * signal_modifier
-+ 0.15 * education_score
-+ 0.10 * availability_score
+final_score = 0.35×skill_match + 0.25×career_fit + 0.15×signal_modifier
+            + 0.15×education + 0.10×availability
 ```
 
-| Component | Weight | Method |
-|---|---:|---|
-| Skill Match | 35% | Sentence-transformer cosine similarity between JD skills text and candidate skill/profile text |
-| Career Fit | 25% | Recency-decayed title and industry match, cap+clip normalized |
-| Signal Modifier | 15% | GitHub, recruiter response, interview completion, assessments, offer acceptance |
-| Education | 15% | Institution tier multiplied by field-of-study match |
-| Availability | 10% | Open to work, notice period, relocation willingness |
+| Signal | Weight | Method |
+|---|---|---|
+| Skill Match | 35% | Cosine similarity (FAISS) + keyword coverage |
+| Career Fit | 25% | Title/industry text match + seniority alignment |
+| Signal Modifier | 15% | Redrob-specific activity signals |
+| Education | 15% | Degree tier + field relevance |
+| Availability | 10% | Notice period + open_to_work + relocation |
 
 ## Project Structure
 

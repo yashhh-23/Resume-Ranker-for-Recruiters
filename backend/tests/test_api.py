@@ -3,10 +3,12 @@ from app.main import app
 
 client = TestClient(app)
 
+
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
     assert "status" in response.json()
+
 
 def test_health():
     response = client.get("/health")
@@ -16,6 +18,7 @@ def test_health():
     assert "version" in data
     assert "model" in data
     assert "uptime_seconds" in data
+
 
 def test_rank_missing_data():
     response = client.post("/rank", json={"job_description": "", "candidates": []})
