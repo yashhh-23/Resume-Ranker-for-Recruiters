@@ -1,0 +1,41 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy backend directory to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Clone the Hugging Face space
+          git clone https://yashhh-23:$HF_TOKEN@huggingface.co/spaces/yashhh-23/redrob-ranker hf_space
+          
+          # Navigate to the space directory
+          cd hf_space
+          
+          # Configure git
+          git config user.email "bot@huggingface.co"
+          git config user.name "Hugging Face Deploy Bot"
+          
+          # Remove existing files to sync properly
+          git rm -rf . || true
+          
+          # Copy backend files to the root of the space
+          # Use -a to preserve permissions and hidden files
+          cp -a ../backend/. .
+          
+          # Add changes
+          git add .
+          
+          # Commit and push
+          git commit -m "Sync from GitHub main branch - ${GITHUB_SHA}" || echo "No changes to commit"
+          git push

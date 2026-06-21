@@ -1,3 +1,13 @@
+---
+title: Redrob Ranker
+emoji: 🏆
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # RRR - Resume Ranker Recruiter Backend
 
 Offline Python ranking engine for the Hack2Skill Intelligent Candidate Discovery challenge. It scores candidates against a job description across five weighted signals and writes a valid `submission.csv`. A FastAPI wrapper exposes the same ranking logic for the frontend demo.
