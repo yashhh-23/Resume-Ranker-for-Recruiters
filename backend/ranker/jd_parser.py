@@ -16,6 +16,15 @@ DEFAULT_JD = {
     "seniority_level": "mid",
 }
 
+INDUSTRY_KEYWORDS = {
+    "tech": ["software", "engineer", "developer", "data", "ML", "AI", "backend", "frontend"],
+    "finance": ["fintech", "banking", "financial", "accounting", "audit", "investment"],
+    "marketing": ["marketing", "SEO", "content", "brand", "growth", "digital"],
+    "sales": ["sales", "business development", "BD", "account executive"],
+    "healthcare": ["health", "medical", "pharma", "clinical", "hospital"],
+    "design": ["UI", "UX", "designer", "figma", "illustrator", "creative"],
+}
+
 REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
 PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desired"]
 
@@ -265,6 +274,14 @@ def _extract_industry(text: str) -> str:
     return match.group(1).strip(" .")
 
 
+def _infer_industry_from_title(title: str) -> str:
+    title_lower = title.lower()
+    for industry, keywords in INDUSTRY_KEYWORDS.items():
+        if any(kw.lower() in title_lower for kw in keywords):
+            return industry
+    return DEFAULT_JD["target_industry"]
+
+
 def _extract_field(text: str) -> str:
     fields = [
         "Computer Science",
@@ -285,6 +302,15 @@ def _extract_field(text: str) -> str:
 
 
 def _extract_salary_range(text: str) -> tuple[float, float]:
+    lpa_match = re.search(
+        r"(?:INR|₹|Rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:L|lakh|LPA)?\s*(?:-|to|–)\s*"
+        r"(?:INR|₹|Rs\.?)?\s*(\d+(?:\.\d+)?)\s*(?:L|lakh|LPA)",
+        text, flags=re.IGNORECASE
+    )
+    if lpa_match:
+        min_val = float(lpa_match.group(1)) * 100_000
+        max_val = float(lpa_match.group(2)) * 100_000
+        return min_val, max_val
     match = re.search(
         r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text
     )
@@ -375,6 +401,8 @@ def parse_jd_text(text: str) -> Dict[str, object]:
 
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
+    if target_industry == DEFAULT_JD["target_industry"]:
+        target_industry = _infer_industry_from_title(target_title or text[:200])
     # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
     # (Sales, Finance, Design), semantic cosine scores will be lower on average.
     # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.

@@ -115,7 +115,6 @@ def embed_texts(model, texts: Iterable[str]) -> np.ndarray:
 def get_candidate_embeddings(
     candidates: List[Dict],
     model,
-    cache_path: str = ".embedding_cache.pkl",
 ) -> Dict[str, np.ndarray]:
     cache = _EMBEDDING_CACHE
     missing_candidates = []
@@ -144,7 +143,7 @@ def get_candidate_embeddings(
 
 
 def get_jd_embedding(
-    jd: dict, model, cache_path: str = ".embedding_cache.pkl"
+    jd: dict, model
 ) -> np.ndarray:
     skills_text = str(jd.get("skills_text") or "")
     jd_key = "jd:" + hashlib.md5(skills_text.encode()).hexdigest()

@@ -81,7 +81,7 @@ def main():
     if skipped:
         print(f"Skipped {len(skipped)} invalid candidates.", file=sys.stderr)
     jd = parse_jd(args.jd)
-    ranked = rank_candidates(valid_candidates, jd, cache_path=args.cache, limit=100)
+    ranked = rank_candidates(valid_candidates, jd, limit=100)
     if len(ranked) < 100:
         print(
             f"WARNING: Only {len(ranked)} candidates ranked - submission requires top 100. Padding to 100.",
