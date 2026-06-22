@@ -602,6 +602,20 @@ const ResultsPanel = ({
         )}
       </div>
 
+      {/* Accessibility: aria-live region for status announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {isLoading
+          ? "Ranking candidates, please wait..."
+          : rankedResults.length > 0
+          ? `${filtered.length} candidates ranked. ${stats.anomalies > 0 ? `${stats.anomalies} anomalies detected.` : ""}`
+          : "No candidates ranked yet. Paste a job description and load candidates to begin."}
+      </div>
+
       <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20">
         {/* Loading state for shortlist — staged messages + skeleton cards */}
         {isLoading && activeTab === "shortlist" && (
