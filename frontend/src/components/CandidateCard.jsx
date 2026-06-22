@@ -224,11 +224,14 @@ const CandidateCard = ({
               left: `${tooltipCoords.left}px`,
               transform: tooltipCoords.placeBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
               zIndex: 9999,
+              backgroundColor: "var(--obsidian)",
+              border: "1px solid var(--borderline)",
+              color: "var(--slate-300)",
             }}
-            className="w-72 bg-[#1E222B] border border-slate-800 p-4 shadow-2xl rounded-none pointer-events-none font-mono text-[11px] text-slate-300"
+            className="w-72 p-4 shadow-2xl rounded-none pointer-events-none font-mono text-[11px]"
           >
-            <div className="border-b border-slate-800 pb-2 mb-2">
-              <span className="text-xs font-bold text-slate-100">SCORE BREAKDOWN COMPOSITION</span>
+            <div style={{ borderBottom: "1px solid var(--borderline)" }} className="pb-2 mb-2">
+              <span style={{ color: "var(--slate-100)" }} className="text-xs font-bold">SCORE BREAKDOWN COMPOSITION</span>
             </div>
             <div className="space-y-1.5">
               {[
@@ -247,7 +250,7 @@ const CandidateCard = ({
                 </div>
               ))}
             </div>
-            <div className="border-t border-slate-800 pt-2 mt-2 flex justify-between items-center font-bold text-slate-100">
+            <div style={{ borderTop: "1px solid var(--borderline)", color: "var(--slate-100)" }} className="pt-2 mt-2 flex justify-between items-center font-bold">
               <span>Overall Fit Index:</span>
               <span className="text-emerald">{formatPercent(result.score)}</span>
             </div>
