@@ -6,10 +6,15 @@ from typing import Any, Dict, List
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 from ranker import parse_jd_text, rank_candidates
 from ranker.candidate_scorer import WEIGHTS
@@ -24,11 +29,25 @@ async def lifespan(app: FastAPI):
     # Warm up model on startup
     import asyncio
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, get_embedder)
-    print("[RRR] Model loaded and ready.")
+    try:
+        await loop.run_in_executor(None, get_embedder)
+        print("[RRR] Model loaded and ready.")
+    except Exception as e:
+        print(f"[RRR] WARNING: Model warm-up failed: {e}. First request will be slow.")
     yield
 
 app = FastAPI(title="RRR Resume Ranker Backend", lifespan=lifespan)
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail,
+            "status_code": exc.status_code,
+            "path": str(request.url.path)
+        }
+    )
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -86,7 +105,8 @@ async def health():
 
 
 @app.post("/rank")
-async def rank(req: RankRequest):
+@limiter.limit("10/minute")
+async def rank(request: Request, req: RankRequest):
     if not req.job_description.strip():
         raise HTTPException(status_code=400, detail="job_description is required")
     if not req.candidates:
@@ -106,7 +126,10 @@ async def rank(req: RankRequest):
 
     return {
         "ranked_candidates": ranked,
-        "skipped_candidates": len(skipped),
+        "skipped_candidates": {
+            "count": len(skipped),
+            "ids": skipped
+        },
         "total_candidates": len(req.candidates),
         "ranked_count": len(ranked),
         "processing_time_ms": elapsed_ms,
