@@ -17,6 +17,72 @@ import {
   clearPassphrase,
 } from "./utils/talentPoolUtils";
 
+// ─── SVG Themed Icons ────────────────────────────────────────────────────────
+const ShieldIcon = ({ className = "h-5 w-5" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+);
+
+const LockIcon = ({ className = "h-3.5 w-3.5" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const SunIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="5" />
+    <line x1="12" y1="1" x2="12" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="23" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="1" y1="12" x2="3" y2="12" />
+    <line x1="21" y1="12" x2="23" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+);
+
+const MoonIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
+
 const App = () => {
   // ─── Auth gate ────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -223,13 +289,14 @@ const App = () => {
       {/* Header Navigation Bar */}
       <header className="flex items-center justify-between px-6 bg-slate-950 border-b border-borderline h-14 shrink-0 font-mono">
         <div className="flex items-center gap-3">
-          <span className="text-emerald text-xl">🛡️</span>
+          <ShieldIcon className="h-5 w-5 text-emerald shrink-0" />
           <div>
             <h1 className="text-sm font-bold text-slate-100 tracking-tight leading-none">RRR Recruiter</h1>
             <span className="text-[9px] text-slate-500 uppercase tracking-widest block mt-0.5">Resume Ranker</span>
           </div>
-          <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald ml-2 animate-pulse">
-            <span>🔒 Encrypted Locally</span>
+          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald ml-2 animate-pulse">
+            <LockIcon className="h-2.5 w-2.5 shrink-0" />
+            <span>Encrypted Locally</span>
           </div>
         </div>
 
@@ -240,9 +307,9 @@ const App = () => {
             type="button"
             onClick={toggleTheme}
             title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            className="p-1.5 rounded-none border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center justify-center h-8 w-8 text-xs"
+            className="p-1.5 rounded-none border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center justify-center h-8 w-8"
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            {theme === "dark" ? <SunIcon className="h-4 w-4 shrink-0" /> : <MoonIcon className="h-4 w-4 shrink-0" />}
           </button>
           
           {/* Logout Button */}
@@ -251,9 +318,10 @@ const App = () => {
             id="logout-btn"
             onClick={handleLogout}
             title="Lock workspace & switch passphrase"
-            className="px-3 py-1.5 text-xs uppercase tracking-wider font-mono bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-none transition-all duration-200 flex items-center gap-1.5 h-8"
+            className="px-3 py-1.5 text-xs uppercase tracking-wider font-mono bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-none transition-all duration-200 flex items-center gap-2 h-8"
           >
-            <span>🔒 Lock</span>
+            <LockIcon className="h-3 w-3 text-slate-400 group-hover:text-slate-200 shrink-0" />
+            <span>Lock</span>
           </button>
         </div>
       </header>
