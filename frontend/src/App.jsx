@@ -21,6 +21,22 @@ const App = () => {
   // ─── Auth gate ────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // ─── Theme Mode ───────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("rrr_theme");
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("rrr_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   const handleAuthenticate = (phrase) => {
     setPassphrase(phrase);           // store passphrase in memory only
     setTalentPools(getTalentPools()); // decrypt & load this recruiter's pools
@@ -204,7 +220,44 @@ const App = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-midnight flex flex-col">
-      {/* Mobile Tab Switcher + Logout */}
+      {/* Header Navigation Bar */}
+      <header className="flex items-center justify-between px-6 bg-slate-950 border-b border-borderline h-14 shrink-0 font-mono">
+        <div className="flex items-center gap-3">
+          <span className="text-emerald text-xl">🛡️</span>
+          <div>
+            <h1 className="text-sm font-bold text-slate-100 tracking-tight leading-none">RRR Recruiter</h1>
+            <span className="text-[9px] text-slate-500 uppercase tracking-widest block mt-0.5">Resume Ranker</span>
+          </div>
+          <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald ml-2 animate-pulse">
+            <span>🔒 Encrypted Locally</span>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            className="p-1.5 rounded-none border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center justify-center h-8 w-8 text-xs"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          
+          {/* Logout Button */}
+          <button
+            type="button"
+            id="logout-btn"
+            onClick={handleLogout}
+            title="Lock workspace & switch passphrase"
+            className="px-3 py-1.5 text-xs uppercase tracking-wider font-mono bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 rounded-none transition-all duration-200 flex items-center gap-1.5 h-8"
+          >
+            <span>🔒 Lock</span>
+          </button>
+        </div>
+      </header>
+      {/* Mobile Tab Switcher */}
       {!isDesktop && (
         <div className="flex bg-slate-950 border-b border-borderline h-12 shrink-0">
           <button
@@ -234,16 +287,6 @@ const App = () => {
             <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-slate-950 border border-slate-800 text-slate-400 font-mono">
               {rankedResults.length}
             </span>
-          </button>
-          {/* Logout / switch workspace */}
-          <button
-            type="button"
-            id="logout-btn"
-            onClick={handleLogout}
-            title="Lock workspace & switch passphrase"
-            className="px-3 text-slate-500 hover:text-emerald-400 transition-colors text-lg"
-          >
-            🔒
           </button>
         </div>
       )}

@@ -47,7 +47,7 @@ const ResultsPanel = ({
   const handleToggleCompare = (candidateId) => {
     setCompareIds((prev) => {
       if (prev.includes(candidateId)) return prev.filter((id) => id !== candidateId);
-      if (prev.length >= 2) return [prev[1], candidateId]; // shift out oldest
+      if (prev.length >= 3) return prev; // hard cap at 3
       return [...prev, candidateId];
     });
   };
@@ -328,22 +328,22 @@ const ResultsPanel = ({
             {/* Export buttons + Compare button */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {/* Compare button — appears when 2 candidates selected */}
-              {compareIds.length === 2 && activeTab === "shortlist" && (
+              {compareIds.length >= 2 && activeTab === "shortlist" && (
                 <button
                   type="button"
                   onClick={() => setShowCompareModal(true)}
                   className="text-[11px] bg-amber/10 border border-amber/40 hover:bg-amber/20 text-amber font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono animate-pulse"
-                  title="Compare 2 selected candidates side-by-side"
+                  title={`Compare ${compareIds.length} selected candidates`}
                 >
                   <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  Compare 2
+                  Compare {compareIds.length}
                 </button>
               )}
-              {compareIds.length > 0 && compareIds.length < 2 && activeTab === "shortlist" && (
-                <span className="text-[10px] font-mono text-amber border border-amber/20 px-2 py-1 rounded-none bg-amber/5">
-                  Select {2 - compareIds.length} more to compare
+              {compareIds.length > 0 && activeTab === "shortlist" && (
+                <span className="text-[10px] font-mono text-amber border border-amber/20 px-2.5 py-1 rounded-none bg-amber/5">
+                  {compareIds.length}/3 selected for compare
                 </span>
               )}
 
@@ -729,7 +729,19 @@ const ResultsPanel = ({
         )}
 
         {/* Empty Lists States */}
-        {!isLoading && activeList.length === 0 && (activeTab === "shortlist" || selectedPoolId !== null) && (
+        {!isLoading && candidates.length === 0 && activeTab === "shortlist" && (
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+            <svg className="w-16 h-16 text-slate-800 mb-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="text-slate-400 font-bold text-lg font-mono uppercase tracking-wider">No candidates ranked yet</h3>
+            <p className="text-slate-600 text-xs mt-2 font-mono max-w-sm">
+              Paste a Job Description and import a candidate JSON payload in the configuration panel to run the Discovery Matrix.
+            </p>
+          </div>
+        )}
+
+        {!isLoading && candidates.length > 0 && activeList.length === 0 && (activeTab === "shortlist" || selectedPoolId !== null) && (
           <div className="flex flex-col items-center justify-center p-12 text-center h-48">
             <svg className="h-8 w-8 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -869,20 +881,19 @@ const ResultsPanel = ({
       </div>
 
       {/* Compare Modal */}
-      {showCompareModal && compareIds.length === 2 && (() => {
+      {showCompareModal && compareIds.length >= 2 && (() => {
         const candidateMap = new Map(candidates.map((c) => [c.candidate_id, c]));
         const rankMap = new Map(rankedResults.map((r) => [r.candidate_id, r]));
-        const cA = candidateMap.get(compareIds[0]);
-        const rA = rankMap.get(compareIds[0]);
-        const cB = candidateMap.get(compareIds[1]);
-        const rB = rankMap.get(compareIds[1]);
-        if (!cA || !cB) return null;
+        
+        const selectedCandidates = compareIds.map(id => ({
+          candidate: candidateMap.get(id),
+          result: rankMap.get(id)
+        })).filter(item => item.candidate && item.result);
+
+        if (selectedCandidates.length < 2) return null;
         return (
           <CompareModal
-            candidateA={cA}
-            resultA={rA}
-            candidateB={cB}
-            resultB={rB}
+            selectedCandidates={selectedCandidates}
             onClose={() => setShowCompareModal(false)}
           />
         );

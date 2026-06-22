@@ -159,6 +159,9 @@ const PassphraseGate = ({ onAuthenticate }) => {
             <p className="text-slate-500 text-xs mt-0.5 font-mono uppercase tracking-widest">
               Resume Ranker · Recruiter
             </p>
+            <div className="mt-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-semibold bg-emerald/10 border border-emerald/20 text-emerald animate-pulse">
+              <span>🔒 Encrypted Locally (AES-256)</span>
+            </div>
           </div>
         </div>
 
