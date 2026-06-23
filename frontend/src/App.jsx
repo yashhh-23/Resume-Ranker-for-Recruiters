@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, useCallback, lazy, Suspense, useRef } from "react";
 import CryptoJS from "crypto-js";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
@@ -20,10 +20,13 @@ import {
   clearPassphrase,
 } from "./utils/talentPoolUtils";
 import { ShieldIcon, LockIcon, SunIcon, MoonIcon } from "./components/icons";
+import GuideTour, { TOUR_KEY } from "./components/GuideTour";
 
 const App = () => {
   // ─── Auth gate ────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [tourRestartCount, setTourRestartCount] = useState(0);
+  const tourRestartRef = useRef(0);
   const [runCount, setRunCount] = useState(0);
   const [showWeightsInfo, setShowWeightsInfo] = useState(false);
   const [passphraseWarning, setPassphraseWarning] = useState(false);
@@ -308,7 +311,7 @@ const App = () => {
         setActiveMobileTab("results");
       }
     } finally {
-      // Yield control to let React paint the heavy render update first (prevents blank visual lag)
+      // Yield control to let React paint the heavy render update first
       setTimeout(() => {
         setIsLoading(false);
       }, 60);
@@ -337,7 +340,7 @@ const App = () => {
   return (
     <div className="h-screen overflow-hidden bg-midnight flex flex-col">
       {/* Header Navigation Bar */}
-      <header className="flex items-center justify-between px-6 bg-slate-950 border-b border-borderline h-14 shrink-0 font-mono">
+      <header id="guide-target-header" className="flex items-center justify-between px-6 bg-slate-950 border-b border-borderline h-14 shrink-0 font-mono">
         <div className="flex items-center gap-3">
           <ShieldIcon className="h-5 w-5 text-emerald shrink-0" />
           <div>
@@ -362,6 +365,7 @@ const App = () => {
           </a>
           {/* Scoring Model Info Button — icon-only on mobile, full label on md+ */}
           <button
+            id="guide-target-scoring-btn"
             type="button"
             onClick={() => setShowWeightsInfo(true)}
             className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-emerald hover:border-emerald/30 rounded transition-colors"
@@ -375,6 +379,22 @@ const App = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
+          {/* Guide Tour Trigger */}
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem(TOUR_KEY);
+              setTourRestartCount((n) => n + 1);
+            }}
+            title="Open user guide tour"
+            aria-label="Open user guide tour"
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-blue-400 hover:border-blue-500/30 rounded transition-colors"
+          >
+            <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+            <span className="hidden md:inline">Guide</span>
+          </button>
           {/* Theme Toggle Button */}
           <button
             type="button"
@@ -603,9 +623,10 @@ const App = () => {
       {showWeightsInfo && (
         <div
           className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowWeightsInfo(false)}
+          onClick={() => { setShowWeightsInfo(false); dispatchGuideEvent("scoring-modal-close"); }}
         >
           <div
+            id="guide-scoring-modal-dialog"
             className="w-full max-w-lg bg-slate-950 border border-slate-800 shadow-2xl p-6 font-mono rounded-none"
             onClick={(e) => e.stopPropagation()}
           >
@@ -657,6 +678,9 @@ const App = () => {
           <span>Team Chanakya · Redrob H2S Hackathon</span>
         </span>
       </footer>
+
+      {/* Guide Tour Overlay — shown on first session visit */}
+      <GuideTour key={tourRestartCount} onRestart={tourRestartCount > 0 ? tourRestartCount : null} />
     </div>
   );
 };

@@ -68,7 +68,7 @@ const InputPanel = ({
     setParsedCount(0);
     try {
       setJobDescription(
-        "We are looking for a Backend Engineer / Data Engineer hybrid to join our team. The ideal candidate will have 5+ years of experience building scalable data pipelines, streaming applications, and robust backend systems.\n\nKey Qualifications:\n- Strong proficiency in SQL, Python, and Apache Spark\n- Experience with workflow orchestration tools like Airflow or Apache Beam\n- Familiarity with cloud platforms (AWS/GCP/Azure) and data warehousing (Snowflake/BigQuery)\n- Experience deploying or fine-tuning machine learning models (NLP, LLMs, computer vision) is highly preferred\n- Strong problem-solving skills and collaborative mindset"
+        "We are looking for a Senior AI Engineer to join our founding team. The ideal candidate will have 5–9 years of experience building and deploying end-to-end ranking, retrieval, and matching systems to real users at a meaningful scale.\n\nKey Qualifications:\n- Deep technical depth in modern ML/NLP systems including embeddings-based retrieval systems, LLMs, and fine-tuning\n- Production experience with vector databases or hybrid search infrastructure (e.g., Pinecone, Weaviate, Qdrant, Milvus, OpenSearch, Elasticsearch, or FAISS)\n- Strong proficiency in Python with hands-on experience designing rigorous evaluation frameworks for ranking systems (NDCG, MRR, MAP)\n- Experience with LLM fine-tuning (LoRA, QLoRA, PEFT) or Learning-to-Rank models (XGBoost-based or neural) is highly preferred\n- Scrappy product-engineering attitude with a strong preference for a shipping-first mindset over pure academic research"
       );
 
       const response = await fetch("/sample_candidates.json");
@@ -332,7 +332,7 @@ const InputPanel = ({
           </details>
         )}
 
-        <div className="border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm rounded-lg p-4 transition-all duration-300 hover:border-slate-700/60">
+        <div id="guide-target-jd-editor" className="border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm rounded-lg p-4 transition-all duration-300 hover:border-slate-700/60">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">Job Description Editor</span>
             <div className="flex items-center gap-2">
@@ -340,6 +340,7 @@ const InputPanel = ({
                 Zero Setup
               </span>
               <button
+                id="guide-target-demo-btn"
                 type="button"
                 onClick={loadDemoData}
                 className="text-[11px] bg-gradient-to-r from-emerald to-teal-500 hover:from-emerald/90 hover:to-teal-500/90 text-midnight font-bold px-3 py-1 rounded transition-all duration-200 shadow-md shadow-emerald-500/10"
@@ -380,6 +381,7 @@ const InputPanel = ({
         </div>
 
         <div
+          id="guide-target-file-upload"
           role="button"
           tabIndex={0}
           aria-label="Drag and drop candidate dataset, or select file by clicking Browse button"
@@ -486,6 +488,7 @@ const InputPanel = ({
       </div>
 
       <button
+        id="guide-target-run-btn"
         type="button"
         disabled={isLoading || candidates.length === 0}
         onClick={onRun}
