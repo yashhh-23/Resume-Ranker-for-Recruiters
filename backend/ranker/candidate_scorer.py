@@ -664,11 +664,23 @@ def build_reasoning(
     response_rate = safe_float(signals.get("recruiter_response_rate"))
     top_component = max(breakdown, key=lambda k: breakdown[k]).replace("_", " ")
 
+    concerns = []
+    jd_req_val = jd.get("_cached_raw_req") or jd.get("raw_required_skills") or jd.get("required_skills") or []
+    missing_count = len(jd_req_val) - len(matched_skills)
+    if missing_count > 0:
+        concerns.append(f"missing {missing_count} required skills")
+    
+    notice_days = safe_float(signals.get("notice_period_days"), 180.0)
+    if notice_days > 90:
+        concerns.append(f"long notice period ({int(notice_days)}d)")
+        
+    concern_str = f"; concerns: {', '.join(concerns)}" if concerns else ""
+
     return (
         f"{title} with {years:.1f} yrs; "
         f"{matched_skills_str}; "
         f"top signal {top_component}; "
-        f"response rate {response_rate:.2f}."
+        f"response rate {response_rate:.2f}{concern_str}."
     )
 
 
@@ -940,13 +952,15 @@ def score_candidate(
     else:
         availability_mult = 0.30
 
+    breakdown["availability"] *= availability_mult
+
     # 4. Enforce the Mandated 35/25/15/15/10 Additive Score Composition
     raw_final_score = (
         (0.35 * breakdown["skill_match"]) +
         (0.25 * breakdown["career_fit"]) +
         (0.15 * breakdown["signal_modifier"]) +
         (0.15 * breakdown["education"]) +
-        (0.10 * availability_mult)
+        (0.10 * breakdown["availability"])
     )
 
     # Safe multi-key fallback extraction to capture the active title string properly
@@ -1029,7 +1043,14 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
     matchable_required = [r for r in required if r.lower() in KNOWN_SKILLS_LOWER]
     matched_req_count = 0
-    if len(matchable_required) > 0:
+    if len(required) == 0:
+        # Note: When JD has zero required skills, matched_req_count remains 0.
+        # This will safely bypass the zero-skill exclusion gate here. Later, 
+        # score_required_skill_coverage() will return a 0.5 fallback score.
+        # This means all candidates will receive a 0.5 skill_match and be
+        # effectively ranked based purely on their career_fit, education, etc.
+        pass
+    elif len(matchable_required) > 0:
         matched_req_count = sum(1 for r in matchable_required if any(is_skill_match(r, cs) for cs in candidate_skill_names))
         if matched_req_count == 0:
             return 0.0
@@ -1139,13 +1160,15 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     else:
         availability_mult = 0.30
 
+    breakdown["availability"] *= availability_mult
+
     # 4. Enforce the Mandated 35/25/15/15/10 Additive Score Composition
     raw_final_score = (
         (0.35 * breakdown["skill_match"]) +
         (0.25 * breakdown["career_fit"]) +
         (0.15 * breakdown["signal_modifier"]) +
         (0.15 * breakdown["education"]) +
-        (0.10 * availability_mult)
+        (0.10 * breakdown["availability"])
     )
 
     # Safe multi-key fallback extraction to capture the active title string properly
@@ -1243,8 +1266,11 @@ def rank_candidates(
     ]
     from functools import cmp_to_key
 
+    # Store the original unfiltered scored candidates
+    original_scored = scored[:]
+
     # Hard Zero-Skill Exclusion Gate: Filter out candidates carrying 'zero_skill_match' flag
-    scored = [
+    scored_filtered = [
         s for s in scored if "zero_skill_match" not in s.get("compliance_flags", [])
     ]
 
@@ -1256,6 +1282,15 @@ def rank_candidates(
         if ida == idb: return 0
         return -1 if ida < idb else 1
 
+    actual_limit = limit if limit is not None else 100
+
+    if len(scored_filtered) < actual_limit:
+        zero_skill_cands = [s for s in original_scored if "zero_skill_match" in s.get("compliance_flags", [])]
+        zero_skill_cands.sort(key=cmp_to_key(compare_candidates))
+        needed = actual_limit - len(scored_filtered)
+        scored_filtered.extend(zero_skill_cands[:needed])
+
+    scored = scored_filtered
     scored.sort(key=cmp_to_key(compare_candidates))
 
     # Normalize scores so Rank 1 scales to 1.0
@@ -1267,7 +1302,6 @@ def rank_candidates(
             # Re-sort after score changes to preserve order and tie-breakers
             scored.sort(key=cmp_to_key(compare_candidates))
 
-    actual_limit = limit if limit is not None else 100
     scored = scored[:actual_limit]
 
     for index, row in enumerate(scored, start=1):
