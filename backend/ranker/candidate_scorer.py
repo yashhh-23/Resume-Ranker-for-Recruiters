@@ -28,8 +28,20 @@ EDUCATION_TIER_WEIGHT = {
 }
 
 
+COMPOUND_SKILLS = [
+    "machine learning", "deep learning", "natural language processing",
+    "apache kafka", "apache spark", "power bi", "google cloud"
+]
+
 def tokenize(text: Any) -> set:
-    return set(re.findall(r"[a-zA-Z][a-zA-Z0-9+#.-]*", str(text or "").lower()))
+    text_str = str(text or "").lower()
+    tokens = set()
+    for compound in COMPOUND_SKILLS:
+        if compound in text_str:
+            tokens.add(compound)
+            text_str = text_str.replace(compound, "")
+    tokens.update(re.findall(r"[a-zA-Z][a-zA-Z0-9+#.-]*", text_str))
+    return tokens
 
 
 def text_match(value: Any, target: Any) -> float:
@@ -52,17 +64,29 @@ def years_ago(value: Any) -> float:
     return months / 12.0
 
 
+PROFICIENCY_MAP = {
+    "beginner": 0.2,
+    "intermediate": 0.5,
+    "advanced": 0.8,
+    "expert": 1.0
+}
+
 def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     required = [s.lower() for s in jd.get("required_skills", [])]
     if not required:
         return 1.0  # no hard requirements = full score
     
-    candidate_skills = set(
-        s.get("name", "").lower() 
-        for s in (candidate.get("skills") or [])
-    )
-    matched = sum(1 for r in required if any(r in cs or cs in r for cs in candidate_skills))
-    return clamp(matched / len(required))
+    matched_score = 0.0
+    for r in required:
+        best_level = 0.0
+        for s in (candidate.get("skills") or []):
+            cs = s.get("name", "").lower()
+            if r in cs or cs in r:
+                level = str(s.get("proficiency") or "intermediate").lower().strip()
+                best_level = max(best_level, PROFICIENCY_MAP.get(level, 0.5))
+        matched_score += best_level
+
+    return clamp(matched_score / len(required))
 
 
 def score_skill_match(
@@ -90,6 +114,9 @@ def score_skill_match(
     return clamp(blended_skill)
 
 
+def recency_weight(duration_months_ago: int) -> float:
+    return math.exp(-0.693 * duration_months_ago / 36)
+
 def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     target_title = jd.get("target_title") or ""
     target_industry = jd.get("target_industry") or ""
@@ -98,7 +125,8 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     raw_score = 0.0
     for role in candidate.get("career_history") or []:
-        decay = math.exp(-0.3 * years_ago(role.get("start_date")))
+        months_ago = years_ago(role.get("start_date")) * 12
+        decay = recency_weight(months_ago)
         title_score = text_match(role.get("title"), target_title)
         industry_score = 1.0 if str(target_industry).lower() == "any" else text_match(role.get("industry"), target_industry)
         raw_score += decay * (0.6 * title_score + 0.4 * industry_score)
