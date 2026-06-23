@@ -396,9 +396,9 @@ def test_zero_skill_exclusion_gate():
         def encode(self, texts, **kwargs):
             return np.ones((len(texts), 384))
             
-    res = rank_candidates([cand_match_1, cand_match_0], jd, model=DummyModel())
+    res = rank_candidates([cand_match_1, cand_match_0], jd, model=DummyModel(), limit=1)
     
-    # Candidate matching 0 skills should be completely filtered out
+    # Candidate matching 0 skills should be completely filtered out, as limit=1 is met by C_MATCH_1
     assert len(res) == 1
     assert res[0]["candidate_id"] == "C_MATCH_1"
 
