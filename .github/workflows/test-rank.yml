@@ -1,5 +1,7 @@
 name: Test standalone rank.py
 on: [push, pull_request]
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
   rank-smoke-test:
     runs-on: ubuntu-latest
