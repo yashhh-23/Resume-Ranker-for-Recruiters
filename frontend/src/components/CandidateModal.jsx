@@ -1,35 +1,7 @@
 import { formatDate, formatNumber, formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { extractJdSkills, isSkillMatchedInJd, getMissingSkills } from "../utils/jdUtils";
-
-const CheckIcon = ({ className = "h-3 w-3" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={3}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-);
-
-const XIcon = ({ className = "h-3 w-3" }) => (
-  <svg
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
+import { CheckIcon, XIcon } from "./icons";
 
 const formatBool = (value) => {
   if (value === true) return "Yes";
