@@ -1,3 +1,4 @@
+import math
 from typing import Any, Dict
 
 
@@ -66,17 +67,26 @@ def score_signal_modifier(signals: Dict[str, Any], jd: Dict[str, Any] = None) ->
 
     salary_fit = score_salary_fit(signals, jd)
 
+    SIGNAL_WEIGHTS = {
+        "github_score": 0.1,
+        "response_rate": 0.4,
+        "interview_completion": 0.1,
+        "assessment_score": 0.1,
+        "offer_score": 0.1,
+        "completeness_score": 0.1,
+        "salary_fit": 0.1,
+    }
+
     weighted_sum = (
-        github_score +
-        (response_rate * 5.0) +
-        interview_completion +
-        assessment_score +
-        offer_score +
-        completeness_score +
-        salary_fit
+        github_score * SIGNAL_WEIGHTS["github_score"] +
+        response_rate * SIGNAL_WEIGHTS["response_rate"] +
+        interview_completion * SIGNAL_WEIGHTS["interview_completion"] +
+        assessment_score * SIGNAL_WEIGHTS["assessment_score"] +
+        offer_score * SIGNAL_WEIGHTS["offer_score"] +
+        completeness_score * SIGNAL_WEIGHTS["completeness_score"] +
+        salary_fit * SIGNAL_WEIGHTS["salary_fit"]
     )
-    # Total weight is 1 + 5 + 1 + 1 + 1 + 1 + 1 = 11
-    return clamp(weighted_sum / 11.0)
+    return clamp(weighted_sum)
 
 
 def score_availability(signals: Dict[str, Any]) -> float:
@@ -84,7 +94,7 @@ def score_availability(signals: Dict[str, Any]) -> float:
 
     open_to_work = 1.0 if signals.get("open_to_work_flag") else 0.5
     notice_days = safe_float(signals.get("notice_period_days"), 180.0)
-    notice_score = clamp(1.0 - (notice_days / 180.0))
+    notice_score = clamp(math.exp(-notice_days / 60.0))
     relocation = 1.0 if signals.get("willing_to_relocate") else 0.6
 
     return clamp(mean([open_to_work, notice_score, relocation]))
