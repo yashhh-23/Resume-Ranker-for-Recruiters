@@ -1,0 +1,8 @@
+data/
+dataset/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.embedding_cache.pkl
