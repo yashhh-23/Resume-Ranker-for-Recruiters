@@ -154,6 +154,8 @@ def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
             return 0.5
         elif years_exp >= 5:
             return 0.3
+        elif years_exp >= 1:
+            return 0.1
         return 0.0
 
     best = 0.0
