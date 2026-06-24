@@ -11,10 +11,6 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def load_model(model_name: str = MODEL_NAME):
-    import sys
-    # Workaround for broken torchvision installations causing BertModel import failures
-    sys.modules["torchvision"] = None
-
     from sentence_transformers import SentenceTransformer
 
     return SentenceTransformer(model_name)
