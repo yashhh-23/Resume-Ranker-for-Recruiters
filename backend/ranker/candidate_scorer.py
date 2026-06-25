@@ -181,8 +181,9 @@ def build_reasoning(candidate: Dict[str, Any], breakdown: Dict[str, float], jd: 
     response_rate = safe_float(signals.get("recruiter_response_rate"))
     top_component = max(breakdown, key=breakdown.get).replace("_", " ")
 
-    domain = jd.get("target_title", "core") or "core"
-    domain_label = domain.split()[0] if domain else "core"
+    domain = (jd.get("target_title") or "core").strip()
+    parts = domain.split()
+    domain_label = parts[0] if parts else "core"
 
     return (
         f"{title} with {years:.1f} yrs; "

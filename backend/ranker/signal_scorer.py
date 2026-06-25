@@ -15,13 +15,14 @@ def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
 
 
+_SIGNAL_STRING_MAP = {'high': 0.8, 'medium': 0.5, 'low': 0.2, 'none': 0.0, 'yes': 1.0, 'no': 0.0}
+
 def safe_float(value: Any, default: float = 0.0) -> float:
-    try:
-        if value is None:
-            return default
-        return float(value)
+    if value is None: return default
+    if isinstance(value, bool): return 1.0 if value else 0.0
+    try: return float(value)
     except (TypeError, ValueError):
-        return default
+        return _SIGNAL_STRING_MAP.get(str(value).lower().strip(), default)
 
 
 def mean(values):
