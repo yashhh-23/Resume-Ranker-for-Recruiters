@@ -1,10 +1,11 @@
+import { memo } from "react";
 import ScoreBar from "./ScoreBar";
 import { detectTimelineAnomaly, deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { formatScore, formatPercent } from "../utils/formatters";
 import { extractJdSkills, isSkillMatchedInJd } from "../utils/jdUtils";
 import { CheckIcon } from "./icons";
 
-const CandidateCard = ({
+const CandidateCard = memo(({
   result,
   candidate,
   onSelect,
@@ -17,6 +18,7 @@ const CandidateCard = ({
   // Compare mode props
   isCompareSelected = false,
   onToggleCompare = null,
+  filteredRank,
 }) => {
   const profile = candidate?.profile || {};
   const breakdown = deriveBreakdown(result, candidate);
@@ -27,6 +29,11 @@ const CandidateCard = ({
   // Extract JD skill tokens for matching
   const jdSkillTokens = extractJdSkills(jobDescription);
   const hasJdSkills = jdSkillTokens.length > 0;
+
+  // Count matched JD skills for this candidate
+  const matchedSkillCount = hasJdSkills
+    ? topSkills.filter((s) => isSkillMatchedInJd(s.name, jdSkillTokens)).length
+    : 0;
 
   const getScoreColor = (score) => {
     const val = score <= 1 ? score * 100 : score;
@@ -39,10 +46,35 @@ const CandidateCard = ({
     p.candidates.some((c) => c.candidate_id === result.candidate_id)
   );
 
-  // Count matched JD skills for this candidate
-  const matchedSkillCount = hasJdSkills
-    ? topSkills.filter((s) => isSkillMatchedInJd(s.name, jdSkillTokens)).length
-    : 0;
+  // Suspicious Profile badge logical contradiction checks
+  const yearsExp = profile.years_of_experience || 0;
+  const skillsCount = candidate?.skills?.length || 0;
+  const completenessScore = candidate?.redrob_signals?.profile_completeness_score || 0;
+  const isSuspicious = yearsExp > 30 || skillsCount === 0 || completenessScore < 20;
+
+  // Rank Delta Indicator calculation
+  const originalRank = typeof result.rank === 'number' ? result.rank : parseInt(result.rank, 10);
+  const delta = !isNaN(originalRank) && typeof filteredRank === 'number' ? originalRank - filteredRank : 0;
+
+  // Missing required JD skills calculation
+  const candidateSkillNamesLower = new Set((candidate?.skills || []).map(s => String(s.name || "").toLowerCase()));
+  const missingJdSkills = jdSkillTokens.filter(token => {
+    const tokenLower = token.toLowerCase();
+    for (const name of candidateSkillNamesLower) {
+      if (name.includes(tokenLower) || tokenLower.includes(name)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Top 3 matched skills for the hover snapshot
+  const matchedSkillNames = hasJdSkills
+    ? topSkills.filter((s) => isSkillMatchedInJd(s.name, jdSkillTokens)).map(s => s.name)
+    : [];
+  const skillMatchTooltip = matchedSkillNames.length > 0
+    ? `Top Matches: ${matchedSkillNames.slice(0, 3).join(", ")}`
+    : "No JD skills matched";
 
   return (
     <div
@@ -79,6 +111,18 @@ const CandidateCard = ({
             <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-none bg-slate-900 border border-slate-800 text-[10px] font-bold font-mono text-slate-400">
               #{result.rank}
             </span>
+            {delta !== 0 && (
+              <span
+                className={`inline-flex items-center justify-center h-5 px-1.5 font-mono text-[9px] font-bold border rounded-none ${
+                  delta > 0
+                    ? "bg-emerald/10 border-emerald/20 text-emerald"
+                    : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                }`}
+                title={`Rank change: ${delta > 0 ? `up by ${delta}` : `down by ${Math.abs(delta)}`} positions in filtered view`}
+              >
+                {delta > 0 ? `▲${delta}` : `▼${Math.abs(delta)}`}
+              </span>
+            )}
             <h3 className="text-base font-semibold text-slate-100 group-hover:text-emerald transition-colors duration-200">
               {profile.anonymized_name || "Unknown Candidate"}
             </h3>
@@ -90,6 +134,16 @@ const CandidateCard = ({
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-mono rounded-none">
                 <CheckIcon className="h-2.5 w-2.5 shrink-0" />
                 {matchedSkillCount} JD match{matchedSkillCount !== 1 ? "es" : ""}
+              </span>
+            )}
+            {/* Data Quality Score badge */}
+            <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 text-[9px] font-mono rounded-none" title="Profile completeness quality score">
+              DQ: {completenessScore}%
+            </span>
+            {/* Suspicious Profile alert badge */}
+            {isSuspicious && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[9px] font-mono font-bold rounded-none animate-pulse" title="Logical anomalies or low data quality constraints flagged">
+                ⚠ Suspicious Profile
               </span>
             )}
           </div>
@@ -170,7 +224,7 @@ const CandidateCard = ({
         <div className="px-4 py-3">
           <ScoreBar
             segments={[
-              { label: "Skill Match", value: breakdown.skill_match, weight: 0.35, colorCode: "#10B981" },
+              { label: "Skill Match", value: breakdown.skill_match, weight: 0.35, colorCode: "#10B981", tooltipContent: skillMatchTooltip },
               { label: "Career Fit", value: breakdown.career_fit, weight: 0.25, colorCode: "#3B82F6" },
               { label: "Signal Mod.", value: breakdown.signal_modifier, weight: 0.15, colorCode: "#6366F1" },
               { label: "Education", value: breakdown.education, weight: 0.15, colorCode: "#14B8A6" },
@@ -213,8 +267,8 @@ const CandidateCard = ({
         {reasoning}
       </p>
 
-      {/* Skills chips — JD-matched highlighted in green */}
-      {topSkills.length > 0 && (
+      {/* Skills chips — JD-matched highlighted in green, missing in strikethrough */}
+      {(topSkills.length > 0 || (hasJdSkills && missingJdSkills.length > 0)) && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topSkills.map((skill) => {
             const matched = hasJdSkills && isSkillMatchedInJd(skill.name, jdSkillTokens);
@@ -233,6 +287,15 @@ const CandidateCard = ({
               </span>
             );
           })}
+          {hasJdSkills && missingJdSkills.slice(0, 3).map((skillName) => (
+            <span
+              key={skillName}
+              title={`Required skill "${skillName}" is missing from profile`}
+              className="text-[10px] font-mono px-2.5 py-1 border border-slate-900 bg-slate-950/40 text-slate-500 line-through rounded-none inline-flex items-center gap-1 select-none"
+            >
+              <span>{skillName}</span>
+            </span>
+          ))}
         </div>
       )}
 
@@ -251,6 +314,8 @@ const CandidateCard = ({
       )}
     </div>
   );
-};
+});
+
+CandidateCard.displayName = "CandidateCard";
 
 export default CandidateCard;

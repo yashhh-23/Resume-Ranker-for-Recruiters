@@ -1,12 +1,16 @@
 import { SearchIcon, LightningIcon, BarChartIcon } from "./icons";
 
 const LOADING_PHASES = [
-  { text: "Embedding candidates against JD...", Icon: SearchIcon },
-  { text: "Scoring across 5 dimensions...", Icon: LightningIcon },
-  { text: "Sorting top 100 by fit index...", Icon: BarChartIcon },
+  { text: "Ingesting candidate dataset & stream validation...", Icon: SearchIcon },
+  { text: "Computing semantic embeddings & relevance...", Icon: LightningIcon },
+  { text: "Evaluating 5-dimensional weight matrices...", Icon: BarChartIcon },
+  { text: "Sorting & final Discovery Matrix assembly...", Icon: LightningIcon },
 ];
 
-const LoadingPhaseDisplay = ({ loadingPhase }) => {
+const LoadingPhaseDisplay = ({ loadingPhase, candidatesCount = 0 }) => {
+  const count = candidatesCount || 100; // fallback if 0
+  const estTime = Math.max(0.5, Number((count * 0.008).toFixed(1)));
+
   return (
     <div className="flex flex-col">
       {/* Staged status message */}
@@ -28,7 +32,9 @@ const LoadingPhaseDisplay = ({ loadingPhase }) => {
               );
             })()}
           </div>
-          <p className="text-xs font-mono text-slate-600 mt-1">CPU-only · offline-capable · up to 5,000 candidates</p>
+          <p className="text-xs font-mono text-slate-600 mt-1">
+            Analyzing {count} profile{count !== 1 ? "s" : ""} — Estimated Time: ~{estTime}s
+          </p>
         </div>
         {/* Phase dots */}
         <div className="flex gap-2">
