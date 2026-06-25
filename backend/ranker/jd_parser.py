@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
-
 DEFAULT_JD = {
     "required_skills": [],
     "raw_required_skills": [],
@@ -14,12 +13,13 @@ DEFAULT_JD = {
     "skills_text": "",
     "salary_min": 0.0,
     "salary_max": 0.0,
+    "seniority_level": "mid",
 }
 
 REQUIRED_HEADERS = ["required", "must have", "mandatory", "essential"]
 PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desired"]
 
-KNOWN_SKILLS = [
+TECH_SKILLS = [
     "Python",
     "SQL",
     "Spark",
@@ -46,8 +46,6 @@ KNOWN_SKILLS = [
     "Node.js",
     "Java",
     "TypeScript",
-    "Accounting",
-    "Agile",
     "Angular",
     "Apache Flink",
     "BM25",
@@ -56,7 +54,6 @@ KNOWN_SKILLS = [
     "CNN",
     "CSS",
     "Computer Vision",
-    "Content Writing",
     "Data Pipelines",
     "Data Science",
     "Databricks",
@@ -65,11 +62,9 @@ KNOWN_SKILLS = [
     "ETL",
     "Elasticsearch",
     "Embeddings",
-    "Excel",
     "FAISS",
     "FastAPI",
     "Feature Engineering",
-    "Figma",
     "Flask",
     "Forecasting",
     "GANs",
@@ -79,7 +74,6 @@ KNOWN_SKILLS = [
     "Hadoop",
     "Haystack",
     "Hugging Face Transformers",
-    "Illustrator",
     "Image Classification",
     "Information Retrieval",
     "JavaScript",
@@ -88,7 +82,6 @@ KNOWN_SKILLS = [
     "LoRA",
     "MLOps",
     "Machine Learning",
-    "Marketing",
     "Microservices",
     "Milvus",
     "MongoDB",
@@ -96,11 +89,8 @@ KNOWN_SKILLS = [
     "OpenCV",
     "OpenSearch",
     "PEFT",
-    "Photoshop",
     "Pinecone",
     "PostgreSQL",
-    "PowerPoint",
-    "Project Management",
     "Prompt Engineering",
     "Qdrant",
     "REST APIs",
@@ -109,19 +99,13 @@ KNOWN_SKILLS = [
     "Redux",
     "Reinforcement Learning",
     "Rust",
-    "SAP",
     "SEO",
-    "Sales",
-    "Salesforce CRM",
-    "Scrum",
     "Sentence Transformers",
-    "Six Sigma",
     "Speech Recognition",
     "Spring Boot",
     "Statistical Modeling",
     "TTS",
     "Tailwind",
-    "Tally",
     "Terraform",
     "Vector Search",
     "Vue.js",
@@ -140,9 +124,33 @@ KNOWN_SKILLS = [
     "LlamaIndex",
 ]
 
+SOFT_SKILLS = [
+    "Accounting",
+    "Agile",
+    "Content Writing",
+    "Excel",
+    "Figma",
+    "Illustrator",
+    "Marketing",
+    "Photoshop",
+    "PowerPoint",
+    "Project Management",
+    "SAP",
+    "Sales",
+    "Salesforce CRM",
+    "Scrum",
+    "Six Sigma",
+    "Tally",
+]
+
 TITLE_PATTERNS = [
     r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist))",
-    r"\b(ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|Product Manager)\b",
+    r"\b(ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
+    r"Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|"
+    r"Product Manager|SDE-I|SDE-II|SDE-III|SDE I|SDE II|SDE III|"
+    r"Technical Program Manager|Associate Consultant|Founding Engineer|"
+    r"DevOps Engineer|Platform Engineer|Site Reliability Engineer|"
+    r"Research Engineer|Applied Scientist)\b",
 ]
 
 
@@ -200,22 +208,26 @@ def _extract_section_lines(text: str, anchors: List[str]) -> List[str]:
 def _split_skill_lines(lines: List[str]) -> List[str]:
     skills = []
     for line in lines:
-        parts = re.split(r"[,;/|]|\band\b", line)
+        parts = re.split(r"[,;/|]|\band\b|\.\s+", line)
         for part in parts:
             cleaned = re.sub(r"^[\-•*]\s*", "", part).strip()
             if (
                 1 <= len(cleaned.split()) <= 4
                 and len(cleaned) <= 32
-                and not re.search(r"\b(this|that|beyond|practical|probably|terms|range|used)\b", cleaned, re.IGNORECASE)
+                and not re.search(
+                    r"\b(this|that|beyond|practical|probably|terms|range|used)\b",
+                    cleaned,
+                    re.IGNORECASE,
+                )
             ):
                 skills.append(cleaned)
     return _dedupe(skills)
 
 
-def _known_skill_hits(text: str) -> List[str]:
+def _known_skill_hits(text: str, skill_list: List[str]) -> List[str]:
     hits = []
     lowered = text.lower()
-    for skill in KNOWN_SKILLS:
+    for skill in skill_list:
         if skill.lower() in lowered:
             hits.append(skill)
     return _dedupe(hits)
@@ -231,14 +243,23 @@ def _extract_title(text: str) -> str:
 
 
 def _extract_experience(text: str) -> int:
-    match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
-    if not match:
-        return 0
-    return int(match.group(1))
+    # Try to find a range first: "2-5 years", "3 to 7 years"
+    range_match = re.search(
+        r"(\d+)\s*(?:-|to)\s*(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE
+    )
+    if range_match:
+        return int(range_match.group(2))  # use upper bound as min_experience
+    # Fallback to single number
+    single_match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
+    if single_match:
+        return int(single_match.group(1))
+    return 0
 
 
 def _extract_industry(text: str) -> str:
-    match = re.search(r"(?:industry|domain)[:\s]+([A-Za-z &/-]{3,40})", text, flags=re.IGNORECASE)
+    match = re.search(
+        r"(?:industry|domain)[:\s]+([A-Za-z &/-]{3,40})", text, flags=re.IGNORECASE
+    )
     if not match:
         return DEFAULT_JD["target_industry"]
     return match.group(1).strip(" .")
@@ -264,16 +285,52 @@ def _extract_field(text: str) -> str:
 
 
 def _extract_salary_range(text: str) -> tuple[float, float]:
-    match = re.search(r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text)
+    match = re.search(
+        r"\$?(\d{2,3})(?:[kK]|,000)?\s*(?:-|to)\s*\$?(\d{2,3})(?:[kK]|,000)?", text
+    )
     if match:
         min_val = float(match.group(1))
         max_val = float(match.group(2))
-        return (min_val * 1000 if min_val < 1000 else min_val,
-                max_val * 1000 if max_val < 1000 else max_val)
+        return (
+            min_val * 1000 if min_val < 1000 else min_val,
+            max_val * 1000 if max_val < 1000 else max_val,
+        )
     return 0.0, 0.0
 
 
 MAX_JD_CHARS = 10_000
+
+SENIORITY_MAP = {
+    "lead": [
+        "principal engineer",
+        "staff engineer",
+        "architect",
+        "head of engineering",
+        "engineering manager",
+        "lead engineer",
+    ],
+    "senior": ["senior", "sr.", "5+ years", "6+ years", "7+ years", "8+ years"],
+    "mid": ["mid level", "mid-level", "2-5 years", "3+ years", "2+ years", "3 years"],
+    "junior": [
+        "junior",
+        "entry level",
+        "entry-level",
+        "fresher",
+        "0-2 years",
+        "1+ year",
+        "intern",
+        "graduate",
+    ],
+}
+
+
+def _extract_seniority(text: str) -> str:
+    lowered = text.lower()
+    for level, keywords in SENIORITY_MAP.items():
+        if any(kw in lowered for kw in keywords):
+            return level
+    return "mid"  # safe default
+
 
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
@@ -283,21 +340,47 @@ def parse_jd_text(text: str) -> Dict[str, object]:
 
     raw_required = list(required)
 
-    known_hits = _known_skill_hits(text)
-    required = _dedupe([skill for skill in required if skill.lower() in {hit.lower() for hit in known_hits}])
-    preferred = _dedupe([skill for skill in preferred if skill.lower() in {hit.lower() for hit in known_hits}])
+    tech_hits = _known_skill_hits(text, TECH_SKILLS)
+    soft_hits = _known_skill_hits(text, SOFT_SKILLS)
+
+    required = _dedupe(
+        [
+            skill
+            for skill in required
+            if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}
+        ]
+    )
+    preferred = _dedupe(
+        [
+            skill
+            for skill in preferred
+            if skill.lower() in {hit.lower() for hit in tech_hits + soft_hits}
+        ]
+    )
 
     if not required:
-        required = known_hits[:8]
+        required = tech_hits[:8] if tech_hits else soft_hits[:6]
     else:
-        preferred = _dedupe(preferred + [skill for skill in known_hits if skill.lower() not in {item.lower() for item in required}])
+        preferred = _dedupe(
+            preferred
+            + [
+                skill
+                for skill in tech_hits
+                if skill.lower() not in {item.lower() for item in required}
+            ]
+        )
 
     if not raw_required:
         raw_required = list(required)
 
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
-    skills_text = " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
+    # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
+    # (Sales, Finance, Design), semantic cosine scores will be lower on average.
+    # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.
+    skills_text = (
+        " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
+    )
     salary_min, salary_max = _extract_salary_range(text)
 
     return {
@@ -311,6 +394,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
         "skills_text": skills_text.strip() or text,
         "salary_min": salary_min,
         "salary_max": salary_max,
+        "seniority_level": _extract_seniority(text),
     }
 
 
@@ -327,7 +411,7 @@ def parse_jd_docx(path: str) -> Dict[str, object]:
 def parse_jd(path: str) -> Dict[str, object]:
     """Parse a JD from .docx, .txt, or raw string fallback."""
     jd_path = Path(path)
-    
+
     if jd_path.exists():
         if jd_path.suffix.lower() == ".docx":
             return parse_jd_docx(path)
@@ -338,7 +422,7 @@ def parse_jd(path: str) -> Dict[str, object]:
     else:
         # If path doesn't exist, treat it as raw text
         text = str(path)
-        
+
     parsed = parse_jd_text(text)
     for key, value in DEFAULT_JD.items():
         parsed.setdefault(key, value)
