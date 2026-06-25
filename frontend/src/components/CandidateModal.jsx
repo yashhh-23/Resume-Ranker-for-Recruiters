@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { formatDate, formatNumber, formatPercent, formatScore } from "../utils/formatters";
 import { deriveBreakdown, deriveReasoning } from "../utils/scoreUtils";
 import { extractJdSkills, isSkillMatchedInJd, getMissingSkills } from "../utils/jdUtils";
@@ -122,6 +123,22 @@ const CandidateModal = ({
   onOpenPoolManager,
   jobDescription = "",
 }) => {
+  const [expandedBox, setExpandedBox] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        if (expandedBox) {
+          setExpandedBox(null);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [expandedBox, onClose]);
+
   const profile = candidate.profile || {};
   const signals = candidate.redrob_signals || {};
   const breakdown = deriveBreakdown(result, candidate);
@@ -295,7 +312,12 @@ const CandidateModal = ({
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Notice Period:</span>
-                    <span className={`font-bold ${signals.notice_period_days <= 30 ? "text-emerald animate-pulse" : "text-slate-300"}`}>
+                    <span
+                      className={`font-bold ${signals.notice_period_days <= 30 ? "text-emerald" : "text-slate-300"}`}
+                      style={signals.notice_period_days <= 30 ? { animation: "pulse 2s ease-in-out 2" } : undefined}
+                      role={signals.notice_period_days <= 30 ? "alert" : undefined}
+                      aria-live={signals.notice_period_days <= 30 ? "polite" : undefined}
+                    >
                       {signals.notice_period_days ?? "--"} days
                       {signals.notice_period_days <= 30 && " (Immediate)"}
                     </span>
@@ -374,11 +396,14 @@ const CandidateModal = ({
                     return (
                       <div key={`${role.company}-${index}`} className="relative group">
                         {/* High-tech square timeline marker */}
-                        <div className={`absolute -left-[30px] top-1.5 h-3 w-3 border-2 bg-slate-950 transition-all duration-300 rounded-none ${
-                          roleAnomaly 
-                            ? "border-amber shadow-[0_0_8px_rgba(217,119,6,0.3)] animate-pulse" 
-                            : "border-slate-700 group-hover:border-emerald"
-                        }`} />
+                        <div
+                          className={`absolute -left-[30px] top-1.5 h-3 w-3 border-2 bg-slate-950 transition-all duration-300 rounded-none ${
+                            roleAnomaly 
+                              ? "border-amber shadow-[0_0_8px_rgba(217,119,6,0.3)]" 
+                              : "border-slate-700 group-hover:border-emerald"
+                          }`}
+                          style={roleAnomaly ? { animation: "pulse 2s ease-in-out 2" } : undefined}
+                        />
                         
                         <div className={`p-3.5 border transition-all duration-300 rounded-none ${
                           roleAnomaly 
@@ -401,7 +426,12 @@ const CandidateModal = ({
                             </p>
                           )}
                           {roleAnomaly && (
-                            <div className="mt-2.5 flex items-center gap-1.5 text-[10px] font-mono text-amber border border-amber/20 bg-amber/10 p-1.5 animate-pulse rounded-none">
+                            <div
+                              role="alert"
+                              aria-live="polite"
+                              className="mt-2.5 flex items-center gap-1.5 text-[10px] font-mono text-amber border border-amber/20 bg-amber/10 p-1.5 rounded-none"
+                              style={{ animation: "pulse 2s ease-in-out 2" }}
+                            >
                               <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                               </svg>
@@ -556,7 +586,20 @@ const CandidateModal = ({
                 </h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono text-slate-400">
-                  <div className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none">
+                  {/* Box 1: Availability & Compensation */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setExpandedBox("availability")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedBox("availability");
+                      }
+                    }}
+                    aria-label="Availability and Compensation details. Click to expand."
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                  >
                     <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Availability & Compensation</p>
                     <div className="flex justify-between">
                       <span>Notice Period:</span>
@@ -580,7 +623,20 @@ const CandidateModal = ({
                     </div>
                   </div>
 
-                  <div className="border border-slate-900 bg-slate-950 p-3 space-y-2.5 shadow-inner rounded-none">
+                  {/* Box 2: Engagement Scores */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setExpandedBox("engagement")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedBox("engagement");
+                      }
+                    }}
+                    aria-label="Engagement Scores details. Click to expand."
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2.5 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                  >
                     <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Engagement Scores</p>
                     <div>
                       <div className="flex justify-between text-[11px] mb-1">
@@ -614,7 +670,20 @@ const CandidateModal = ({
                     </div>
                   </div>
 
-                  <div className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none">
+                  {/* Box 3: Verification Checklist */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setExpandedBox("verification")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedBox("verification");
+                      }
+                    }}
+                    aria-label="Verification Checklist details. Click to expand."
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                  >
                     <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Verification Checklist</p>
                     <div className="flex justify-between">
                       <span>Email Verified:</span>
@@ -636,7 +705,20 @@ const CandidateModal = ({
                     </div>
                   </div>
 
-                  <div className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none">
+                  {/* Box 4: Activity Signals (30d) */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setExpandedBox("activity")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedBox("activity");
+                      }
+                    }}
+                    aria-label="Activity Signals details. Click to expand."
+                    className="border border-slate-900 bg-slate-950 p-3 space-y-2 shadow-inner rounded-none hover:border-slate-700 hover:bg-slate-900 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald/50"
+                  >
                     <p className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-900 pb-1 mb-2 font-bold font-mono">Activity Signals (30d)</p>
                     <div className="flex justify-between">
                       <span>Profile Completeness:</span>
@@ -667,6 +749,202 @@ const CandidateModal = ({
           </div>
         </div>
       </div>
+
+      {/* Expanded behavioral signals overlay */}
+      {(() => {
+        if (!expandedBox) return null;
+
+        let title = "";
+        let content = null;
+
+        switch (expandedBox) {
+          case "availability":
+            title = "Availability & Compensation";
+            content = (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Notice Period</span>
+                    <span
+                      className={`text-sm font-bold ${signals.notice_period_days <= 30 ? "text-emerald" : "text-slate-200"}`}
+                      style={signals.notice_period_days <= 30 ? { animation: "pulse 2s ease-in-out 2" } : undefined}
+                      role={signals.notice_period_days <= 30 ? "alert" : undefined}
+                      aria-live={signals.notice_period_days <= 30 ? "polite" : undefined}
+                    >
+                      {signals.notice_period_days ?? "--"} days
+                      {signals.notice_period_days <= 30 && " (Immediate Availability)"}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Salary Expected</span>
+                    <span className="text-sm text-slate-200 font-semibold">{formatRange(signals.expected_salary_range_inr_lpa)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Work Mode</span>
+                    <span className="text-sm text-slate-200 capitalize">{signals.preferred_work_mode ?? "--"}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Open To Work</span>
+                    <span className="text-sm text-slate-200 font-semibold">{formatBool(signals.open_to_work_flag)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Relocation Intent</span>
+                    <span className="text-sm text-slate-200 font-semibold">{formatBool(signals.willing_to_relocate)}</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+                  Operational availability is evaluated based on the candidate's notice period duration and relocation parameters. 
+                  Notice periods under 30 days are classified as immediate-hire signals, aligning with dynamic resource allocation models.
+                </p>
+              </div>
+            );
+            break;
+
+          case "engagement":
+            title = "Engagement Scores";
+            content = (
+              <div className="space-y-6">
+                <div className="space-y-4 font-mono text-slate-400">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Recruiter Response Velocity:</span>
+                      <span className="text-emerald font-bold">{formatPercent(signals.recruiter_response_rate)}</span>
+                    </div>
+                    <ProgressBar value={signals.recruiter_response_rate || 0} color="bg-emerald" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Interview Completion Rate:</span>
+                      <span className="text-cobalt font-bold">{formatPercent(signals.interview_completion_rate)}</span>
+                    </div>
+                    <ProgressBar value={signals.interview_completion_rate || 0} color="bg-cobalt" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Offer Acceptance Rate:</span>
+                      <span className={signals.offer_acceptance_rate === -1 ? "text-slate-500 italic font-normal" : "text-emerald font-bold"}>
+                        {signals.offer_acceptance_rate === -1 ? "No Prior Offer Transactions Recorded" : formatPercent(signals.offer_acceptance_rate)}
+                      </span>
+                    </div>
+                    {signals.offer_acceptance_rate !== -1 && (
+                      <ProgressBar value={signals.offer_acceptance_rate || 0} color="bg-emerald" />
+                    )}
+                  </div>
+                  <div className="flex justify-between text-xs border-t border-slate-900 pt-3 text-slate-400">
+                    <span>Average Response Delay:</span>
+                    <span className="text-slate-200 font-semibold">{formatNumber(signals.avg_response_time_hours, 1)} hours</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+                  Engagement scores metric represents interaction consistency on recruiter platforms. 
+                  High completion rates and low response times indicate strong pipeline velocity and proactive communication patterns.
+                </p>
+              </div>
+            );
+            break;
+
+          case "verification":
+            title = "Verification Checklist";
+            content = (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
+                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
+                    <span className="text-slate-400">Email Address</span>
+                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.verified_email ? "text-emerald" : "text-slate-500"}`}>
+                      {signals.verified_email ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
+                      {signals.verified_email ? "Verified" : "Unverified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
+                    <span className="text-slate-400">Phone Contact</span>
+                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.verified_phone ? "text-emerald" : "text-slate-500"}`}>
+                      {signals.verified_phone ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
+                      {signals.verified_phone ? "Verified" : "Unverified"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
+                    <span className="text-slate-400">LinkedIn Connect</span>
+                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.linkedin_connected ? "text-cobalt" : "text-slate-500"}`}>
+                      {signals.linkedin_connected ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
+                      {signals.linkedin_connected ? "Linked" : "Disconnected"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-slate-900/40 p-2.5 border border-slate-900">
+                    <span className="text-slate-400">GitHub Profile</span>
+                    <span className={`flex items-center gap-1 text-xs font-bold ${signals.github_activity_score !== -1 ? "text-indigo-400" : "text-slate-500"}`}>
+                      {signals.github_activity_score !== -1 ? <CheckIcon className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
+                      {signals.github_activity_score !== -1 ? "Connected" : "No Activity"}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+                  Verification checks map professional identity trust levels. Linked networks and verified contacts 
+                  minimise candidate spoofing risks and ensure authenticity in communication pipelines.
+                </p>
+              </div>
+            );
+            break;
+
+          case "activity":
+            title = "Activity Signals (30d)";
+            content = (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-xs font-mono border-b border-slate-800 pb-4 text-slate-400">
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Profile Completeness</span>
+                    <span className="text-sm text-slate-200 font-bold">{formatNumber(signals.profile_completeness_score, 1)}%</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Profile Views</span>
+                    <span className="text-sm text-slate-200 font-semibold">{signals.profile_views_received_30d ?? 0}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Applications Sent</span>
+                    <span className="text-sm text-slate-200 font-semibold">{signals.applications_submitted_30d ?? 0}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Search Appearances</span>
+                    <span className="text-sm text-slate-200 font-semibold">{signals.search_appearance_30d ?? 0}</span>
+                  </div>
+                  {signals.github_activity_score !== -1 && (
+                    <div className="col-span-2 space-y-1 border-t border-slate-900 pt-3">
+                      <span className="text-indigo-400 block text-[10px] uppercase tracking-wider">GitHub Activity Index</span>
+                      <span className="text-sm text-indigo-400 font-bold">{formatNumber(signals.github_activity_score, 1)}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+                  Activity telemetry assesses active sourcing engagement metrics within a rolling 30-day window. 
+                  High application and view numbers denote a highly active job-seeker footprint.
+                </p>
+              </div>
+            );
+            break;
+
+          default:
+            return null;
+        }
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-slate-950 border border-slate-900 shadow-2xl p-6 font-mono relative flex flex-col rounded-none">
+              <div className="flex justify-between items-center border-b border-slate-900 pb-3 mb-4">
+                <h5 className="text-xs font-bold text-slate-200 uppercase tracking-wider">{title}</h5>
+                <button
+                  type="button"
+                  onClick={() => setExpandedBox(null)}
+                  className="text-slate-500 hover:text-slate-200 text-xs uppercase tracking-wider font-bold"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {content}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

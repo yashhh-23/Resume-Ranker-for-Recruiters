@@ -1,35 +1,8 @@
-import { useMemo, useState, useEffect, lazy, Suspense, Component } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
 import ComplianceTray from "./components/ComplianceTray";
-
-class ResultsErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("ResultsPanel rendering crashed:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-slate-950/40 border border-slate-900 font-mono">
-          <p className="text-xs uppercase tracking-[0.2em] text-rose-500 mb-2">System Error</p>
-          <p className="text-sm font-bold text-slate-200">Results failed to render.</p>
-          <p className="text-xs text-slate-500 mt-2">Please check candidate data format and retry.</p>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
+import ResultsErrorBoundary from "./components/ResultsErrorBoundary";
 
 const CandidateModal = lazy(() => import("./components/CandidateModal"));
 import TalentPoolAddModal from "./components/TalentPoolAddModal";
@@ -50,6 +23,7 @@ import { ShieldIcon, LockIcon, SunIcon, MoonIcon } from "./components/icons";
 const App = () => {
   // ─── Auth gate ────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [runCount, setRunCount] = useState(0);
 
   // ─── Theme Mode ───────────────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => {
@@ -222,6 +196,7 @@ const App = () => {
         candidates,
       });
       setRankedResults(normalizeRankedResults(results, candidates));
+      setRunCount((prev) => prev + 1);
       
       // Auto switch to results on mobile after a run completes
       if (!isDesktop) {
@@ -230,6 +205,7 @@ const App = () => {
     } catch (err) {
       const fallback = computeFallbackRanking(candidates);
       setRankedResults(fallback);
+      setRunCount((prev) => prev + 1);
       setError(
         err instanceof Error
           ? `API unavailable. Loaded local ranking. ${err.message}`
@@ -361,7 +337,7 @@ const App = () => {
               style={{ width: `${100 - leftWidth}%` }}
             >
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                <ResultsErrorBoundary>
+                <ResultsErrorBoundary resetKey={runCount}>
                   <ResultsPanel
                     rankedResults={rankedResults}
                     candidates={candidates}
@@ -409,7 +385,7 @@ const App = () => {
             ) : (
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                  <ResultsErrorBoundary>
+                  <ResultsErrorBoundary resetKey={runCount}>
                     <ResultsPanel
                       rankedResults={rankedResults}
                       candidates={candidates}
@@ -442,14 +418,16 @@ const App = () => {
 
       {selectedCandidate && (
         <Suspense fallback={null}>
-          <CandidateModal
-            candidate={selectedCandidate}
-            result={selectedResult}
-            onClose={() => setSelectedCandidateId(null)}
-            talentPools={talentPools}
-            onOpenPoolManager={handleOpenPoolManager}
-            jobDescription={jobDescription}
-          />
+          <ResultsErrorBoundary resetKey={selectedCandidateId}>
+            <CandidateModal
+              candidate={selectedCandidate}
+              result={selectedResult}
+              onClose={() => setSelectedCandidateId(null)}
+              talentPools={talentPools}
+              onOpenPoolManager={handleOpenPoolManager}
+              jobDescription={jobDescription}
+            />
+          </ResultsErrorBoundary>
         </Suspense>
       )}
 
