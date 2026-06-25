@@ -124,6 +124,7 @@ const CandidateModal = ({
   jobDescription = "",
 }) => {
   const [expandedBox, setExpandedBox] = useState(null);
+  const [width, setWidth] = useState(() => Math.min(window.innerWidth - 80, 1024));
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -138,6 +139,34 @@ const CandidateModal = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [expandedBox, onClose]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWidth((w) => Math.min(window.innerWidth - 80, w));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const startResizing = (mouseDownEvent) => {
+    mouseDownEvent.preventDefault();
+    const startX = mouseDownEvent.clientX;
+    const startWidth = width;
+
+    const doDrag = (mouseMoveEvent) => {
+      const deltaX = mouseMoveEvent.clientX - startX;
+      const newWidth = Math.max(450, Math.min(window.innerWidth - 40, startWidth - deltaX));
+      setWidth(newWidth);
+    };
+
+    const stopDrag = () => {
+      document.removeEventListener("mousemove", doDrag);
+      document.removeEventListener("mouseup", stopDrag);
+    };
+
+    document.addEventListener("mousemove", doDrag);
+    document.addEventListener("mouseup", stopDrag);
+  };
 
   const profile = candidate.profile || {};
   const signals = candidate.redrob_signals || {};
@@ -212,7 +241,18 @@ const CandidateModal = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
-      <div className="h-full w-full max-w-5xl bg-slate-950 border-l border-slate-900 shadow-2xl flex flex-col animate-slide-in rounded-none">
+      <div
+        className="h-full bg-slate-950 border-l border-slate-900 shadow-2xl flex flex-col animate-slide-in rounded-none relative"
+        style={{ width: `${width}px`, maxWidth: "100%" }}
+      >
+        {/* Horizontal Resizer Handle on Left Edge */}
+        <div
+          onMouseDown={startResizing}
+          className="absolute top-0 bottom-0 left-0 w-1.5 cursor-col-resize hover:bg-emerald/75 active:bg-emerald transition-colors flex items-center justify-center group z-[60]"
+          title="Drag horizontally to resize profile explorer"
+        >
+          <div className="h-20 w-1 rounded-full bg-slate-800 group-hover:bg-emerald transition-colors" />
+        </div>
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-900 bg-slate-950">
           <div>
             <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-mono">Profile Explorer</p>
