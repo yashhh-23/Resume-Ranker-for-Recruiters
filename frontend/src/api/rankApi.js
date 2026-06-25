@@ -1,16 +1,25 @@
 const normalizeResults = (payload) => {
   if (!payload) {
-    return [];
+    return { results: [], meta: {} };
   }
 
   if (Array.isArray(payload)) {
-    return payload;
+    return { results: payload, meta: {} };
   }
 
   const candidates =
     payload.results || payload.ranked_results || payload.rankedCandidates || payload.ranked_candidates;
 
-  return Array.isArray(candidates) ? candidates : [];
+  return {
+    results: Array.isArray(candidates) ? candidates : [],
+    meta: {
+      jd_parsed: payload.jd_parsed || null,
+      processing_time_ms: payload.processing_time_ms || null,
+      scored_candidates: payload.scored_candidates || null,
+      total_candidates: payload.total_candidates || null,
+      scoring_model: payload.scoring_model || null,
+    },
+  };
 };
 
 export const rankCandidates = async ({ jobDescription, candidates }) => {
@@ -36,11 +45,11 @@ export const rankCandidates = async ({ jobDescription, candidates }) => {
   }
 
   const data = await response.json();
-  const results = normalizeResults(data);
+  const { results, meta } = normalizeResults(data);
 
   if (!Array.isArray(results) || results.length === 0) {
     throw new Error("Rank API returned an empty result set.");
   }
 
-  return results;
+  return { results, meta };
 };
