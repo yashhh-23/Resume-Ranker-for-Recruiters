@@ -134,14 +134,11 @@ const App = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Keep-alive ping to prevent backend cold start on Render.com
+  // Warm up backend connection on app load
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL;
     if (!apiUrl) return;
-    const ping = () => fetch(`${apiUrl}/health`).catch(() => {});
-    ping(); // warm up immediately on app load
-    const interval = setInterval(ping, 9 * 60 * 1000); // ping every 9 minutes
-    return () => clearInterval(interval);
+    fetch(`${apiUrl.replace(/\/$/, "")}/health`).catch(() => {});
   }, []);
 
   const startResizingWidth = (mouseDownEvent) => {

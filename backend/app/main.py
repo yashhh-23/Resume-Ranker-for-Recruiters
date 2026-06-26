@@ -107,7 +107,7 @@ allowed_origins = [
     origin.strip()
     for origin in os.getenv(
         "RRR_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,https://*.vercel.app",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
     ).split(",")
     if origin.strip()
 ]
@@ -117,7 +117,6 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Accept", "Authorization", "X-Request-ID"],
