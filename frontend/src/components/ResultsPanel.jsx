@@ -123,36 +123,7 @@ const ResultsPanel = ({
       return true;
     });
 
-    itemsList.sort((a, b) => {
-      if (sortBy === "signal_modifier") {
-        const sigA = a.result?.breakdown?.signal_modifier ?? a.result?.signal_modifier ?? 0;
-        const sigB = b.result?.breakdown?.signal_modifier ?? b.result?.signal_modifier ?? 0;
-        return sigB - sigA;
-      }
-      if (sortBy === "experience") {
-        const expA = a.candidate?.profile?.years_of_experience || 0;
-        const expB = b.candidate?.profile?.years_of_experience || 0;
-        return expB - expA;
-      }
-      if (sortBy === "notice") {
-        const noticeA = a.candidate?.redrob_signals?.notice_period_days ?? 999;
-        const noticeB = b.candidate?.redrob_signals?.notice_period_days ?? 999;
-        return noticeA - noticeB;
-      }
-      if (sortBy === "completeness") {
-        const compA = a.candidate?.redrob_signals?.profile_completeness_score || 0;
-        const compB = b.candidate?.redrob_signals?.profile_completeness_score || 0;
-        return compB - compA;
-      }
-      if (sortBy === "skills") {
-        const skillsA = a.candidate?.skills?.length || 0;
-        const skillsB = b.candidate?.skills?.length || 0;
-        return skillsB - skillsA;
-      }
-      return (a.result.rank || 0) - (b.result.rank || 0);
-    });
-
-    return itemsList;
+    return sortResults(itemsList, sortBy);
   }, [rankedResults, candidates, query, sortBy, anomalyFilter, availableOnly, githubOnly]);
 
   const poolCandidatesFiltered = useMemo(() => {
@@ -180,39 +151,7 @@ const ResultsPanel = ({
       });
     }
 
-    list = [...list].sort((a, b) => {
-      if (sortBy === "signal_modifier") {
-        const sigA = a.result?.breakdown?.signal_modifier ?? a.result?.signal_modifier ?? 0;
-        const sigB = b.result?.breakdown?.signal_modifier ?? b.result?.signal_modifier ?? 0;
-        return sigB - sigA;
-      }
-      if (sortBy === "experience") {
-        const expA = a.candidate?.profile?.years_of_experience || 0;
-        const expB = b.candidate?.profile?.years_of_experience || 0;
-        return expB - expA;
-      }
-      if (sortBy === "notice") {
-        const noticeA = a.candidate?.redrob_signals?.notice_period_days ?? 999;
-        const noticeB = b.candidate?.redrob_signals?.notice_period_days ?? 999;
-        return noticeA - noticeB;
-      }
-      if (sortBy === "completeness") {
-        const compA = a.candidate?.redrob_signals?.profile_completeness_score || 0;
-        const compB = b.candidate?.redrob_signals?.profile_completeness_score || 0;
-        return compB - compA;
-      }
-      if (sortBy === "skills") {
-        const skillsA = a.candidate?.skills?.length || 0;
-        const skillsB = b.candidate?.skills?.length || 0;
-        return skillsB - skillsA;
-      }
-      return (
-        (a.result.rank === "-" ? 999 : Number(a.result.rank || 999)) -
-        (b.result.rank === "-" ? 999 : Number(b.result.rank || 999))
-      );
-    });
-
-    return list;
+    return sortResults(list, sortBy);
   }, [activeTab, selectedPoolId, talentPools, query, sortBy]);
 
   const activeList =
@@ -566,9 +505,21 @@ const ResultsPanel = ({
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto custom-scrollbar bg-slate-950/20"
       >
-        {/* Loading state for shortlist — staged messages + skeleton cards */}
+        {/* Loading state for shortlist — skeleton cards + staged phase messages */}
         {isLoading && activeTab === "shortlist" && (
-          <LoadingPhaseDisplay loadingPhase={loadingPhase} candidatesCount={candidates.length} />
+          <div>
+            <LoadingPhaseDisplay loadingPhase={loadingPhase} candidatesCount={candidates.length} />
+            {/* Skeleton placeholder cards while API processes */}
+            <div className="px-4 py-3 space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 rounded-none border border-slate-800 bg-slate-900/50 animate-pulse"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                />
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Talent Pools Grid (when no pool selected) */}

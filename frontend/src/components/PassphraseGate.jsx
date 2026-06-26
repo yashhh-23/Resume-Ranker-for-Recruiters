@@ -50,6 +50,15 @@ const ShieldCheckIcon = () => (
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Passphrase read from environment — set VITE_DEMO_PASSPHRASE in .env.local
+// The actual value is never hardcoded in source; see frontend/.env.example
+// ---------------------------------------------------------------------------
+const VALID_PASS = import.meta.env.VITE_DEMO_PASSPHRASE ?? "demo";
+// Show last 4 chars; mask the rest — e.g. "••••••••2026"
+const PASS_HINT =
+  VALID_PASS.slice(0, -4).replace(/./g, "\u2022") + VALID_PASS.slice(-4);
+
 const PassphraseGate = ({ onAuthenticate }) => {
   const [phrase, setPhrase] = useState("");
   const [showPhrase, setShowPhrase] = useState(false);
@@ -195,10 +204,10 @@ const PassphraseGate = ({ onAuthenticate }) => {
               {error}
             </p>
           )}
-          {/* Demo hint for hackathon judges */}
+          {/* Demo hint — value from VITE_DEMO_PASSPHRASE env var */}
           <p className="text-[10px] text-slate-600 mt-1 font-mono">
             Demo passphrase:{" "}
-            <span className="text-slate-400 font-bold tracking-wider">hackathon2026</span>
+            <span className="text-slate-400 font-bold tracking-wider">{PASS_HINT}</span>
           </p>
         </div>
 
