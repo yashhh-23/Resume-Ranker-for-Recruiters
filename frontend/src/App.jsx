@@ -24,6 +24,7 @@ const App = () => {
   // ─── Auth gate ────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [runCount, setRunCount] = useState(0);
+  const [showWeightsInfo, setShowWeightsInfo] = useState(false);
 
   // ─── Theme Mode ───────────────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => {
@@ -270,6 +271,15 @@ const App = () => {
           >
             <span>GitHub Repo</span>
           </a>
+          {/* Scoring Model Info Button */}
+          <button
+            type="button"
+            onClick={() => setShowWeightsInfo(true)}
+            className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-emerald hover:border-emerald/30 rounded transition-colors"
+            title="View scoring model weights"
+          >
+            <span>ℹ Scoring Model</span>
+          </button>
         </div>
 
         {/* Action Controls */}
@@ -478,6 +488,54 @@ const App = () => {
           onAddCandidateToTalentPool={handleAddCandidateToTalentPool}
           onRemoveCandidateFromTalentPool={handleRemoveCandidateFromTalentPool}
         />
+      )}
+
+      {/* Scoring Model Info Modal */}
+      {showWeightsInfo && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowWeightsInfo(false)}
+        >
+          <div
+            className="w-full max-w-lg bg-slate-950 border border-slate-800 shadow-2xl p-6 font-mono rounded-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">RRR Scoring Engine</p>
+                <h3 className="text-base font-bold text-white mt-0.5">5-Signal Weighted Scoring Model</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWeightsInfo(false)}
+                className="text-slate-500 hover:text-white transition-colors text-xl leading-none"
+                aria-label="Close scoring model info"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: "Skill Match", weight: "35%", color: "#10B981", desc: "Semantic cosine similarity (all-MiniLM-L6-v2) + JD skill coverage + verified Redrob assessments" },
+                { label: "Career Fit", weight: "25%", color: "#3B82F6", desc: "Job title alignment, industry match, experience threshold, career progression velocity" },
+                { label: "Engagement Signals", weight: "15%", color: "#6366F1", desc: "GitHub activity score, recruiter response rate, platform assessment completions" },
+                { label: "Education", weight: "15%", color: "#14B8A6", desc: "Institution tier (IIT/IIM/Tier-1/Tier-2), degree level, field-of-study relevance" },
+                { label: "Availability", weight: "10%", color: "#D97706", desc: "Notice period days, open-to-work flag, relocation willingness" },
+              ].map(({ label, weight, color, desc }) => (
+                <div key={label} className="border border-slate-900 bg-slate-900/20 p-3 rounded-none">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold" style={{ color }}>{label}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 border rounded-none" style={{ color, borderColor: color + '40', backgroundColor: color + '10' }}>{weight}</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-900 text-[9px] text-slate-600 text-center">
+              Zero LLM hallucination · Deterministic scoring · Model: sentence-transformers/all-MiniLM-L6-v2 · FAISS CPU flat L2 index
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Powered by Tech Strip Footer */}

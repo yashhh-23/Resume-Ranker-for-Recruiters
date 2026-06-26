@@ -195,6 +195,11 @@ const PassphraseGate = ({ onAuthenticate }) => {
               {error}
             </p>
           )}
+          {/* Demo hint for hackathon judges */}
+          <p className="text-[10px] text-slate-600 mt-1 font-mono">
+            Demo passphrase:{" "}
+            <span className="text-slate-400 font-bold tracking-wider">hackathon2026</span>
+          </p>
         </div>
 
         {/* Submit */}
