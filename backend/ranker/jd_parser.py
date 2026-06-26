@@ -274,10 +274,10 @@ def _extract_industry(text: str) -> str:
     return match.group(1).strip(" .")
 
 
-def _infer_industry_from_title(title: str) -> str:
-    title_lower = title.lower()
+def _infer_industry_from_context(title: str, text_snippet: str) -> str:
+    combined = (title + " " + text_snippet[:300]).lower()
     for industry, keywords in INDUSTRY_KEYWORDS.items():
-        if any(kw.lower() in title_lower for kw in keywords):
+        if any(kw.lower() in combined for kw in keywords):
             return industry
     return DEFAULT_JD["target_industry"]
 
@@ -402,7 +402,7 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     target_title = _extract_title(text)
     target_industry = _extract_industry(text)
     if target_industry == DEFAULT_JD["target_industry"]:
-        target_industry = _infer_industry_from_title(target_title or text[:200])
+        target_industry = _infer_industry_from_context(target_title or "", text[:300])
     # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
     # (Sales, Finance, Design), semantic cosine scores will be lower on average.
     # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.
