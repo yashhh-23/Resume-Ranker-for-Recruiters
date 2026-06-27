@@ -43,12 +43,10 @@ export const rankCandidates = async ({ jobDescription, candidates }) => {
   if (!response.ok) {
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
-      try {
-        const errorData = await response.json();
+      const errorData = await response.json().catch(() => null);
+      if (errorData) {
         const detail = errorData.detail || errorData.message || JSON.stringify(errorData);
         throw new Error(`Server error (${response.status}): ${detail}`);
-      } catch (e) {
-        // Fallback
       }
     }
     throw new Error(`Server returned ${response.status}: ${response.statusText || 'Error'}`);
