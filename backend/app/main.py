@@ -31,6 +31,7 @@ limiter = Limiter(key_func=get_remote_address)
 _START_TIME = time.time()
 MAX_CANDIDATES = 1000
 _MODEL_READY = False
+_GIT_SHA = os.getenv("GIT_SHA", "unknown")
 
 
 @asynccontextmanager
@@ -40,7 +41,7 @@ async def lifespan(app: FastAPI):
     try:
         await loop.run_in_executor(None, load_model)
         _MODEL_READY = True
-        print("[RRR] Model loaded and ready.")
+        print(f"[RRR] Model loaded and ready. Commit SHA: {_GIT_SHA}")
     except Exception as e:
         print(f"[RRR] WARNING: Model warm-up failed: {e}")
     yield
@@ -153,6 +154,7 @@ async def health():
         "model_ready": _MODEL_READY,
         "service": "RRR Resume Ranker Backend",
         "version": "1.0.0",
+        "commit_hash": _GIT_SHA,
         "model": "sentence-transformers/all-MiniLM-L6-v2",
         "uptime_seconds": round(time.time() - _START_TIME),
         "timestamp": datetime.now(timezone.utc).isoformat(),

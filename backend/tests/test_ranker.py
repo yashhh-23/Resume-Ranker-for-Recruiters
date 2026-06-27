@@ -4,47 +4,46 @@ from ranker.candidate_scorer import score_career_fit, score_education, rank_cand
 from ranker.signal_scorer import score_availability
 import numpy as np
 
-
 def test_sanitize_candidates():
-    candidates = [{"id": 1}, {"candidate_id": "C1", "name": "Test"}]
+    candidates = [{'id': 1}, {'candidate_id': 'C1', 'name': 'Test'}]
     valid, skipped = sanitize_candidates(candidates)
     assert len(valid) == 1
     assert len(skipped) == 1
-    assert valid[0]["candidate_id"] == "C1"
-
+    assert valid[0]['candidate_id'] == 'C1'
 
 def test_parse_jd_text():
-    text = "Required: Python, SQL. Preferred: Docker."
+    text = 'Required: Python, SQL. Preferred: Docker. Looking for a senior ML Engineer in FinTech.'
     jd = parse_jd_text(text)
-    assert "Python" in jd["required_skills"]
-    assert "SQL" in jd["required_skills"]
-    assert "Docker" in jd["preferred_skills"]
-
+    assert 'Python' in jd['required_skills']
+    assert 'SQL' in jd['required_skills']
+    assert 'Docker' in jd['preferred_skills']
+    assert len(jd['required_skills']) >= 2
+    assert jd['seniority_level'] == 'senior'
+    assert jd['target_industry'] in ('tech', 'unknown')
 
 def test_score_education():
-    jd = {"target_field": "Computer Science"}
-    cand_no_edu_no_exp = {"education": [], "profile": {"years_of_experience": 0}}
+    jd = {'target_field': 'Computer Science'}
+    cand_no_edu_no_exp = {'education': [], 'profile': {'years_of_experience': 0}}
     assert score_education(cand_no_edu_no_exp, jd) == 0.0
 
-    cand_no_edu_low_exp = {"education": [], "profile": {"years_of_experience": 2}}
+    cand_no_edu_low_exp = {'education': [], 'profile': {'years_of_experience': 2}}
     assert score_education(cand_no_edu_low_exp, jd) == 0.05
 
-    cand_no_edu_med_exp = {"education": [], "profile": {"years_of_experience": 7}}
+    cand_no_edu_med_exp = {'education': [], 'profile': {'years_of_experience': 7}}
     assert score_education(cand_no_edu_med_exp, jd) == 0.175
 
-    cand_no_edu_high_exp = {"education": [], "profile": {"years_of_experience": 12}}
+    cand_no_edu_high_exp = {'education': [], 'profile': {'years_of_experience': 12}}
     assert score_education(cand_no_edu_high_exp, jd) == 0.3
 
     cand_phd = {
-        "education": [
-            {"degree": "PhD", "field_of_study": "Computer Science", "tier": "tier_1"}
+        'education': [
+            {'degree': 'PhD', 'field_of_study': 'Computer Science', 'tier': 'tier_1'}
         ]
     }
     assert score_education(cand_phd, jd) > 0.8
 
-
 def test_score_career_fit():
-    jd = {"target_title": "Engineer", "min_experience_years": 5.0, "seniority_level": "senior"}
+    jd = {'target_title': 'Engineer', 'min_experience_years': 5.0, 'seniority_level': 'senior'}
     cand_senior = {
         "profile": {"years_of_experience": 7.0},
         "career_history": [{"title": "Software Engineer", "start_date": "2018-01-01"}],
@@ -103,7 +102,7 @@ def test_sanitize_truncation():
     assert len(valid[0]["profile"]["headline"]) <= 2000
 
 
-def test_build_reasoning_empty_title():
+def test_build_reasoning_with_reasonable_data():
     from ranker.candidate_scorer import build_reasoning
 
     jd = {"target_title": "", "required_skills": []}
@@ -121,6 +120,26 @@ def test_build_reasoning_empty_title():
     }
     result = build_reasoning(candidate, breakdown, jd)  # must not raise IndexError
     assert isinstance(result, str)
+    assert "Engineer" in result
+
+def test_build_reasoning_with_empty_title():
+    from ranker.candidate_scorer import build_reasoning
+
+    jd = {"target_title": "", "required_skills": []}
+    candidate = {
+        "profile": {"current_title": "", "headline": "Fallback Headline", "years_of_experience": 3},
+        "skills": [],
+        "redrob_signals": {},
+    }
+    breakdown = {
+        "skill_match": 0.5,
+        "career_fit": 0.4,
+        "signal_modifier": 0.3,
+        "education": 0.2,
+        "availability": 0.1,
+    }
+    result = build_reasoning(candidate, breakdown, jd)
+    assert "Fallback Headline" in result
 
 
 def test_rank_candidates():
@@ -159,3 +178,26 @@ def test_score_required_skill_coverage():
     assert score_full > score_expert, "Full match should outscore partial"
     assert score_full <= 1.0
     assert score_beginner >= 0.0
+
+
+def test_rank_candidates_tie_breaker():
+    jd = {"skills_text": "Python"}
+    cands = [
+        {"candidate_id": "C2", "skills": [{"name": "Python"}]},
+        {"candidate_id": "C1", "skills": [{"name": "Python"}]},
+    ]
+
+    class DummyModel:
+        def encode(self, texts, **kwargs):
+            return np.ones((len(texts), 384))
+
+    res = rank_candidates(cands, jd, model=DummyModel())
+    assert len(res) == 2
+    assert res[0]["candidate_id"] == "C1"
+    assert res[1]["candidate_id"] == "C2"
+
+
+def test_extract_seniority():
+    from ranker.jd_parser import _extract_seniority
+    text = "We need 5+ years of experience as a software engineer"
+    assert _extract_seniority(text) == "senior"
