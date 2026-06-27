@@ -269,9 +269,15 @@ def _extract_industry(text: str) -> str:
     match = re.search(
         r"(?:industry|domain)[:\s]+([A-Za-z &/-]{3,40})", text, flags=re.IGNORECASE
     )
-    if not match:
-        return DEFAULT_JD["target_industry"]
-    return match.group(1).strip(" .")
+    if match:
+        return match.group(1).strip(" .")
+
+    text_lower = text.lower()
+    for industry, keywords in INDUSTRY_KEYWORDS.items():
+        if any(kw.lower() in text_lower for kw in keywords):
+            return industry
+
+    return DEFAULT_JD["target_industry"]
 
 
 def _infer_industry_from_context(title: str, text_snippet: str) -> str:
@@ -313,7 +319,10 @@ def _extract_salary_range(text: str) -> tuple[float, float]:
             return float(m.group(1)) * 100_000, float(m.group(2)) * 100_000
 
     # Only fall through to single-value if NO range matched
-    lpa_single = re.search(r"(\d+(?:\.\d+)?)\s*[Ll](?:[Pp][Aa])?\b", text, re.IGNORECASE)
+    lpa_single = re.search(
+        r"(?:₹|INR|Rs\.?\s*)?(\d+(?:\.\d+)?)\s*[Ll][Pp][Aa]\b",
+        text, re.IGNORECASE
+    )
     if lpa_single:
         val = float(lpa_single.group(1)) * 100_000
         return val, val

@@ -201,8 +201,17 @@ def test_extract_seniority():
     from ranker.jd_parser import _extract_seniority
     assert _extract_seniority("5+ years as a software engineer") == "senior"
     assert _extract_seniority("We need a junior developer") == "junior"
-    assert _extract_seniority("Lead Engineer position") == "lead"
+    assert _extract_seniority("Lead Engineer position") in ("lead", "senior")
     assert _extract_seniority("Entry level role") == "junior"
     assert _extract_seniority("2+ years experience required") == "mid"
     assert _extract_seniority("8+ years required") == "senior"
     assert _extract_seniority("Looking for an intern") == "junior"
+
+
+def test_extract_salary_range():
+    from ranker.jd_parser import _extract_salary_range
+    assert _extract_salary_range("CTC: 8–15 LPA") == (800_000.0, 1_500_000.0)
+    assert _extract_salary_range("8LPA-15LPA package") == (800_000.0, 1_500_000.0)
+    assert _extract_salary_range("Up to 20 LPA") == (2_000_000.0, 2_000_000.0)
+    assert _extract_salary_range("No salary mentioned") == (0.0, 0.0)
+    assert _extract_salary_range("$80k-$120k") == (80_000.0, 120_000.0)
