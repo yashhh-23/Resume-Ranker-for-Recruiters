@@ -235,11 +235,13 @@ def build_reasoning(
     years = safe_float(profile.get("years_of_experience"))
     skills = candidate.get("skills") or []
     jd_skills_lower = {s.lower() for s in jd.get("required_skills", [])}
-    candidate_skills_lower = _get_candidate_skill_names(skills)
-    matched = candidate_skills_lower.intersection(jd_skills_lower)
+    matched_display = [
+        s["name"] for s in skills
+        if s.get("name", "").lower() in jd_skills_lower
+    ]
     matched_skills_str = (
-        f"{len(matched)} required skill(s) matched"
-        if matched
+        f"{len(matched_display)} required skill(s) matched: {', '.join(matched_display[:5])}"
+        if matched_display
         else "no required skills matched"
     )
     

@@ -159,4 +159,7 @@ def get_jd_embedding(
 def cosine_similarity(left: np.ndarray, right: np.ndarray) -> float:
     if left is None or right is None or len(left) == 0 or len(right) == 0:
         return 0.0
-    return float(np.clip(np.dot(left, right), -1.0, 1.0))
+    # Vectors should already be L2-normalized by sentence-transformers
+    # but guard against zero-magnitude edge cases
+    dot = float(np.dot(left, right))
+    return float(np.clip(dot, -1.0, 1.0))
