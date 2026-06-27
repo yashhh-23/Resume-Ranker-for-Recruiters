@@ -232,6 +232,21 @@ const CandidateCard = memo(({
               { label: "Availability", value: breakdown.availability, weight: 0.10, colorCode: "#D97706" }
             ]}
           />
+          {result.signal_reasoning && Object.keys(result.signal_reasoning).length > 0 && (
+            <details className="mt-2 border border-slate-800 rounded-none bg-slate-950/40">
+              <summary className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider
+                text-slate-400 cursor-pointer select-none">
+                Signal Reasoning
+              </summary>
+              <ul className="px-3 pb-2 space-y-1">
+                {Object.entries(result.signal_reasoning).map(([signal, reason]) => (
+                  <li key={signal} className="text-[10px] font-mono text-slate-400">
+                    <span className="text-emerald font-bold uppercase">{signal}:</span> {reason}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </div>
 
         {/* Hover Tooltip Frame (CSS-only) */}
