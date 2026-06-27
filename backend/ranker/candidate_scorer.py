@@ -231,13 +231,15 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     raw_score = 0.0
     career_history = candidate.get("career_history") or []
-    penalty_companies = {"tcs", "infosys", "wipro", "cognizant", "capgemini"}
-    it_penalty = 0.0
+    penalty_companies = {"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini"}
+    
+    it_consulting_count = sum(
+        1 for role in career_history 
+        if any(p in str(role.get("company") or "").lower() for p in penalty_companies)
+    )
+    it_penalty = 0.2 if (len(career_history) > 0 and it_consulting_count == len(career_history)) else 0.0
+
     for role in career_history:
-        comp = str(role.get("company") or "").lower()
-        if any(p in comp for p in penalty_companies):
-            it_penalty = 0.2
-            
         months_ago = years_ago(role.get("start_date")) * 12
         decay = recency_weight(months_ago, seniority)
         title_score = text_match(role.get("title"), target_title)
@@ -320,6 +322,45 @@ def build_reasoning(
     )
 
 
+def score_jd_specific_traps(candidate: Dict[str, Any]) -> float:
+    penalty = 0.0
+    career_history = candidate.get("career_history") or []
+    if career_history:
+        total_duration = 0.0
+        for role in career_history:
+            dur = role.get("duration_months")
+            if dur is not None:
+                total_duration += safe_float(dur, 0.0)
+            else:
+                start = role.get("start_date")
+                end = role.get("end_date")
+                if start:
+                    try:
+                        s_date = datetime.fromisoformat(str(start)).date()
+                        e_date = datetime.fromisoformat(str(end)).date() if end else date.today()
+                        total_duration += max(0, (e_date.year - s_date.year) * 12 + e_date.month - s_date.month)
+                    except ValueError:
+                        pass
+        avg_duration = total_duration / len(career_history)
+        if avg_duration < 18.0:
+            penalty += 0.15
+
+    skills = candidate.get("skills") or []
+    skill_names = {str(s.get("name", "")).lower() for s in skills}
+    
+    has_cv_speech = any(x in n for n in skill_names for x in ["computer vision", "speech", "robotics"])
+    has_nlp_ir = any(x in n for n in skill_names for x in ["nlp", "retrieval", "search", "ir "])
+    if has_cv_speech and not has_nlp_ir:
+        penalty += 0.20
+
+    has_langchain = any("langchain" in n for n in skill_names)
+    has_core_ml = any(x in n for n in skill_names for x in ["faiss", "pytorch", "tensorflow", "embeddings", "ranking"])
+    if has_langchain and not has_core_ml:
+        penalty += 0.15
+
+    return penalty
+
+
 def score_candidate(
     candidate: Dict[str, Any],
     jd: Dict[str, Any],
@@ -342,6 +383,10 @@ def score_candidate(
     }
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+    
+    trap_penalty = score_jd_specific_traps(candidate)
+    final_score = max(0.0, final_score - trap_penalty)
+
     if blacklist_penalty:
         final_score *= 0.2
     if fraud_timeline:

@@ -30,5 +30,7 @@ jobs:
             --out /tmp/test_submission.csv
       - name: Validate submission
         working-directory: backend
+        env:
+          EXPECTED_DATA_ROWS: 50
         run: python dataset/validate_submission.py /tmp/test_submission.csv
 
