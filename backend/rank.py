@@ -12,16 +12,12 @@ from ranker.validators import sanitize_candidates
 CSV_HEADER = ["candidate_id", "rank", "score", "reasoning"]
 
 
-def parse_candidates_stream(handle, limit: int = 5000):
-    count = 0
+def parse_candidates_stream(handle):
     for line in handle:
         line = line.strip()
         if line:
             try:
                 yield json.loads(line)
-                count += 1
-                if count >= limit:
-                    break
             except json.JSONDecodeError:
                 continue
 
