@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from "react";
 import CryptoJS from "crypto-js";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
@@ -27,6 +27,7 @@ const App = () => {
   const [runCount, setRunCount] = useState(0);
   const [showWeightsInfo, setShowWeightsInfo] = useState(false);
   const [passphraseWarning, setPassphraseWarning] = useState(false);
+  const [passphrase, setPassphraseState] = useState("");
 
   // ─── Theme Mode ───────────────────────────────────────────────────────────
   const [theme, setTheme] = useState(() => {
@@ -62,12 +63,14 @@ const App = () => {
     localStorage.setItem(verifierKey, hash);
 
     setPassphrase(phrase);           // store passphrase in memory only
+    setPassphraseState(phrase);
     setTalentPools(getTalentPools()); // decrypt & load this recruiter's pools
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
     clearPassphrase();
+    setPassphraseState("");
     setIsAuthenticated(false);
     setPassphraseWarning(false);
     setTalentPools([]);
@@ -214,7 +217,7 @@ const App = () => {
     ? rankedResults.find((result) => result.candidate_id === selectedCandidateId)
     : null;
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!jobDescription.trim() || candidates.length === 0) {
       setError("Job description and candidates are required.");
       return;
@@ -263,7 +266,7 @@ const App = () => {
         setIsLoading(false);
       }, 60);
     }
-  };
+  }, [candidates, jobDescription, passphrase, isDesktop]);
 
   // Global Ctrl+Shift+R shortcut to trigger rank run
   useEffect(() => {
@@ -277,7 +280,7 @@ const App = () => {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isLoading, candidates.length, jobDescription]);
+  }, [isLoading, candidates.length, jobDescription, handleRun]);
 
   // ─── Passphrase gate ─────────────────────────────────────────────────────
   if (!isAuthenticated) {
@@ -385,7 +388,7 @@ const App = () => {
       )}
 
       {passphraseWarning && (
-        <div className="bg-amber/10 border-b border-amber/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber font-mono shrink-0">
+        <div role="alert" className="bg-amber/10 border-b border-amber/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber font-mono shrink-0">
           <div className="flex items-center gap-2">
             <span aria-hidden="true">⚠️</span>
             <span>

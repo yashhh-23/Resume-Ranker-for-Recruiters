@@ -170,7 +170,7 @@ const ResultsPanel = ({
 
   useEffect(() => {
     setVisibleCount(30);
-  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId, rankedResults.length]);
+  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId, rankedResults.length, criteriaFiltered.length]);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -695,7 +695,7 @@ const ResultsPanel = ({
                 <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-none shadow-md w-full font-mono">
                   <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Podium View Unavailable</p>
                   <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
-                    Podium requires at least 3 candidates to construct Gold, Silver, and Bronze tiers. Please adjust your filters or ingest more candidates (currently {activeList.length} candidate{activeList.length === 1 ? "" : "s"} visible).
+                    Podium requires at least 3 candidates to construct Gold, Silver, and Bronze tiers. Please adjust your filters or ingest more candidates (currently <strong>{activeList.length}</strong> candidate{activeList.length === 1 ? "" : "s"} visible).
                   </p>
                 </div>
               </div>
