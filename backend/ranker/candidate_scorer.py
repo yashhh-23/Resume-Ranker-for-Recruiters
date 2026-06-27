@@ -189,7 +189,8 @@ def score_skill_match(
     jd: Dict[str, Any] = None,
 ) -> float:
     raw_cos = cosine_similarity(jd_embedding, candidate_embeddings.get(candidate_id)) or 0.0
-    base = clamp(raw_cos * 3.0)  # Normalize max expected cosine sim (~0.33) to 1.0
+    # Threshold semantic similarity to heavily penalize out-of-domain resumes (like Mobile Devs)
+    base = clamp((raw_cos - 0.15) * 5.0)
 
     # Endorsement multiplier: rewards peer-validated competence
     skills = (candidate or {}).get("skills") or []
@@ -404,9 +405,11 @@ def score_candidate(
         final_score *= 0.2
     if fraud_timeline:
         final_score = 0.0
-    
-    if len(matched) < 2:
-        final_score = min(final_score, 0.4000)
+        
+    if len(matched) == 0:
+        final_score *= 0.3
+    elif len(matched) == 1:
+        final_score *= 0.7
 
     rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
 
@@ -537,9 +540,11 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     }
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
-    if breakdown["skill_match"] < 0.2:
-        final_score = min(final_score, 0.4000)
-    
+    if breakdown["skill_match"] < 0.1:
+        final_score *= 0.3
+    elif breakdown["skill_match"] < 0.3:
+        final_score *= 0.7
+        
     trap_penalty = score_jd_specific_traps(candidate)
     final_score = max(0.0, final_score - trap_penalty)
 
