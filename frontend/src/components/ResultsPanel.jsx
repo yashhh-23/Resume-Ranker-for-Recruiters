@@ -76,35 +76,17 @@ const ResultsPanel = ({
     return filters.join(", ") || "None (Full Shortlist)";
   }, [availableOnly, githubOnly, anomalyFilter, query]);
 
-  const filtered = useMemo(() => {
+  const criteriaFiltered = useMemo(() => {
     const candidateMap = new Map(
       candidates.map((candidate) => [candidate.candidate_id, candidate])
     );
 
-    const search = query.trim().toLowerCase();
-    let itemsList = rankedResults.map((result) => ({
+    const itemsList = rankedResults.map((result) => ({
       result,
       candidate: candidateMap.get(result.candidate_id),
     }));
 
-    if (search) {
-      itemsList = itemsList.filter((row) => {
-        const profile = row.candidate?.profile || {};
-        const haystack = [
-          profile.anonymized_name,
-          profile.headline,
-          profile.current_company,
-          profile.current_title,
-          profile.location,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return haystack.includes(search);
-      });
-    }
-
-    itemsList = itemsList.filter((row) => {
+    return itemsList.filter((row) => {
       const candidate = row.candidate;
       if (!candidate) return true;
 
@@ -124,9 +106,31 @@ const ResultsPanel = ({
 
       return true;
     });
+  }, [rankedResults, candidates, anomalyFilter, availableOnly, githubOnly]);
+
+  const filtered = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    let itemsList = criteriaFiltered;
+
+    if (search) {
+      itemsList = itemsList.filter((row) => {
+        const profile = row.candidate?.profile || {};
+        const haystack = [
+          profile.anonymized_name,
+          profile.headline,
+          profile.current_company,
+          profile.current_title,
+          profile.location,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(search);
+      });
+    }
 
     return sortResults(itemsList, sortBy);
-  }, [rankedResults, candidates, query, sortBy, anomalyFilter, availableOnly, githubOnly]);
+  }, [criteriaFiltered, query, sortBy]);
 
   const poolCandidatesFiltered = useMemo(() => {
     if (activeTab !== "pools" || !selectedPoolId) return [];
@@ -166,7 +170,7 @@ const ResultsPanel = ({
 
   useEffect(() => {
     setVisibleCount(30);
-  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId]);
+  }, [query, sortBy, anomalyFilter, availableOnly, githubOnly, activeTab, selectedPoolId, rankedResults.length]);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -585,106 +589,117 @@ const ResultsPanel = ({
         {/* Results Matrix Render */}
         {!isLoading && activeList.length > 0 && (activeTab === "shortlist" || selectedPoolId !== null) && (
           viewMode === "podium" ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start max-w-5xl mx-auto py-8 px-6 font-mono">
+            activeList.length >= 3 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start max-w-5xl mx-auto py-8 px-6 font-mono">
 
-              
-              {/* Silver Column: Rank #2 (flanked left) */}
-              <div className="md:order-1 md:pt-6">
-                {activeList[1] ? (
-                  <div className="border border-slate-900 bg-slate-950/60 shadow-md hover:border-slate-800 transition-all duration-200 rounded-none">
-                    <div className="flex items-center justify-between border-b border-slate-900 px-4 py-2 bg-slate-950">
-                      <span className="text-[10px] font-bold text-slate-400">SILVER RANK #2</span>
-                      <span className="text-xs font-bold text-emerald">
-                        {(activeList[1].result.score <= 1 ? activeList[1].result.score * 100 : activeList[1].result.score).toFixed(1)}%
-                      </span>
+                
+                {/* Silver Column: Rank #2 (flanked left) */}
+                <div className="md:order-1 md:pt-6">
+                  {activeList[1] ? (
+                    <div className="border border-slate-900 bg-slate-950/60 shadow-md hover:border-slate-800 transition-all duration-200 rounded-none">
+                      <div className="flex items-center justify-between border-b border-slate-900 px-4 py-2 bg-slate-950">
+                        <span className="text-[10px] font-bold text-slate-400">SILVER RANK #2</span>
+                        <span className="text-xs font-bold text-emerald">
+                          {(activeList[1].result.score <= 1 ? activeList[1].result.score * 100 : activeList[1].result.score).toFixed(1)}%
+                        </span>
+                      </div>
+                      <CandidateCard
+                        result={activeList[1].result}
+                        candidate={activeList[1].candidate}
+                        filteredRank={2}
+                        onSelect={() => onSelectCandidate(activeList[1].result.candidate_id)}
+                        talentPools={talentPools}
+                        onOpenPoolManager={onOpenPoolManager}
+                        inPoolView={activeTab === "pools"}
+                        poolId={selectedPoolId}
+                        onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                        jobDescription={jobDescription}
+                        isCompareSelected={compareIds.includes(activeList[1].result.candidate_id)}
+                        onToggleCompare={handleToggleCompare}
+                      />
                     </div>
-                    <CandidateCard
-                      result={activeList[1].result}
-                      candidate={activeList[1].candidate}
-                      filteredRank={2}
-                      onSelect={() => onSelectCandidate(activeList[1].result.candidate_id)}
-                      talentPools={talentPools}
-                      onOpenPoolManager={onOpenPoolManager}
-                      inPoolView={activeTab === "pools"}
-                      poolId={selectedPoolId}
-                      onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
-                      jobDescription={jobDescription}
-                      isCompareSelected={compareIds.includes(activeList[1].result.candidate_id)}
-                      onToggleCompare={handleToggleCompare}
-                    />
-                  </div>
-                ) : (
-                  <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
-                    No candidate ranked #2 matches filters.
-                  </div>
-                )}
-              </div>
-
-              {/* Gold Column: Rank #1 (highest, center) */}
-              <div className="md:order-2">
-                {activeList[0] ? (
-                  <div className="border-2 border-amber bg-slate-950/80 shadow-lg hover:border-amber/80 transition-all duration-200 relative rounded-none">
-                    <div className="flex items-center justify-between border-b border-slate-900 px-4 py-3 bg-slate-950">
-                      <span className="text-[10px] font-bold text-amber">GOLD RANK #1</span>
-                      <span className="text-sm font-bold text-emerald">
-                        {(activeList[0].result.score <= 1 ? activeList[0].result.score * 100 : activeList[0].result.score).toFixed(1)}%
-                      </span>
+                  ) : (
+                    <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
+                      No candidate ranked #2 matches filters.
                     </div>
-                    <CandidateCard
-                      result={activeList[0].result}
-                      candidate={activeList[0].candidate}
-                      filteredRank={1}
-                      onSelect={() => onSelectCandidate(activeList[0].result.candidate_id)}
-                      talentPools={talentPools}
-                      onOpenPoolManager={onOpenPoolManager}
-                      inPoolView={activeTab === "pools"}
-                      poolId={selectedPoolId}
-                      onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
-                      jobDescription={jobDescription}
-                      isCompareSelected={compareIds.includes(activeList[0].result.candidate_id)}
-                      onToggleCompare={handleToggleCompare}
-                    />
-                  </div>
-                ) : (
-                  <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
-                    No candidate ranked #1 matches filters.
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Bronze Column: Rank #3 (flanked right) */}
-              <div className="md:order-3 md:pt-12">
-                {activeList[2] ? (
-                  <div className="border border-slate-900 bg-slate-950/60 shadow-md hover:border-slate-800 transition-all duration-200 rounded-none">
-                    <div className="flex items-center justify-between border-b border-slate-900 px-4 py-2 bg-slate-950">
-                      <span className="text-[10px] font-bold text-amber-700">BRONZE RANK #3</span>
-                      <span className="text-xs font-bold text-emerald">
-                        {(activeList[2].result.score <= 1 ? activeList[2].result.score * 100 : activeList[2].result.score).toFixed(1)}%
-                      </span>
+                {/* Gold Column: Rank #1 (highest, center) */}
+                <div className="md:order-2">
+                  {activeList[0] ? (
+                    <div className="border-2 border-amber bg-slate-950/80 shadow-lg hover:border-amber/80 transition-all duration-200 relative rounded-none">
+                      <div className="flex items-center justify-between border-b border-slate-900 px-4 py-3 bg-slate-950">
+                        <span className="text-[10px] font-bold text-amber">GOLD RANK #1</span>
+                        <span className="text-sm font-bold text-emerald">
+                          {(activeList[0].result.score <= 1 ? activeList[0].result.score * 100 : activeList[0].result.score).toFixed(1)}%
+                        </span>
+                      </div>
+                      <CandidateCard
+                        result={activeList[0].result}
+                        candidate={activeList[0].candidate}
+                        filteredRank={1}
+                        onSelect={() => onSelectCandidate(activeList[0].result.candidate_id)}
+                        talentPools={talentPools}
+                        onOpenPoolManager={onOpenPoolManager}
+                        inPoolView={activeTab === "pools"}
+                        poolId={selectedPoolId}
+                        onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                        jobDescription={jobDescription}
+                        isCompareSelected={compareIds.includes(activeList[0].result.candidate_id)}
+                        onToggleCompare={handleToggleCompare}
+                      />
                     </div>
-                    <CandidateCard
-                      result={activeList[2].result}
-                      candidate={activeList[2].candidate}
-                      filteredRank={3}
-                      onSelect={() => onSelectCandidate(activeList[2].result.candidate_id)}
-                      talentPools={talentPools}
-                      onOpenPoolManager={onOpenPoolManager}
-                      inPoolView={activeTab === "pools"}
-                      poolId={selectedPoolId}
-                      onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
-                      jobDescription={jobDescription}
-                      isCompareSelected={compareIds.includes(activeList[2].result.candidate_id)}
-                      onToggleCompare={handleToggleCompare}
-                    />
-                  </div>
-                ) : (
-                  <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
-                    No candidate ranked #3 matches filters.
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
+                      No candidate ranked #1 matches filters.
+                    </div>
+                  )}
+                </div>
 
-            </div>
+                {/* Bronze Column: Rank #3 (flanked right) */}
+                <div className="md:order-3 md:pt-12">
+                  {activeList[2] ? (
+                    <div className="border border-slate-900 bg-slate-950/60 shadow-md hover:border-slate-800 transition-all duration-200 rounded-none">
+                      <div className="flex items-center justify-between border-b border-slate-900 px-4 py-2 bg-slate-950">
+                        <span className="text-[10px] font-bold text-amber-700">BRONZE RANK #3</span>
+                        <span className="text-xs font-bold text-emerald">
+                          {(activeList[2].result.score <= 1 ? activeList[2].result.score * 100 : activeList[2].result.score).toFixed(1)}%
+                        </span>
+                      </div>
+                      <CandidateCard
+                        result={activeList[2].result}
+                        candidate={activeList[2].candidate}
+                        filteredRank={3}
+                        onSelect={() => onSelectCandidate(activeList[2].result.candidate_id)}
+                        talentPools={talentPools}
+                        onOpenPoolManager={onOpenPoolManager}
+                        inPoolView={activeTab === "pools"}
+                        poolId={selectedPoolId}
+                        onRemoveCandidateFromTalentPool={onRemoveCandidateFromTalentPool}
+                        jobDescription={jobDescription}
+                        isCompareSelected={compareIds.includes(activeList[2].result.candidate_id)}
+                        onToggleCompare={handleToggleCompare}
+                      />
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-slate-900 p-8 text-center text-xs text-slate-700 italic rounded-none">
+                      No candidate ranked #3 matches filters.
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 px-6 text-center max-w-md mx-auto w-full">
+                <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-none shadow-md w-full font-mono">
+                  <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Podium View Unavailable</p>
+                  <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+                    Podium requires at least 3 candidates to construct Gold, Silver, and Bronze tiers. Please adjust your filters or ingest more candidates (currently {activeList.length} candidate{activeList.length === 1 ? "" : "s"} visible).
+                  </p>
+                </div>
+              </div>
+            )
           ) : (
             <div className="divide-y divide-slate-900">
               {slicedList.map(({ result, candidate }, idx) => (
