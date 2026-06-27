@@ -270,6 +270,16 @@ cd backend
 pytest tests/ -v
 ```
 
+
+## 🔑 Demo Access
+
+The frontend is protected by a passphrase gate. The demo passphrase is:
+
+> **`hackathon2026`**
+
+This is pre-configured in `frontend/.env`. No extra setup is needed for judges.
+To customize for your own deployment, edit `frontend/.env` or create `frontend/.env.local` (gitignored) with a new value for `VITE_DEMO_PASSPHRASE`.
+
 ---
 
 ## ⚛️ Frontend (React + Vite)

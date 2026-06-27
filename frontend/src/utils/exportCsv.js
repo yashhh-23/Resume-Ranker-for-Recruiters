@@ -59,7 +59,8 @@ export const exportSubmissionCsv = (rankedResults) => {
   const url  = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href     = url;
-  link.download = "submission.csv";
+  const now = new Date().toISOString().slice(0, 16).replace("T", "_").replace(":", "-");
+  link.download = `rrr_shortlist_${now}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
