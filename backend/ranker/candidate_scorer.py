@@ -19,8 +19,8 @@ from .validators import validate_candidate
 WEIGHTS = {
     "skill_match": 0.45,
     "career_fit": 0.20,
-    "signal_modifier": 0.15,
-    "education": 0.10,
+    "signal_modifier": 0.16,
+    "education": 0.09,
     "availability": 0.10,
 }
 
@@ -410,9 +410,14 @@ def score_candidate(
     matched = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if any(rl in cs or cs in rl for cs in candidate_skill_names)]
     missing = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if not any(rl in cs or cs in rl for cs in candidate_skill_names)]
 
+    matched_count = len(matched)
+    
     # Dampen education contribution if the career fit is extremely weak
     if breakdown["career_fit"] < 0.12:
-        breakdown["education"] *= 0.70
+        if matched_count <= 1:
+            breakdown["education"] *= 0.40  # Harsher dampening for low skill count
+        else:
+            breakdown["education"] *= 0.70
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
@@ -566,18 +571,24 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         "availability": score_availability(signals),
     }
 
-    # Dampen education contribution if the career fit is extremely weak
-    if breakdown["career_fit"] < 0.12:
-        breakdown["education"] *= 0.70
-
-    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
-
     jd_required_list = jd.get("_cached_raw_req", jd.get("raw_required_skills", jd.get("required_skills", [])))
     jd["_cached_raw_req"] = jd_required_list
+    matched_count = 0
     if jd_required_list:
         candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
         jd_required_list_lower = [r.lower() for r in jd_required_list]
         matched_count = sum(1 for r, rl in zip(jd_required_list, jd_required_list_lower) if any(rl in cs or cs in rl for cs in candidate_skill_names))
+
+    # Dampen education contribution if the career fit is extremely weak
+    if breakdown["career_fit"] < 0.12:
+        if matched_count <= 1:
+            breakdown["education"] *= 0.40  # Harsher dampening for low skill count
+        else:
+            breakdown["education"] *= 0.70
+
+    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+
+    if jd_required_list:
         
         # Implement a skill count gate as a hard multiplicative factor on the total score
         if matched_count == 0:
