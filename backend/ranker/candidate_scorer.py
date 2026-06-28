@@ -203,7 +203,9 @@ def score_skill_match(
         endorsement_boost = 0.5
 
     coverage_score = score_required_skill_coverage(candidate or {}, jd or {})
-    blended_skill = 0.65 * base + 0.20 * coverage_score + 0.15 * endorsement_boost
+    # coverage_score is typically low (e.g. 0.3 for 3/10 skills). We boost it by 2.5x 
+    # to prevent score collapse, while keeping the max at 1.0.
+    blended_skill = 0.25 * base + 0.65 * clamp(coverage_score * 2.5) + 0.10 * endorsement_boost
     return clamp(blended_skill)
 
 
