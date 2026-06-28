@@ -403,6 +403,14 @@ def score_candidate(
     matched = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if any(rl in cs or cs in rl for cs in candidate_skill_names)]
     missing = [r for r, rl in zip(jd_required_list, jd_required_list_lower) if not any(rl in cs or cs in rl for cs in candidate_skill_names)]
 
+    # Enforce strict monotonicity based on actual required skills by penalizing the component, not the final score
+    if len(matched) == 0:
+        breakdown["skill_match"] *= 0.2
+    elif len(matched) == 1:
+        breakdown["skill_match"] *= 0.4
+    elif len(matched) == 2:
+        breakdown["skill_match"] *= 0.75
+
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
     
     trap_penalty = score_jd_specific_traps(candidate)
@@ -413,13 +421,7 @@ def score_candidate(
     if fraud_timeline:
         final_score = 0.0
         
-    # Enforce strict monotonicity based on actual required skills
-    if len(matched) == 0:
-        final_score *= 0.2
-    elif len(matched) == 1:
-        final_score *= 0.4
-    elif len(matched) == 2:
-        final_score *= 0.75
+    # (Skill penalties applied to breakdown component before sum)
         
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.08:
@@ -549,21 +551,21 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         "availability": score_availability(signals),
     }
 
-    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
-    # Enforce strict monotonicity based on actual required skills
+    # Enforce strict monotonicity based on actual required skills by penalizing the component, not the final score
     required = jd.get("required_skills", [])
     if required:
         candidate_skills_lower = [str(s.get("name", "")).lower() for s in candidate.get("skills") or []]
         matched_count = sum(1 for r in required if any(r in cs or cs in r for cs in candidate_skills_lower))
         
-        # Brutally penalize candidates who lack the actual required skills
         if matched_count == 0:
-            final_score *= 0.2
+            breakdown["skill_match"] *= 0.2
         elif matched_count == 1:
-            final_score *= 0.4
+            breakdown["skill_match"] *= 0.4
         elif matched_count == 2:
-            final_score *= 0.75
-        # 3 or more matches receive NO penalty (1.0x)
+            breakdown["skill_match"] *= 0.75
+
+    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+    # (Skill penalties applied to breakdown component before sum)
 
     # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.08:
