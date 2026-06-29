@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { SORT_KEYS } from "../constants/sortKeys";
 
 const ResultsControls = ({
@@ -15,20 +16,84 @@ const ResultsControls = ({
   anomalyFilter,
   setAnomalyFilter,
 }) => {
+  const [showSortMenu, setShowSortMenu] = useState(false);
+
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest(".sort-menu-container")) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [showSortMenu]);
+
+  const sortOptions = [
+    { value: SORT_KEYS.RANK, label: "Sort by Rank" },
+    { value: SORT_KEYS.SCORE, label: "Sort by Score" },
+    { value: SORT_KEYS.ENGAGEMENT, label: "Sort by Engagement" },
+    { value: SORT_KEYS.EXPERIENCE, label: "Sort by Experience" },
+    { value: SORT_KEYS.NOTICE, label: "Sort by Notice Period" },
+    { value: SORT_KEYS.COMPLETENESS, label: "Sort by Profile Completeness" },
+    { value: SORT_KEYS.SKILLS, label: "Sort by Skills Count" },
+  ];
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex gap-1.5 flex-wrap items-center">
-        {/* Search Input */}
-        <div className="flex-1 min-w-[200px] relative">
+        {/* Search Input with Integrated Sort Menu */}
+        <div className="flex-1 min-w-[200px] relative sort-menu-container">
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by name, headline, company, location..."
-            className="w-full rounded-none border border-slate-800 bg-slate-950/50 px-3.5 py-1 pl-8 text-xs text-slate-200 placeholder-slate-600 focus:border-cobalt/60 focus:ring-1 focus:ring-cobalt/20 focus:outline-none transition-all duration-200 ease-in-out font-mono h-[28px]"
+            className="w-full rounded-none border border-slate-800 bg-slate-950/50 px-3.5 py-1 pl-8 pr-8 text-xs text-slate-200 placeholder-slate-600 focus:border-cobalt/60 focus:ring-1 focus:ring-cobalt/20 focus:outline-none transition-all duration-200 ease-in-out font-mono h-[28px]"
           />
           <svg className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
+
+          {/* Inline Filter/Sort Icon Button */}
+          <button
+            type="button"
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            className={`absolute right-2.5 top-1.5 hover:text-white transition-colors flex items-center justify-center ${
+              showSortMenu ? "text-emerald" : "text-slate-500"
+            }`}
+            title="Sort options"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+          </button>
+
+          {/* Absolute Dropdown Sort Menu */}
+          {showSortMenu && (
+            <div className="absolute right-0 top-[32px] z-[50] w-56 bg-slate-950 border border-slate-800 shadow-xl font-mono text-[11px] text-slate-300">
+              <div className="p-1.5 border-b border-slate-800 text-[9px] uppercase tracking-wider text-slate-500 font-bold">
+                Sort Candidates
+              </div>
+              <div className="flex flex-col py-1">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(opt.value);
+                      setShowSortMenu(false);
+                    }}
+                    className={`px-3 py-1.5 text-left hover:bg-slate-900 transition-colors flex items-center justify-between ${
+                      sortBy === opt.value ? "text-emerald font-bold bg-slate-900/40" : "text-slate-400"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {sortBy === opt.value && <span className="text-emerald font-bold">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ViewMode toggle buttons configuration */}
@@ -64,21 +129,6 @@ const ResultsControls = ({
             <span>Podium</span>
           </button>
         </div>
-
-        {/* Sort Select */}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="rounded-none border border-slate-800 bg-slate-950/80 px-2 py-0.5 text-[11px] font-mono text-slate-300 focus:border-cobalt focus:outline-none transition-all duration-200 h-[28px]"
-        >
-          <option value={SORT_KEYS.RANK}>Sort by Rank</option>
-          <option value={SORT_KEYS.SCORE}>Sort by Score</option>
-          <option value={SORT_KEYS.ENGAGEMENT}>Sort by Engagement (Signals)</option>
-          <option value={SORT_KEYS.EXPERIENCE}>Sort by Experience</option>
-          <option value={SORT_KEYS.NOTICE}>Sort by Notice Period</option>
-          <option value={SORT_KEYS.COMPLETENESS}>Sort by Profile Completeness</option>
-          <option value={SORT_KEYS.SKILLS}>Sort by Skills Count</option>
-        </select>
       </div>
 
       {/* Filters (only for shortlist) */}
