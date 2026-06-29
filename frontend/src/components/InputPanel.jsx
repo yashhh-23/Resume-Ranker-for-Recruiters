@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { flushSync } from "react-dom";
 import { parseJsonlFile } from "../utils/jsonlParser";
 import { extractJdSkills } from "../utils/jdUtils";
+import ExpandableTagList from "./ExpandableTagList";
 
 
 const InputPanel = ({
@@ -251,16 +252,17 @@ const InputPanel = ({
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald inline-block" />
                         Required Skills ({jdParsed.required_skills.length})
                       </span>
-                      <div className="flex flex-wrap gap-1">
-                        {jdParsed.required_skills.slice(0, 10).map((token) => (
+                      <ExpandableTagList
+                        items={jdParsed.required_skills}
+                        limit={10}
+                        label="Required Skills"
+                        accentColor="#10B981"
+                        renderItem={(token) => (
                           <span key={token} className="px-2 py-0.5 bg-emerald/10 border border-emerald/30 text-[10px] text-emerald rounded font-semibold">
                             {token}
                           </span>
-                        ))}
-                        {jdParsed.required_skills.length > 10 && (
-                          <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{jdParsed.required_skills.length - 10} more</span>
                         )}
-                      </div>
+                      />
                     </div>
                   )}
                   {jdParsed.preferred_skills?.length > 0 && (
@@ -269,16 +271,17 @@ const InputPanel = ({
                         <span className="w-1.5 h-1.5 rounded-full bg-cobalt inline-block" />
                         Preferred Skills ({jdParsed.preferred_skills.length})
                       </span>
-                      <div className="flex flex-wrap gap-1">
-                        {jdParsed.preferred_skills.slice(0, 8).map((token) => (
+                      <ExpandableTagList
+                        items={jdParsed.preferred_skills}
+                        limit={8}
+                        label="Preferred Skills"
+                        accentColor="#3B82F6"
+                        renderItem={(token) => (
                           <span key={token} className="px-2 py-0.5 bg-cobalt/10 border border-cobalt/30 text-[10px] text-cobalt rounded font-semibold">
                             {token}
                           </span>
-                        ))}
-                        {jdParsed.preferred_skills.length > 8 && (
-                          <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{jdParsed.preferred_skills.length - 8} more</span>
                         )}
-                      </div>
+                      />
                     </div>
                   )}
                 </>
@@ -311,16 +314,17 @@ const InputPanel = ({
                   </div>
                   <div className="space-y-1.5">
                     <span className="text-[10px] text-slate-500 block">Extracted Skill Tokens (heuristic — run for precise parsing):</span>
-                    <div className="flex flex-wrap gap-1">
-                      {extractJdSkills(localJD).slice(0, 10).map((token) => (
+                    <ExpandableTagList
+                      items={extractJdSkills(localJD)}
+                      limit={10}
+                      label="Extracted Skill Tokens"
+                      accentColor="#94a3b8"
+                      renderItem={(token) => (
                         <span key={token} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 rounded font-semibold">
                           {token}
                         </span>
-                      ))}
-                      {extractJdSkills(localJD).length > 10 && (
-                        <span className="text-slate-500 text-[10px] py-0.5 font-semibold">+{extractJdSkills(localJD).length - 10} more</span>
                       )}
-                    </div>
+                    />
                   </div>
                 </>
               )}

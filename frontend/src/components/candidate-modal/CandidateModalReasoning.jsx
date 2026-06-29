@@ -1,6 +1,8 @@
 import { memo, useState } from "react";
 import { formatPercent, formatNumber } from "../../utils/formatters";
 import { SKILL_WEIGHT, CAREER_WEIGHT, SIGNAL_WEIGHT, EDUCATION_WEIGHT, AVAILABILITY_WEIGHT } from "../../constants/weights";
+import CopyButton from "../CopyButton";
+import { buildReasoningCopy } from "../../utils/copyUtils";
 
 const CandidateModalReasoning = memo(({
   breakdown = {},
@@ -23,6 +25,7 @@ const CandidateModalReasoning = memo(({
   const sections = [
     {
       id: "skill_match",
+      accentHex: "#10B981",
       label: "Skill Match Detail",
       score: breakdown.skill_match ?? 0,
       weight: SKILL_WEIGHT,
@@ -62,6 +65,7 @@ const CandidateModalReasoning = memo(({
     },
     {
       id: "career_fit",
+      accentHex: "#3B82F6",
       label: "Career Fit & Narrative Detail",
       score: breakdown.career_fit ?? 0,
       weight: CAREER_WEIGHT,
@@ -94,6 +98,7 @@ const CandidateModalReasoning = memo(({
     },
     {
       id: "signal_modifier",
+      accentHex: "#6366F1",
       label: "Signal Modifiers & Activity",
       score: breakdown.signal_modifier ?? 0,
       weight: SIGNAL_WEIGHT,
@@ -130,6 +135,7 @@ const CandidateModalReasoning = memo(({
     },
     {
       id: "education",
+      accentHex: "#14B8A6",
       label: "Education Tiering Prestige",
       score: breakdown.education ?? 0,
       weight: EDUCATION_WEIGHT,
@@ -166,6 +172,7 @@ const CandidateModalReasoning = memo(({
     },
     {
       id: "availability",
+      accentHex: "#D97706",
       label: "Operational Availability Detail",
       score: breakdown.availability ?? 0,
       weight: AVAILABILITY_WEIGHT,
@@ -206,11 +213,18 @@ const CandidateModalReasoning = memo(({
     <div className="border border-slate-900 bg-slate-950/20 p-5 rounded-none font-mono text-xs">
       <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider border-b border-slate-900 pb-3 mb-4 flex items-center justify-between">
         <span>Multi-Dimensional Reasoning Trace</span>
-        {signalReasoning && (
-          <span className="px-2 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-bold tracking-wider rounded-none">
-            ✓ Backend Insights
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {signalReasoning && (
+            <span className="px-2 py-0.5 bg-emerald/10 border border-emerald/30 text-emerald text-[9px] font-bold tracking-wider rounded-none">
+              ✓ Backend Insights
+            </span>
+          )}
+          <CopyButton
+            plain={buildReasoningCopy(sections, signalReasoning).plain}
+            html={buildReasoningCopy(sections, signalReasoning).html}
+            label="Copy reasoning trace"
+          />
+        </div>
       </h4>
       <div className="space-y-3">
         {sections.map((sect) => {
