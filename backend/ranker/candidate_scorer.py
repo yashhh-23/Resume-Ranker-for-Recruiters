@@ -163,11 +163,53 @@ PROFICIENCY_WEIGHTS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# FIX 1 — Gaussian Experience Bell Curve (replaces hard quadratic cliff)
+# Smoothly grades experience fit centered on the target range.
+# Asymmetric: under-experience penalised harder than over-experience.
+# CPU-only, deterministic, zero-LLM.
+# ---------------------------------------------------------------------------
+def _gaussian_exp_fit(actual: float, target_min: float, target_max: float = None) -> float:
+    """Returns 0.01–1.0 experience fit score using a Gaussian bell curve.
+    
+    Centered on (target_min + target_max) / 2 with asymmetric penalty
+    for candidates below target_min.
+    """
+    target_max = target_max or (target_min + 3.0)
+    optimal = (target_min + target_max) / 2.0
+    spread = (target_max - target_min) if target_max != target_min else 2.0
+    sigma = spread / 1.5
+    score = math.exp(-((actual - optimal) ** 2) / (2 * (sigma ** 2)))
+    if actual < target_min:
+        # Extra asymmetric penalty for under-experience
+        score *= (actual / max(target_min, 0.1)) ** 2
+    return max(0.01, min(1.0, score))
+
+
+# ---------------------------------------------------------------------------
+# FIX 2 — Non-Tech Title Cluster Guard (taxonomy layer)
+# Catches field-mismatched titles that slip through text_match() token
+# overlap (e.g. "Mechanical Engineer" for an ML JD shares "engineer").
+# Only fires for tech JDs. Deterministic keyword set — no LLM.
+# ---------------------------------------------------------------------------
+NON_TECH_TITLE_CLUSTERS = {
+    "mechanical", "civil", "structural", "chemical", "hr", "human resource",
+    "marketing", "sales", "finance", "legal", "accountant", "nurse",
+    "doctor", "teacher", "designer", "architect",
+}
+TECH_TITLE_KEYWORDS = {
+    "software", "data", "ml", "ai", "engineer", "developer", "analyst",
+    "scientist", "backend", "frontend", "fullstack", "devops", "platform",
+    "machine", "deep", "nlp", "research",
+}
+
+
 def apply_pass_1_bouncer(candidate: Dict[str, Any], jd: Dict[str, Any] = None) -> tuple[bool, bool]:
     """Pass-1 bouncer: fraud detection + JD-derived title mismatch penalty.
     
     Instead of a hardcoded blacklist, compares candidate title against JD
     target_title using text_match() for domain-agnostic filtering.
+    Also applies a taxonomy cluster guard (Fix 2) for tech JDs.
     """
     fraudulent_timeline = False
     blacklist_penalty = False
@@ -208,6 +250,14 @@ def apply_pass_1_bouncer(candidate: Dict[str, Any], jd: Dict[str, Any] = None) -
         if title_overlap == 0.0:
             blacklist_penalty = True
 
+    # FIX 2: Taxonomy cluster guard — catch non-tech titles that slip through
+    # token overlap (e.g. "Mechanical Engineer" shares "engineer" with "ML Engineer")
+    is_tech_jd = jd.get("_cached_is_tech_field", False)
+    if is_tech_jd and current_title and not blacklist_penalty:
+        if any(k in current_title for k in NON_TECH_TITLE_CLUSTERS):
+            if not any(t in current_title for t in TECH_TITLE_KEYWORDS):
+                blacklist_penalty = True
+
     for skill in candidate.get("skills") or []:
         dur = safe_float(skill.get("duration_months"), 0.0)
         prof = str(skill.get("proficiency") or "").lower()
@@ -245,12 +295,14 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     skill_weights_lower = {k.lower(): v for k, v in skill_weights.items()}
 
     career_history = candidate.get("career_history") or []
+    education_list = candidate.get("education") or []
     matched_score = 0.0
     total_possible_score = 0.0
     missing_tier1_count = 0
     for r in required:
         weight = skill_weights_lower.get(r, 1.0)
         best_level = 0.0
+        best_cs = ""
         for s in candidate.get("skills") or []:
             cs = s.get("name", "").lower()
             if is_skill_match(r, cs):
@@ -264,8 +316,26 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
                         history_bonus = 0.05
                         break
                         
-                best_level = max(best_level, 1.0 + prof_bonus + history_bonus)
+                candidate_level = 1.0 + prof_bonus + history_bonus
+                if candidate_level > best_level:
+                    best_level = candidate_level
+                    best_cs = cs
                 
+        # FIX 3: Academic skill down-weight — if skill only appears in education
+        # blocks (thesis/coursework) and NOT in any career_history description,
+        # treat it as academic acquaintance rather than operational capability.
+        if best_level > 0.0 and best_cs:
+            in_career = any(
+                best_cs in str(role.get("description", "")).lower()
+                for role in career_history
+            )
+            in_education = any(
+                best_cs in (str(e.get("field_of_study", "")) + str(e.get("degree", ""))).lower()
+                for e in education_list
+            )
+            if in_education and not in_career:
+                best_level *= 0.4  # academic acquaintance, not operational skill
+
         if best_level == 0.0 and weight >= 2.0:
             missing_tier1_count += 1
             
@@ -313,8 +383,6 @@ def score_skill_match(
         endorsement_boost = 0.5
 
     coverage_score = score_required_skill_coverage(candidate or {}, jd or {})
-    # Removed the 2.5x artificial multiplier to prevent 1-skill and 3-skill candidates from getting inflated scores.
-    # Rebalanced weights so semantic base doesn't over-contribute.
     blended_skill = 0.15 * base + 0.75 * coverage_score + 0.10 * endorsement_boost
     return clamp(blended_skill)
 
@@ -380,18 +448,9 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
 
     role_score = max(0.2, best_role_score)
 
-    exp_score = 0.0
-    if min_experience > 0:
-        if years_exp < min_experience:
-            # Steep penalty for under-experienced candidates
-            exp_score = clamp((years_exp / min_experience) ** 2)
-        elif years_exp <= min_experience + 2:
-            # Sweet spot
-            exp_score = 1.0
-        else:
-            # Over-experienced penalty: max out at min_experience+2, then decay
-            over = years_exp - (min_experience + 2)
-            exp_score = clamp(1.0 - (over * 0.05))
+    # FIX 1: Gaussian bell curve replaces hard quadratic exp cliff.
+    # Smoothly grades under/over-experience; asymmetric penalty for under-exp.
+    exp_score = _gaussian_exp_fit(years_exp, min_experience) if min_experience > 0 else 1.0
 
     gated_exp_score = exp_score if role_score > 0.2 else exp_score * 0.3
     
@@ -557,8 +616,6 @@ def score_candidate(
     if breakdown["career_fit"] < 0.30:
         if matched_count <= 1:
             breakdown["education"] *= 0.40
-            # Experience-aware cap: senior tier_1 candidates shouldn't be
-            # floored as low as entry-level candidates with 1 matched skill
             if years_exp < 3.0:
                 breakdown["education"] = min(breakdown["education"], 0.15)
             elif years_exp < 6.0:
@@ -570,7 +627,6 @@ def score_candidate(
             breakdown["education"] = min(breakdown["education"], 0.35)
 
     # Hard experience-gate: raw education cannot exceed these ceilings
-    # regardless of tier, to prevent fresh graduates inflating the score
     if years_exp < 2.0:
         breakdown["education"] = min(breakdown["education"], 0.15)
     elif years_exp < 5.0:
@@ -584,12 +640,12 @@ def score_candidate(
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
-    # Implement a skill count gate as a hard multiplicative factor on the total score
+    # Skill count gate
     if len(matched) == 0:
         final_score *= 0.50
     elif len(matched) == 1:
         if breakdown["career_fit"] >= 0.35:
-            final_score *= 0.85  # Career fit rescue clause
+            final_score *= 0.85
         else:
             final_score *= 0.70
     elif len(matched) == 2:
@@ -597,10 +653,7 @@ def score_candidate(
             final_score *= 0.95
         else:
             final_score *= 0.85
-    # len(matched) == 3 or more: no penalty
 
-    # Additive bonus to mathematically enforce strict skill-tier separation 
-    # without breaking validator monotonically decreasing rules
     final_score += (len(matched) * 0.06)
     
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
@@ -622,7 +675,6 @@ def score_candidate(
         else:
             final_score *= 0.85
         
-    # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
     if breakdown["career_fit"] < 0.35:
         final_score *= 0.50
 
@@ -728,8 +780,6 @@ def score_candidate(
         final_score *= 0.50
         reasoning_str += f" | {WARNING_CHAR} Skill gate applied: <2 required skills matched"
 
-    # Removed completeness penalty to preserve skill match monotonicity
-
     return {
         "candidate_id": candidate_id,
         "score": round(clamp(calibrate_score(final_score)), 4),
@@ -784,7 +834,6 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
         matched_count = sum(1 for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names))
 
-    # Read experience ONCE, used in both dampening and experience-gating below
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
 
@@ -792,8 +841,6 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     if breakdown["career_fit"] < 0.30:
         if matched_count <= 1:
             breakdown["education"] *= 0.40
-            # Experience-aware cap: senior tier_1 candidates shouldn't be
-            # floored as low as entry-level candidates with 1 matched skill
             if years_exp < 3.0:
                 breakdown["education"] = min(breakdown["education"], 0.15)
             elif years_exp < 6.0:
@@ -804,8 +851,6 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
             breakdown["education"] *= 0.70
             breakdown["education"] = min(breakdown["education"], 0.35)
 
-    # Hard experience-gate: raw education cannot exceed these ceilings
-    # regardless of tier, to prevent fresh graduates inflating the score
     if years_exp < 2.0:
         breakdown["education"] = min(breakdown["education"], 0.15)
     elif years_exp < 5.0:
@@ -813,12 +858,11 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
 
-    # Implement a skill count gate as a hard multiplicative factor on the total score
     if matched_count == 0:
         final_score *= 0.30
     elif matched_count == 1:
         if breakdown["career_fit"] >= 0.35:
-            final_score *= 0.75  # Career fit rescue clause
+            final_score *= 0.75
         else:
             final_score *= 0.60
     elif matched_count == 2:
@@ -830,7 +874,7 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         final_score *= 0.95
             
     final_score += (matched_count * 0.05)
-    # Hard floor on career_fit: ignore education or signals if they are in the completely wrong field
+
     if breakdown["career_fit"] < 0.08:
         final_score *= 0.7
 
@@ -857,7 +901,6 @@ def rank_candidates(
     candidates: List[Dict[str, Any]],
     jd: Dict[str, Any],
     model=None,
-
     limit: Optional[int] = 100,
 ) -> List[Dict[str, Any]]:
     valid_candidates = [
@@ -866,7 +909,6 @@ def rank_candidates(
     if not valid_candidates:
         return []
 
-    # STAGE 1: Fast Retrieval Pass (Heuristics over all candidates)
     global _time_bouncer, _time_career_fit
     _time_bouncer = 0.0
     _time_career_fit = 0.0
@@ -880,7 +922,6 @@ def rank_candidates(
     
     fast_scored.sort(key=lambda x: -x[0])
     
-    # STAGE 2: Deep Re-ranking (Neural embeddings over top 1000)
     top_candidates = [x[1] for x in fast_scored[:1000]]
 
     model = model or load_model()
