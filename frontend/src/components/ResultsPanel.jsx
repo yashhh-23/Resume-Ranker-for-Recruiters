@@ -257,23 +257,23 @@ const ResultsPanel = ({
 
   return (
     <div className="flex-1 flex flex-col border-b border-borderline bg-canvas min-h-0 overflow-hidden">
-      <div className="px-4 py-4 sm:px-6 sm:pt-6 sm:pb-4 border-b border-borderline/80 flex flex-col gap-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="px-4 py-2 border-b border-borderline/80 flex flex-col gap-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500 font-mono">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-mono leading-none">
               {activeTab === "shortlist" ? "Shortlist Console" : "Talent Pool Console"}
             </p>
-            <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2 flex-wrap">
+            <h2 className="text-base font-bold text-white mt-0.5 flex items-center gap-2 flex-wrap leading-tight">
               <span>{activeTab === "shortlist" ? "Ranked Shortlist" : "Talent Pools"}</span>
               {activeTab === "shortlist" && executionTime && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-mono font-bold bg-emerald/10 text-emerald border border-emerald/20">
-                  ⚡ Ranked in {executionTime}s
+                <span className="inline-flex items-center px-1.5 py-0.2 rounded-none text-[9px] font-mono font-bold bg-emerald/10 text-emerald border border-emerald/20">
+                  ⚡ {executionTime}s
                 </span>
               )}
             </h2>
           </div>
           
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Pools vs Shortlist Tab Switcher */}
             <div className="flex border border-slate-800 bg-slate-950 p-0.5 rounded-none shrink-0 font-mono">
               <button
@@ -282,7 +282,7 @@ const ResultsPanel = ({
                   setActiveTab("shortlist");
                   setSelectedPoolId(null);
                 }}
-                className={`px-3.5 py-1.5 text-xs transition-all duration-200 rounded-none font-bold uppercase tracking-wider ${
+                className={`px-2 py-1 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider ${
                   activeTab === "shortlist"
                     ? "bg-slate-800 text-slate-100 font-bold border border-slate-700"
                     : "text-slate-500 hover:text-slate-300 border border-transparent"
@@ -296,14 +296,14 @@ const ResultsPanel = ({
                   setActiveTab("pools");
                   setSelectedPoolId(null);
                 }}
-                className={`px-3.5 py-1.5 text-xs transition-all duration-200 rounded-none font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                className={`px-2 py-1 text-[11px] transition-all duration-200 rounded-none font-bold uppercase tracking-wider flex items-center gap-1 ${
                   activeTab === "pools"
                     ? "bg-slate-800 text-slate-100 font-bold border border-slate-700"
                     : "text-slate-500 hover:text-slate-300 border border-transparent"
                 }`}
               >
-                <span>Talent Pools</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-slate-950 border border-slate-800 text-slate-400">
+                <span>Pools</span>
+                <span className="px-1 py-0.2 rounded-full text-[9px] bg-slate-950 border border-slate-800 text-slate-400">
                   {talentPools.length}
                 </span>
               </button>
@@ -316,18 +316,15 @@ const ResultsPanel = ({
                 <button
                   type="button"
                   onClick={() => setShowCompareModal(true)}
-                  className="text-[11px] bg-amber/10 border border-amber/40 hover:bg-amber/20 text-amber font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono animate-pulse"
+                  className="text-[10px] bg-amber/10 border border-amber/40 hover:bg-amber/20 text-amber font-bold px-2 py-1 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono animate-pulse"
                   title={`Compare ${compareIds.length} selected candidates`}
                 >
-                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
                   Compare {compareIds.length}
                 </button>
               )}
               {compareIds.length > 0 && activeTab === "shortlist" && (
-                <span className="text-[10px] font-mono text-amber border border-amber/20 px-2.5 py-1 rounded-none bg-amber/5">
-                  {compareIds.length}/3 selected for compare
+                <span className="text-[9px] font-mono text-amber border border-amber/20 px-2 py-0.5 bg-amber/5 rounded-none">
+                  {compareIds.length}/3 Compare
                 </span>
               )}
 
@@ -338,32 +335,26 @@ const ResultsPanel = ({
                     <button
                       type="button"
                       onClick={onReset}
-                      className="text-[11px] bg-slate-900 border border-slate-800 hover:border-rose-900/60 hover:bg-rose-950/20 hover:text-rose-400 font-bold px-3 py-1.5 rounded-none font-mono transition-all duration-200"
-                      title="Clear all job descriptions, candidate data streams, and rankings"
+                      className="text-[10px] bg-slate-900 border border-slate-800 hover:border-rose-900/60 hover:bg-rose-950/20 hover:text-rose-400 font-bold px-2 py-1 rounded-none font-mono transition-all duration-200"
+                      title="Reset Workspace"
                     >
-                      Reset Workspace
+                      Reset
                     </button>
                   )}
 
-                  <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-xs rounded-none">
+                  <span className="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-[10px] rounded-none">
                     {activeList.length} matching
                   </span>
 
-                  {/* CSV Export — hackathon submission format */}
+                  {/* CSV Export */}
                   {activeTab === "shortlist" && (
                     <button
                       type="button"
                       disabled={rankedResults.length === 0}
                       onClick={() => exportSubmissionCsv(rankedResults)}
-                      className="text-[11px] bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
-                      title="Download submission.csv (hackathon format: candidate_id, rank, score, reasoning)"
+                      className="text-[10px] bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
                     >
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      <span>CSV</span>
+                      CSV
                     </button>
                   )}
 
@@ -371,30 +362,18 @@ const ResultsPanel = ({
                     type="button"
                     disabled={isExportingPdf || activeList.length === 0}
                     onClick={handleExportPdf}
-                    className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
-                    title="Export current filtered results as PDF"
+                    className="text-[10px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
                   >
-                    <svg className="h-3.5 w-3.5 text-rose-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <path d="M9 12h1.5a1.5 1.5 0 0 0 0-3H9v6" />
-                    </svg>
-                    <span>{isExportingPdf ? "PDF..." : "PDF"}</span>
+                    PDF
                   </button>
 
                   <button
                     type="button"
                     disabled={activeList.length === 0}
                     onClick={handleExportWord}
-                    className="text-[11px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-none flex items-center gap-1.5 transition-all duration-200 font-mono"
-                    title="Export current filtered results as Word Document"
+                    className="text-[10px] bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 text-slate-300 font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
                   >
-                    <svg className="h-3.5 w-3.5 text-cobalt shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <path d="M8 12l2 4 2-4 2 4 2-4" />
-                    </svg>
-                    <span>Word</span>
+                    Word
                   </button>
                 </>
               )}
@@ -405,26 +384,26 @@ const ResultsPanel = ({
         {/* Stats Grid */}
         {((activeTab === "shortlist" && rankedResults.length > 0) || 
           (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-slate-950/40 border border-slate-900 p-3 shadow-md shadow-black/10 rounded-none">
-              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500">
-                {activeTab === "shortlist" ? "Ingested Pool" : "Saved Candidates"}
-              </p>
-              <p className="text-lg font-bold font-mono text-slate-200 mt-1">{stats.total}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+            <div className="bg-slate-950/40 border border-slate-900 px-3 py-1 shadow-md shadow-black/10 rounded-none flex items-center justify-between">
+              <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500">
+                {activeTab === "shortlist" ? "Pool" : "Saved"}
+              </span>
+              <span className="text-sm font-bold font-mono text-slate-200">{stats.total}</span>
             </div>
-            <div className="bg-slate-950/40 border border-slate-900 p-3 shadow-md shadow-black/10 rounded-none">
-              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500">Mean Fit Score</p>
-              <p className="text-lg font-bold font-mono text-emerald mt-1">{stats.avgScore}%</p>
+            <div className="bg-slate-950/40 border border-slate-900 px-3 py-1 shadow-md shadow-black/10 rounded-none flex items-center justify-between">
+              <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500">Mean Fit</span>
+              <span className="text-sm font-bold font-mono text-emerald">{stats.avgScore}%</span>
             </div>
-            <div className="bg-slate-950/40 border border-slate-900 p-3 shadow-md shadow-black/10 rounded-none">
-              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500">Notice &le; 30d</p>
-              <p className="text-lg font-bold font-mono text-cobalt mt-1">{stats.availablePct}%</p>
+            <div className="bg-slate-950/40 border border-slate-900 px-3 py-1 shadow-md shadow-black/10 rounded-none flex items-center justify-between">
+              <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500">Notice &le; 30d</span>
+              <span className="text-sm font-bold font-mono text-cobalt">{stats.availablePct}%</span>
             </div>
-            <div className="bg-slate-950/40 border border-slate-900 p-3 shadow-md shadow-black/10 rounded-none">
-              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-500">Anomalies Flagged</p>
-              <p className={`text-lg font-bold font-mono mt-1 ${stats.anomalies > 0 ? "text-amber" : "text-slate-400"}`}>
+            <div className="bg-slate-950/40 border border-slate-900 px-3 py-1 shadow-md shadow-black/10 rounded-none flex items-center justify-between">
+              <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500">Anomalies</span>
+              <span className={`text-sm font-bold font-mono ${stats.anomalies > 0 ? "text-amber" : "text-slate-400"}`}>
                 {stats.anomalies}
-              </p>
+              </span>
             </div>
           </div>
         )}
@@ -464,48 +443,7 @@ const ResultsPanel = ({
           : "No candidates ranked yet. Paste a job description and load candidates to begin."}
       </div>
 
-      {/* Methodology Banner */}
-      {((activeTab === "shortlist" && rankedResults.length > 0) || 
-        (activeTab === "pools" && selectedPoolId && poolCandidatesFiltered.length > 0)) && (
-        <details className="mx-6 mt-4 border border-slate-800/80 bg-slate-900/10 rounded-none group transition-all duration-300 hover:border-slate-700/60 font-mono text-xs shrink-0">
-          <summary className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 cursor-pointer flex justify-between items-center select-none">
-            <span className="flex items-center gap-1.5 text-emerald">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2" />
-              </svg>
-              RRR Ranking Methodology & Model Weights
-            </span>
-            <span className="text-[10px] text-slate-500 group-open:rotate-180 transition-transform duration-200">▼</span>
-          </summary>
-          <div className="px-4 pb-4 pt-1 text-slate-400 space-y-2 border-t border-slate-900/50 mt-1 leading-relaxed text-[11px]">
-            <p>
-              Candidates are ranked across 5 dimensions using a deterministic local scoring engine:
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2 pt-2 border-t border-slate-900 text-[10px]">
-              <div>
-                <span className="text-[#10B981] font-bold block">Skill Match (35%)</span>
-                <span className="text-slate-500">JD skill similarities and verified Redrob assessments.</span>
-              </div>
-              <div>
-                <span className="text-[#3B82F6] font-bold block">Career Fit (25%)</span>
-                <span className="text-slate-500">Corporate title alignment, experience thresholds & progression.</span>
-              </div>
-              <div>
-                <span className="text-[#6366F1] font-bold block">Signal Mod (15%)</span>
-                <span className="text-slate-500">GitHub code activity, response rate, and profile completeness.</span>
-              </div>
-              <div>
-                <span className="text-[#14B8A6] font-bold block">Education (15%)</span>
-                <span className="text-slate-500">Institutional tier prestige and degree compatibility.</span>
-              </div>
-              <div>
-                <span className="text-[#D97706] font-bold block">Availability (10%)</span>
-                <span className="text-slate-500">Notice period days, work modes and relocatable indicators.</span>
-              </div>
-            </div>
-          </div>
-        </details>
-      )}
+
 
       <div
         onScroll={handleScroll}

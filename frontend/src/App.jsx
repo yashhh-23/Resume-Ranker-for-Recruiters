@@ -145,7 +145,7 @@ const App = () => {
 
   // Dynamic layout resizing states
   const [leftWidth, setLeftWidth] = useState(40); // left panel width in percentage (default 40%)
-  const [trayHeight, setTrayHeight] = useState(160); // compliance tray height in pixels (default 160px)
+  const [trayHeight, setTrayHeight] = useState(100); // compliance tray height in pixels (default 100px)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1280);
   const [activeMobileTab, setActiveMobileTab] = useState("input"); // "input" | "results" on mobile
 
@@ -192,7 +192,7 @@ const App = () => {
 
     const doDrag = (mouseMoveEvent) => {
       const deltaY = mouseMoveEvent.clientY - startY;
-      const newHeight = Math.max(80, Math.min(400, startHeight - deltaY)); // restrict between 80px and 400px
+      const newHeight = Math.max(48, Math.min(400, startHeight - deltaY)); // restrict between 48px and 400px
       setTrayHeight(newHeight);
     };
 
