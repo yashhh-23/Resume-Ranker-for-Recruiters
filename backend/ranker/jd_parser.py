@@ -381,6 +381,17 @@ def _extract_seniority(text: str) -> str:
 def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
+    
+    # Pre-process: strip markdown tables, CSV rows, and pipe-delimited content
+    cleaned_lines = []
+    for line in text.splitlines():
+        if "|" in line:
+            continue
+        if line.count(",") >= 2 and not re.search(r'\s+(and|or|with|to|in|for|of)\s+', line, re.IGNORECASE):
+            continue
+        cleaned_lines.append(line)
+    text = "\n".join(cleaned_lines)
+
     required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
     preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
 
@@ -423,20 +434,28 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     target_industry = _extract_industry(text)
     if target_industry == DEFAULT_JD["target_industry"]:
         target_industry = _infer_industry_from_context(target_title or "", text[:300])
-    # NOTE: all-MiniLM-L6-v2 performs best for tech roles. For non-tech JDs
-    # (Sales, Finance, Design), semantic cosine scores will be lower on average.
-    # The SOFT_SKILLS keyword matching in coverage scoring compensates partially.
+    
     skills_text = (
         " ".join(_dedupe(required + preferred)) + f" {target_title} {target_industry}"
     )
     salary_min, salary_max = _extract_salary_range(text)
+    min_exp = _extract_experience(text)
+    
+    # Assertions for JD Input Validation
+    if len(required) > 15:
+        raise ValueError(f"Validation failed: too many required skills ({len(required)}). Maximum allowed is 15.")
+    for skill in required:
+        if skill.strip().isdigit():
+            raise ValueError(f"Validation failed: purely numeric skill token found '{skill}'.")
+    if min_exp <= 0:
+        raise ValueError(f"Validation failed: minimum experience must be > 0, got {min_exp}.")
 
     return {
         "required_skills": required,
         "raw_required_skills": raw_required,
         "preferred_skills": preferred,
         "target_title": target_title,
-        "min_experience_years": _extract_experience(text),
+        "min_experience_years": min_exp,
         "target_industry": target_industry,
         "target_field": _extract_field(text),
         "skills_text": skills_text.strip() or text,

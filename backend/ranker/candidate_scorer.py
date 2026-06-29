@@ -18,10 +18,10 @@ from .validators import validate_candidate
 
 WEIGHTS = {
     "skill_match": 0.50,
-    "career_fit": 0.25,
-    "signal_modifier": 0.08,
+    "career_fit": 0.30,
+    "signal_modifier": 0.05,
     "education": 0.07,
-    "availability": 0.10,
+    "availability": 0.08,
 }
 
 MAX_CAREER_SCORE = 5.0
@@ -202,12 +202,20 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
             cs = s.get("name", "").lower()
             if is_skill_match(r, cs):
                 level = str(s.get("proficiency") or "intermediate").lower().strip()
-                base_level_weight = PROFICIENCY_WEIGHTS.get(level, 0.65)
-                multiplier = _get_skill_cross_field_multiplier(cs, career_history)
-                best_level = max(best_level, base_level_weight * multiplier)
+                prof_bonus = {"expert": 0.05, "advanced": 0.03, "intermediate": 0.01, "beginner": 0.0}.get(level, 0.01)
+                
+                history_bonus = 0.0
+                for role in career_history:
+                    desc = str(role.get("description") or "").lower()
+                    if cs in desc:
+                        history_bonus = 0.05
+                        break
+                        
+                best_level = max(best_level, 1.0 + prof_bonus + history_bonus)
         matched_score += best_level
 
-    base_coverage = matched_score / len(required)
+    # Normalize by max possible score per skill (1.10) to keep max coverage at 1.0
+    base_coverage = matched_score / (len(required) * 1.10)
 
     preferred = jd.get("_cached_preferred_skills")
     if preferred is None:
@@ -498,19 +506,18 @@ def score_candidate(
 
     # Implement a skill count gate as a hard multiplicative factor on the total score
     if len(matched) == 0:
-        final_score *= 0.30
+        final_score *= 0.50
     elif len(matched) == 1:
         if breakdown["career_fit"] >= 0.35:
-            final_score *= 0.75  # Career fit rescue clause
+            final_score *= 0.85  # Career fit rescue clause
         else:
-            final_score *= 0.60
+            final_score *= 0.70
     elif len(matched) == 2:
         if breakdown["career_fit"] >= 0.35:
-            final_score *= 0.90
+            final_score *= 0.95
         else:
-            final_score *= 0.80
-    elif len(matched) == 3:
-        final_score *= 0.95
+            final_score *= 0.85
+    # len(matched) == 3 or more: no penalty
 
     # Additive bonus to mathematically enforce strict skill-tier separation 
     # without breaking validator monotonically decreasing rules
