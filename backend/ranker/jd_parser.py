@@ -9,7 +9,7 @@ DEFAULT_JD = {
     "target_title": "Any",
     "min_experience_years": 0,
     "target_industry": "Any",
-    "target_field": "Computer Science",
+    "target_field": "General",
     "skills_text": "",
     "salary_min": 0.0,
     "salary_max": 0.0,
@@ -309,7 +309,7 @@ def _extract_field(text: str) -> str:
     for field in fields:
         if field.lower() in lowered:
             return field
-    return DEFAULT_JD["target_field"]
+    return "General"
 
 
 def _extract_salary_range(text: str) -> tuple[float, float]:
@@ -475,8 +475,8 @@ def parse_jd_text(text: str) -> Dict[str, object]:
     for skill in required:
         if skill.strip().isdigit():
             raise ValueError(f"Validation failed: purely numeric skill token found '{skill}'.")
-    if min_exp <= 0:
-        raise ValueError(f"Validation failed: minimum experience must be > 0, got {min_exp}.")
+    # min_exp defaults to 0 when not found — this is a valid state;
+    # the scorer handles min_experience_years=0 gracefully (skips exp scoring)
 
     # Extract skill weights based on JD text
     skill_weights = _extract_skill_weights(text, required)

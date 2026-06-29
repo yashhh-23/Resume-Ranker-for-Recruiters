@@ -79,10 +79,9 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
                     if not start_str:
                         continue
                     try:
-                        from dateutil.parser import parse as parse_date
-                        start_d = parse_date(start_str).date()
+                        start_d = datetime.fromisoformat(start_str[:10]).date()
                         if end_str and end_str.lower() != "present":
-                            end_d = parse_date(end_str).date()
+                            end_d = datetime.fromisoformat(end_str[:10]).date()
                         else:
                             end_d = date.today()
                         total_months += max(
@@ -132,8 +131,7 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
         start = str(role.get("start_date") or "")
         if start:
             try:
-                from dateutil.parser import parse as parse_date
-                dt = parse_date(start).date()
+                dt = datetime.fromisoformat(start[:10]).date()
                 if dt > today:
                     flags.append(f"Future start_date in career history: {start}")
                     break
@@ -146,9 +144,8 @@ def validate_candidate(c: dict) -> tuple[list, list | None]:
         end_str = str(role.get("end_date") or "")
         if start_str and end_str and end_str.lower() != "present":
             try:
-                from dateutil.parser import parse as parse_date
-                s_date = parse_date(start_str).date()
-                e_date = parse_date(end_str).date()
+                s_date = datetime.fromisoformat(start_str[:10]).date()
+                e_date = datetime.fromisoformat(end_str[:10]).date()
                 if e_date < s_date:
                     flags.append("Career history has end_date before start_date")
                     break
