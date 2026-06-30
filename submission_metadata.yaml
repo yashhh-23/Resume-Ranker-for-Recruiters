@@ -13,7 +13,7 @@ members:
     role: "Documentation"
 
 github_url: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
-huggingface_sandbox_link: "https://huggingface.co/spaces/<YOUR_HF_SPACE_URL>"
+huggingface_sandbox_link: "https://huggingface.co/spaces/yashhh-23/redrob-ranker>"
 reproduce_command: "python rank.py --candidates ./data/sample_candidates.json --out ./submission.csv"
 compute_specs:
   cpu: "Intel/AMD x86_64"
