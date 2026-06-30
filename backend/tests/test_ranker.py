@@ -317,3 +317,128 @@ def test_multiplicative_scoring_and_availability_decay():
     res_delayed = score_candidate(cand_delayed, jd, 1.0)
     
     assert res_immediate["score"] > res_delayed["score"]
+
+
+def test_gaussian_exp_fit_calibrated():
+    from ranker.candidate_scorer import _gaussian_exp_fit
+    # Target boundaries: optima = 7.0, sigma = 1.0
+    # Let's test that 7.0 exp gives high score (1.0)
+    score_7 = _gaussian_exp_fit(7.0, 5.0, 9.0)
+    assert abs(score_7 - 1.0) < 0.05
+    
+    # Test penalty for < 4 years
+    score_3 = _gaussian_exp_fit(3.0, 5.0, 9.0)
+    assert score_3 < 0.01
+    
+    # Test penalty for > 11 years
+    score_12 = _gaussian_exp_fit(12.0, 5.0, 9.0)
+    assert score_12 < 0.01
+
+def test_title_domain_masking_penalty_and_boost():
+    from ranker.candidate_scorer import score_career_fit
+    jd = {
+        "target_title": "Software Engineer",
+        "target_field": "Computer Science",
+        "min_experience_years": 5.0,
+        "seniority_level": "senior"
+    }
+    
+    # Non-domain candidate
+    cand_pm = {
+        "profile": {"years_of_experience": 7.0, "current_title": "Project Manager"},
+        "career_history": [],
+    }
+    score_pm = score_career_fit(cand_pm, jd)
+    
+    # Domain candidate
+    cand_se = {
+        "profile": {"years_of_experience": 7.0, "current_title": "Software Engineer"},
+        "career_history": [],
+    }
+    score_se = score_career_fit(cand_se, jd)
+    
+    # Non-domain candidate should be penalized heavily
+    assert score_pm < score_se * 0.1
+
+def test_zero_skill_exclusion_gate():
+    from ranker.candidate_scorer import rank_candidates
+    jd = {
+        "required_skills": ["Python", "SQL"],
+        "preferred_skills": [],
+        "target_title": "Software Engineer",
+        "min_experience_years": 5.0,
+        "target_field": "Computer Science",
+        "target_industry": "Tech",
+        "seniority_level": "senior"
+    }
+    
+    # Candidate matching 1 required skill (Python)
+    cand_match_1 = {
+        "candidate_id": "C_MATCH_1",
+        "profile": {"years_of_experience": 7.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "Python", "proficiency": "expert"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"recruiter_response_rate": 1.0}
+    }
+    
+    # Candidate matching 0 required skills
+    cand_match_0 = {
+        "candidate_id": "C_MATCH_0",
+        "profile": {"years_of_experience": 7.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "React", "proficiency": "expert"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"recruiter_response_rate": 1.0}
+    }
+    
+    class DummyModel:
+        def encode(self, texts, **kwargs):
+            return np.ones((len(texts), 384))
+            
+    res = rank_candidates([cand_match_1, cand_match_0], jd, model=DummyModel())
+    
+    # Candidate matching 0 skills should be completely filtered out
+    assert len(res) == 1
+    assert res[0]["candidate_id"] == "C_MATCH_1"
+
+def test_score_normalization_and_slice():
+    from ranker.candidate_scorer import rank_candidates
+    jd = {
+        "required_skills": ["Python"],
+        "preferred_skills": [],
+        "target_title": "Software Engineer",
+        "min_experience_years": 5.0,
+        "target_field": "Computer Science",
+        "target_industry": "Tech",
+        "seniority_level": "senior"
+    }
+    
+    cand_1 = {
+        "candidate_id": "C_1",
+        "profile": {"years_of_experience": 7.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "Python", "proficiency": "expert"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"recruiter_response_rate": 0.9}
+    }
+    
+    cand_2 = {
+        "candidate_id": "C_2",
+        "profile": {"years_of_experience": 7.0, "current_title": "Software Engineer"},
+        "skills": [{"name": "Python", "proficiency": "beginner"}],
+        "career_history": [],
+        "education": [],
+        "redrob_signals": {"recruiter_response_rate": 0.5}
+    }
+    
+    class DummyModel:
+        def encode(self, texts, **kwargs):
+            return np.ones((len(texts), 384))
+            
+    res = rank_candidates([cand_1, cand_2], jd, model=DummyModel())
+    
+    # Rank 1 should be normalized to exactly 1.0
+    assert len(res) == 2
+    assert res[0]["score"] == 1.0
+    assert res[1]["score"] < 1.0

@@ -1,101 +1,101 @@
 candidate_id,rank,score,reasoning
-CAND_0000031,1,0.4531,Recommendation Systems Engineer with 6.0 yrs; 0 Any skills matched; top signal availability; response rate 0.91.
-CAND_0000023,2,0.4151,Software Engineer with 3.7 yrs; 0 Any skills matched; top signal availability; response rate 0.57.
-CAND_0000007,3,0.4073,Civil Engineer with 5.5 yrs; 0 Any skills matched; top signal availability; response rate 0.62.
-CAND_0000020,4,0.4070,Mechanical Engineer with 6.3 yrs; 0 Any skills matched; top signal education; response rate 0.55.
-CAND_0000001,5,0.3924,Backend Engineer with 6.9 yrs; 0 Any skills matched; top signal availability; response rate 0.34.
-CAND_0000024,6,0.3915,HR Manager with 7.5 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.78.
-CAND_0000011,7,0.3862,QA Engineer with 2.0 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.56.
-CAND_0000027,8,0.3761,DevOps Engineer with 3.9 yrs; 0 Any skills matched; top signal availability; response rate 0.58.
-CAND_0000019,9,0.3747,Project Manager with 6.5 yrs; 0 Any skills matched; top signal education; response rate 0.34.
-CAND_0000038,10,0.3743,Java Developer with 6.7 yrs; 0 Any skills matched; top signal availability; response rate 0.20.
-CAND_0000048,11,0.3693,Mobile Developer with 9.7 yrs; 0 Any skills matched; top signal availability; response rate 0.65.
-CAND_0000008,12,0.3689,Operations Manager with 3.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.42.
-CAND_0000016,13,0.3655,Accountant with 5.3 yrs; 0 Any skills matched; top signal availability; response rate 0.64.
-CAND_0000039,14,0.3600,Marketing Manager with 3.9 yrs; 0 Any skills matched; top signal availability; response rate 0.52.
-CAND_0000035,15,0.3586,Full Stack Developer with 4.3 yrs; 0 Any skills matched; top signal availability; response rate 0.34.
-CAND_0000042,16,0.3544,HR Manager with 5.0 yrs; 0 Any skills matched; top signal availability; response rate 0.58.
-CAND_0000013,17,0.3523,Civil Engineer with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.28.
-CAND_0000032,18,0.3475,.NET Developer with 8.1 yrs; 0 Any skills matched; top signal availability; response rate 0.69.
-CAND_0000010,19,0.3469,Data Engineer with 4.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.40.
-CAND_0000025,20,0.3434,Frontend Engineer with 7.3 yrs; 0 Any skills matched; top signal availability; response rate 0.74.
-CAND_0000026,21,0.3416,Graphic Designer with 6.8 yrs; 0 Any skills matched; top signal availability; response rate 0.59.
-CAND_0000014,22,0.3398,Frontend Engineer with 8.4 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.80.
-CAND_0000005,23,0.3387,Accountant with 11.0 yrs; 0 Any skills matched; top signal availability; response rate 0.37.
-CAND_0000033,24,0.3358,Graphic Designer with 8.6 yrs; 0 Any skills matched; top signal availability; response rate 0.08.
-CAND_0000045,25,0.3355,Project Manager with 12.2 yrs; 0 Any skills matched; top signal availability; response rate 0.62.
-CAND_0000030,26,0.3326,Marketing Manager with 10.0 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.66.
-CAND_0000015,27,0.3304,Software Engineer with 5.4 yrs; 0 Any skills matched; top signal availability; response rate 0.32.
-CAND_0000022,28,0.3302,Mechanical Engineer with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.27.
-CAND_0000046,29,0.3300,Mechanical Engineer with 7.8 yrs; 0 Any skills matched; top signal availability; response rate 0.41.
-CAND_0000028,30,0.3297,Operations Manager with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.14.
-CAND_0000040,31,0.3267,Customer Support with 1.6 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.46.
-CAND_0000044,32,0.3262,Frontend Engineer with 5.7 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.66.
-CAND_0000021,33,0.3229,Project Manager with 14.5 yrs; 0 Any skills matched; top signal availability; response rate 0.49.
-CAND_0000036,34,0.3224,Project Manager with 11.3 yrs; 0 Any skills matched; top signal availability; response rate 0.40.
-CAND_0000003,35,0.3211,Customer Support with 1.1 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.46.
-CAND_0000018,36,0.3207,Frontend Engineer with 6.6 yrs; 0 Any skills matched; top signal availability; response rate 0.16.
-CAND_0000037,37,0.3206,Business Analyst with 14.3 yrs; 0 Any skills matched; top signal availability; response rate 0.78.
-CAND_0000047,38,0.3205,Project Manager with 2.4 yrs; 0 Any skills matched; top signal availability; response rate 0.39.
-CAND_0000004,39,0.3179,Marketing Manager with 3.8 yrs; 0 Any skills matched; top signal availability; response rate 0.26.
-CAND_0000050,40,0.3163,Business Analyst with 13.5 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.42.
-CAND_0000029,41,0.3114,Business Analyst with 7.2 yrs; 0 Any skills matched; top signal availability; response rate 0.12.
-CAND_0000002,42,0.3100,Operations Manager with 12.5 yrs; 0 Any skills matched; top signal availability; response rate 0.29.
-CAND_0000043,43,0.3046,Cloud Engineer with 8.3 yrs; 0 Any skills matched; top signal availability; response rate 0.04.
-CAND_0000012,44,0.3015,Operations Manager with 1.1 yrs; 0 Any skills matched; top signal availability; response rate 0.16.
-CAND_0000006,45,0.2986,Business Analyst with 6.0 yrs; 0 Any skills matched; top signal availability; response rate 0.12.
-CAND_0000049,46,0.2951,Mechanical Engineer with 11.8 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.59.
-CAND_0000017,47,0.2935,Accountant with 12.3 yrs; 0 Any skills matched; top signal availability; response rate 0.27.
-CAND_0000041,48,0.2934,Operations Manager with 13.7 yrs; 0 Any skills matched; top signal availability; response rate 0.07.
-CAND_0000009,49,0.2884,Mechanical Engineer with 11.0 yrs; 0 Any skills matched; top signal signal modifier; response rate 0.53.
-CAND_0000034,50,0.2868,Business Analyst with 14.5 yrs; 0 Any skills matched; top signal availability; response rate 0.15.
-CAND_9000051,51,0.0000,Dummy candidate for padding; rank 51.
-CAND_9000052,52,0.0000,Dummy candidate for padding; rank 52.
-CAND_9000053,53,0.0000,Dummy candidate for padding; rank 53.
-CAND_9000054,54,0.0000,Dummy candidate for padding; rank 54.
-CAND_9000055,55,0.0000,Dummy candidate for padding; rank 55.
-CAND_9000056,56,0.0000,Dummy candidate for padding; rank 56.
-CAND_9000057,57,0.0000,Dummy candidate for padding; rank 57.
-CAND_9000058,58,0.0000,Dummy candidate for padding; rank 58.
-CAND_9000059,59,0.0000,Dummy candidate for padding; rank 59.
-CAND_9000060,60,0.0000,Dummy candidate for padding; rank 60.
-CAND_9000061,61,0.0000,Dummy candidate for padding; rank 61.
-CAND_9000062,62,0.0000,Dummy candidate for padding; rank 62.
-CAND_9000063,63,0.0000,Dummy candidate for padding; rank 63.
-CAND_9000064,64,0.0000,Dummy candidate for padding; rank 64.
-CAND_9000065,65,0.0000,Dummy candidate for padding; rank 65.
-CAND_9000066,66,0.0000,Dummy candidate for padding; rank 66.
-CAND_9000067,67,0.0000,Dummy candidate for padding; rank 67.
-CAND_9000068,68,0.0000,Dummy candidate for padding; rank 68.
-CAND_9000069,69,0.0000,Dummy candidate for padding; rank 69.
-CAND_9000070,70,0.0000,Dummy candidate for padding; rank 70.
-CAND_9000071,71,0.0000,Dummy candidate for padding; rank 71.
-CAND_9000072,72,0.0000,Dummy candidate for padding; rank 72.
-CAND_9000073,73,0.0000,Dummy candidate for padding; rank 73.
-CAND_9000074,74,0.0000,Dummy candidate for padding; rank 74.
-CAND_9000075,75,0.0000,Dummy candidate for padding; rank 75.
-CAND_9000076,76,0.0000,Dummy candidate for padding; rank 76.
-CAND_9000077,77,0.0000,Dummy candidate for padding; rank 77.
-CAND_9000078,78,0.0000,Dummy candidate for padding; rank 78.
-CAND_9000079,79,0.0000,Dummy candidate for padding; rank 79.
-CAND_9000080,80,0.0000,Dummy candidate for padding; rank 80.
-CAND_9000081,81,0.0000,Dummy candidate for padding; rank 81.
-CAND_9000082,82,0.0000,Dummy candidate for padding; rank 82.
-CAND_9000083,83,0.0000,Dummy candidate for padding; rank 83.
-CAND_9000084,84,0.0000,Dummy candidate for padding; rank 84.
-CAND_9000085,85,0.0000,Dummy candidate for padding; rank 85.
-CAND_9000086,86,0.0000,Dummy candidate for padding; rank 86.
-CAND_9000087,87,0.0000,Dummy candidate for padding; rank 87.
-CAND_9000088,88,0.0000,Dummy candidate for padding; rank 88.
-CAND_9000089,89,0.0000,Dummy candidate for padding; rank 89.
-CAND_9000090,90,0.0000,Dummy candidate for padding; rank 90.
-CAND_9000091,91,0.0000,Dummy candidate for padding; rank 91.
-CAND_9000092,92,0.0000,Dummy candidate for padding; rank 92.
-CAND_9000093,93,0.0000,Dummy candidate for padding; rank 93.
-CAND_9000094,94,0.0000,Dummy candidate for padding; rank 94.
-CAND_9000095,95,0.0000,Dummy candidate for padding; rank 95.
-CAND_9000096,96,0.0000,Dummy candidate for padding; rank 96.
-CAND_9000097,97,0.0000,Dummy candidate for padding; rank 97.
-CAND_9000098,98,0.0000,Dummy candidate for padding; rank 98.
-CAND_9000099,99,0.0000,Dummy candidate for padding; rank 99.
-CAND_9000100,100,0.0000,Dummy candidate for padding; rank 100.
+CAND_0009184,1,1.0,"Backend Engineer with 6.5 yrs; 3 required skill(s) matched: Spark, AWS, GCP; top signal availability; response rate 0.50."
+CAND_0055951,2,0.9382,"Analytics Engineer with 7.2 yrs; 2 required skill(s) matched: Python, Airflow; top signal availability; response rate 0.78."
+CAND_0087506,3,0.8927,"Software Engineer with 7.4 yrs; 3 required skill(s) matched: Spark, AWS, GCP; top signal availability; response rate 0.67."
+CAND_0005820,4,0.8569,"Backend Engineer with 7.2 yrs; 3 required skill(s) matched: Python, Airflow, Apache Beam; top signal career fit; response rate 0.55."
+CAND_0014023,5,0.7821,"Cloud Engineer with 7.2 yrs; 3 required skill(s) matched: Spark, Airflow, Azure; top signal availability; response rate 0.65."
+CAND_0010204,6,0.7772,"Backend Engineer with 7.0 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.63."
+CAND_0069387,7,0.765,"Software Engineer with 7.4 yrs; 4 required skill(s) matched: Python, SQL, Airflow, AWS; top signal availability; response rate 0.73."
+CAND_0063138,8,0.735,"Analytics Engineer with 7.2 yrs; 3 required skill(s) matched: SQL, Spark, AWS; top signal availability; response rate 0.46."
+CAND_0007524,9,0.7285,"DevOps Engineer with 6.7 yrs; 4 required skill(s) matched: SQL, Airflow, AWS, Azure; top signal availability; response rate 0.39."
+CAND_0056940,10,0.7195,"Backend Engineer with 7.4 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.48."
+CAND_0013112,11,0.6935,"Senior Software Engineer with 7.0 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.61."
+CAND_0006861,12,0.674,"Software Engineer with 6.0 yrs; 6 required skill(s) matched: SQL, Spark, Apache Beam, AWS, GCP (+1 more); top signal availability; response rate 0.66."
+CAND_0026995,13,0.6691,"Cloud Engineer with 8.4 yrs; 4 required skill(s) matched: Spark, AWS, GCP, Azure; top signal availability; response rate 0.71."
+CAND_0063589,14,0.6683,"Data Analyst with 6.2 yrs; 2 required skill(s) matched: SQL, Apache Beam; top signal availability; response rate 0.78."
+CAND_0067106,15,0.6602,"Backend Engineer with 5.8 yrs; 2 required skill(s) matched: Python, SQL; top signal availability; response rate 0.68."
+CAND_0043425,16,0.6585,"Backend Engineer with 5.9 yrs; 2 required skill(s) matched: Airflow, AWS; top signal availability; response rate 0.38."
+CAND_0048183,17,0.6585,"Software Engineer with 6.4 yrs; 4 required skill(s) matched: Airflow, Apache Beam, GCP, Azure; top signal availability; response rate 0.69."
+CAND_0087471,18,0.6569,"Senior Software Engineer with 7.0 yrs; 3 required skill(s) matched: SQL, Spark, GCP; top signal availability; response rate 0.68."
+CAND_0021152,19,0.6512,"Backend Engineer with 6.3 yrs; 2 required skill(s) matched: Python, AWS; top signal availability; response rate 0.68."
+CAND_0013440,20,0.6423,"Senior Data Engineer with 7.2 yrs; 2 required skill(s) matched: SQL, Spark; top signal availability; response rate 0.68."
+CAND_0072917,21,0.639,"Backend Engineer with 7.7 yrs; 3 required skill(s) matched: SQL, Airflow, Apache Beam; top signal availability; response rate 0.47."
+CAND_0087187,22,0.6341,"DevOps Engineer with 6.5 yrs; 3 required skill(s) matched: SQL, Airflow, AWS; top signal availability; response rate 0.53."
+CAND_0067203,23,0.6293,"Backend Engineer with 7.5 yrs; 2 required skill(s) matched: Python, AWS; top signal availability; response rate 0.40."
+CAND_0093645,24,0.622,"Full Stack Developer with 7.5 yrs; 4 required skill(s) matched: SQL, Airflow, AWS, Azure; top signal availability; response rate 0.80."
+CAND_0031127,25,0.6203,"QA Engineer with 5.9 yrs; 4 required skill(s) matched: SQL, Airflow, Apache Beam, GCP; top signal availability; response rate 0.64."
+CAND_0004713,26,0.6171,"Software Engineer with 7.7 yrs; 4 required skill(s) matched: SQL, Airflow, Apache Beam, GCP; top signal availability; response rate 0.58."
+CAND_0016929,27,0.6163,"Software Engineer with 7.3 yrs; 3 required skill(s) matched: SQL, Apache Beam, AWS; top signal availability; response rate 0.15."
+CAND_0001036,28,0.5976,"Backend Engineer with 7.7 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.74."
+CAND_0096345,29,0.5943,"Cloud Engineer with 6.4 yrs; 4 required skill(s) matched: SQL, Apache Beam, GCP, Azure; top signal availability; response rate 0.37."
+CAND_0013702,30,0.5919,"Data Engineer with 7.8 yrs; 2 required skill(s) matched: SQL, AWS; top signal availability; response rate 0.78."
+CAND_0020272,31,0.5829,"Frontend Engineer with 6.9 yrs; 3 required skill(s) matched: SQL, Apache Beam, GCP; top signal availability; response rate 0.79."
+CAND_0049319,32,0.5829,"Cloud Engineer with 7.4 yrs; 2 required skill(s) matched: SQL, Azure; top signal availability; response rate 0.74."
+CAND_0082670,33,0.5789,"Backend Engineer with 6.2 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.70."
+CAND_0006946,34,0.5748,"Software Engineer with 7.5 yrs; 2 required skill(s) matched: SQL, Azure; top signal availability; response rate 0.42."
+CAND_0015362,35,0.5667,"Software Engineer with 7.3 yrs; 2 required skill(s) matched: SQL, Apache Beam; top signal availability; response rate 0.32."
+CAND_0093121,36,0.561,"Senior Data Engineer with 6.0 yrs; 4 required skill(s) matched: SQL, Apache Beam, AWS, GCP; top signal availability; response rate 0.74."
+CAND_0061998,37,0.5561,"QA Engineer with 7.0 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.72."
+CAND_0012251,38,0.5512,"Cloud Engineer with 6.3 yrs; 3 required skill(s) matched: Spark, Airflow, Azure; top signal availability; response rate 0.76."
+CAND_0052289,39,0.5512,"Senior Software Engineer with 6.9 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.61."
+CAND_0005088,40,0.5496,"Data Engineer with 6.8 yrs; 2 required skill(s) matched: SQL, AWS; top signal availability; response rate 0.27."
+CAND_0037735,41,0.5463,"Backend Engineer with 7.4 yrs; 2 required skill(s) matched: Python, Spark; top signal career fit; response rate 0.78."
+CAND_0032312,42,0.5398,"QA Engineer with 6.5 yrs; 2 required skill(s) matched: Airflow, AWS; top signal availability; response rate 0.80."
+CAND_0038448,43,0.5382,"Frontend Engineer with 6.3 yrs; 2 required skill(s) matched: SQL, Apache Beam; top signal availability; response rate 0.83."
+CAND_0001583,44,0.5358,"Frontend Engineer with 7.3 yrs; 3 required skill(s) matched: SQL, Spark, GCP; top signal availability; response rate 0.50."
+CAND_0072660,45,0.5325,"Machine Learning Engineer with 7.1 yrs; 2 required skill(s) matched: Python, SQL; top signal availability; response rate 0.53."
+CAND_0074938,46,0.5276,"Cloud Engineer with 6.6 yrs; 3 required skill(s) matched: SQL, Spark, GCP; top signal availability; response rate 0.63."
+CAND_0035508,47,0.522,"Data Analyst with 7.2 yrs; 2 required skill(s) matched: Python, Airflow; top signal availability; response rate 0.68."
+CAND_0023861,48,0.5211,"Software Engineer with 7.9 yrs; 2 required skill(s) matched: Spark, Airflow; top signal availability; response rate 0.77."
+CAND_0010638,49,0.5195,"Data Analyst with 7.4 yrs; 2 required skill(s) matched: SQL, Azure; top signal signal modifier; response rate 0.79."
+CAND_0012923,50,0.5187,"Cloud Engineer with 6.1 yrs; 3 required skill(s) matched: Airflow, AWS, GCP; top signal availability; response rate 0.69."
+CAND_0064880,51,0.5187,".NET Developer with 7.0 yrs; 4 required skill(s) matched: SQL, Spark, Airflow, GCP; top signal availability; response rate 0.68."
+CAND_0013545,52,0.5154,"Software Engineer with 7.4 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.69."
+CAND_0027190,53,0.5146,"Cloud Engineer with 6.2 yrs; 3 required skill(s) matched: Python, SQL, GCP; top signal availability; response rate 0.43."
+CAND_0068966,54,0.513,"Software Engineer with 8.7 yrs; 4 required skill(s) matched: Python, Spark, Airflow, Azure; top signal availability; response rate 0.78."
+CAND_0093872,55,0.5089,"DevOps Engineer with 7.7 yrs; 4 required skill(s) matched: Python, SQL, Airflow, AWS; top signal availability; response rate 0.51."
+CAND_0018240,56,0.5057,"Software Engineer with 7.5 yrs; 2 required skill(s) matched: Apache Beam, AWS; top signal availability; response rate 0.21."
+CAND_0072937,57,0.5057,"Senior Software Engineer with 7.6 yrs; 3 required skill(s) matched: SQL, Spark, Apache Beam; top signal availability; response rate 0.37."
+CAND_0099480,58,0.5049,"Software Engineer with 6.8 yrs; 3 required skill(s) matched: SQL, Spark, Apache Beam; top signal availability; response rate 0.39."
+CAND_0067893,59,0.5024,"QA Engineer with 6.8 yrs; 2 required skill(s) matched: SQL, Spark; top signal availability; response rate 0.84."
+CAND_0002285,60,0.5,"Software Engineer with 6.5 yrs; 2 required skill(s) matched: Spark, Apache Beam; top signal availability; response rate 0.81."
+CAND_0032605,61,0.5,"Cloud Engineer with 6.6 yrs; 2 required skill(s) matched: Airflow, Apache Beam; top signal availability; response rate 0.51."
+CAND_0007181,62,0.4959,"Cloud Engineer with 7.4 yrs; 2 required skill(s) matched: SQL, Apache Beam; top signal availability; response rate 0.83."
+CAND_0042366,63,0.4935,"Frontend Engineer with 6.4 yrs; 2 required skill(s) matched: GCP, Azure; top signal availability; response rate 0.68."
+CAND_0048024,64,0.4927,"Data Engineer with 6.2 yrs; 3 required skill(s) matched: Airflow, AWS, GCP; top signal availability; response rate 0.45."
+CAND_0029100,65,0.4919,"Software Engineer with 7.9 yrs; 2 required skill(s) matched: Airflow, AWS; top signal availability; response rate 0.72."
+CAND_0019838,66,0.4902,"Backend Engineer with 5.6 yrs; 2 required skill(s) matched: GCP, Azure; top signal availability; response rate 0.34."
+CAND_0074530,67,0.4902,"DevOps Engineer with 6.7 yrs; 3 required skill(s) matched: SQL, Spark, Airflow; top signal availability; response rate 0.21."
+CAND_0028596,68,0.4886,"Software Engineer with 7.8 yrs; 3 required skill(s) matched: SQL, Spark, Apache Beam; top signal availability; response rate 0.27."
+CAND_0067855,69,0.4886,"Software Engineer with 7.8 yrs; 3 required skill(s) matched: Airflow, GCP, Azure; top signal availability; response rate 0.65."
+CAND_0039002,70,0.4878,"Software Engineer with 6.0 yrs; 2 required skill(s) matched: SQL, Apache Beam; top signal availability; response rate 0.78."
+CAND_0027559,71,0.4829,"DevOps Engineer with 6.9 yrs; 3 required skill(s) matched: Python, Spark, Azure; top signal availability; response rate 0.77."
+CAND_0024591,72,0.4821,"Software Engineer with 5.6 yrs; 2 required skill(s) matched: Airflow, Azure; top signal availability; response rate 0.76."
+CAND_0034428,73,0.4821,"Software Engineer with 6.6 yrs; 2 required skill(s) matched: SQL, AWS; top signal availability; response rate 0.82."
+CAND_0013141,74,0.478,"Frontend Engineer with 6.5 yrs; 2 required skill(s) matched: Apache Beam, AWS; top signal availability; response rate 0.67."
+CAND_0090265,75,0.4772,"QA Engineer with 7.6 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.63."
+CAND_0015987,76,0.4699,"Data Engineer with 6.9 yrs; 4 required skill(s) matched: Python, Airflow, Apache Beam, GCP; top signal availability; response rate 0.30."
+CAND_0099977,77,0.4699,"Senior Software Engineer with 6.6 yrs; 3 required skill(s) matched: SQL, Spark, Azure; top signal availability; response rate 0.42."
+CAND_0076011,78,0.4683,"Software Engineer with 6.7 yrs; 2 required skill(s) matched: Spark, Apache Beam; top signal availability; response rate 0.49."
+CAND_0097802,79,0.4683,"Backend Engineer with 7.7 yrs; 2 required skill(s) matched: Python, Spark; top signal availability; response rate 0.34."
+CAND_0011751,80,0.4675,"Frontend Engineer with 7.6 yrs; 2 required skill(s) matched: Airflow, AWS; top signal availability; response rate 0.58."
+CAND_0053538,81,0.4675,"Data Analyst with 7.8 yrs; 2 required skill(s) matched: Spark, Airflow; top signal availability; response rate 0.65."
+CAND_0081278,82,0.4675,"Data Analyst with 7.3 yrs; 2 required skill(s) matched: Airflow, AWS; top signal availability; response rate 0.58."
+CAND_0000911,83,0.4659,"Cloud Engineer with 7.7 yrs; 3 required skill(s) matched: Spark, Airflow, Azure; top signal availability; response rate 0.45."
+CAND_0055495,84,0.4659,"Sales Executive with 6.6 yrs; 4 required skill(s) matched: SQL, Airflow, AWS, GCP; top signal availability; response rate 0.55."
+CAND_0002969,85,0.465,"Senior Data Engineer with 6.9 yrs; 2 required skill(s) matched: Python, AWS; top signal availability; response rate 0.39."
+CAND_0071321,86,0.465,"Senior Software Engineer with 6.4 yrs; 4 required skill(s) matched: SQL, Airflow, GCP, Azure; top signal availability; response rate 0.59."
+CAND_0062403,87,0.4634,"Backend Engineer with 5.1 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.33."
+CAND_0038375,88,0.4626,"DevOps Engineer with 7.8 yrs; 3 required skill(s) matched: SQL, AWS, Azure; top signal availability; response rate 0.82."
+CAND_0063182,89,0.4602,"QA Engineer with 6.5 yrs; 2 required skill(s) matched: AWS, GCP; top signal availability; response rate 0.80."
+CAND_0030042,90,0.4585,"Senior Data Engineer with 6.7 yrs; 2 required skill(s) matched: Airflow, Apache Beam; top signal availability; response rate 0.61."
+CAND_0040192,91,0.4585,"Software Engineer with 7.0 yrs; 2 required skill(s) matched: Python, SQL; top signal availability; response rate 0.35."
+CAND_0065480,92,0.4569,"Mobile Developer with 7.5 yrs; 4 required skill(s) matched: SQL, Airflow, Apache Beam, GCP; top signal availability; response rate 0.59."
+CAND_0097428,93,0.4569,"Cloud Engineer with 6.1 yrs; 3 required skill(s) matched: SQL, Airflow, Azure; top signal availability; response rate 0.51."
+CAND_0054156,94,0.4561,"QA Engineer with 7.0 yrs; 2 required skill(s) matched: SQL, Airflow; top signal availability; response rate 0.48."
+CAND_0005673,95,0.4553,"Cloud Engineer with 7.4 yrs; 3 required skill(s) matched: SQL, AWS, GCP; top signal availability; response rate 0.84."
+CAND_0016717,96,0.4553,"Software Engineer with 8.7 yrs; 3 required skill(s) matched: SQL, Spark, GCP; top signal availability; response rate 0.77."
+CAND_0047022,97,0.4553,"QA Engineer with 6.6 yrs; 2 required skill(s) matched: SQL, GCP; top signal availability; response rate 0.64."
+CAND_0001082,98,0.4545,"Software Engineer with 6.8 yrs; 2 required skill(s) matched: SQL, Azure; top signal availability; response rate 0.37."
+CAND_0074242,99,0.4545,"DevOps Engineer with 8.0 yrs; 3 required skill(s) matched: SQL, Apache Beam, Azure; top signal availability; response rate 0.69."
+CAND_0021007,100,0.4537,".NET Developer with 7.5 yrs; 4 required skill(s) matched: Spark, Apache Beam, GCP, Azure; top signal availability; response rate 0.71."
