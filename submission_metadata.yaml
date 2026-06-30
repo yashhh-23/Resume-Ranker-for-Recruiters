@@ -1,7 +1,3 @@
-# Redrob Hackathon — Submission Metadata
-# ============================================================================
-# Team identity
-# ============================================================================
 team_name: "Team Chanakya"
 
 primary_contact:
@@ -20,16 +16,10 @@ team_members:
     email: "shubhmapawar@gmail.com"
     role: "Documentation"
 
-# ============================================================================
-# Code and reproducibility
-# ============================================================================
 github_repo: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
 sandbox_link: "https://huggingface.co/spaces/yashhh-23/redrob-ranker"
-reproduce_command: "python rank.py --candidates ./dataset/candidates.jsonl --out ./submission.csv"
+reproduce_command: "python backend/rank.py --candidates ./candidates.jsonl.gz --out ./submission.csv"
 
-# ============================================================================
-# Compute environment
-# ============================================================================
 compute:
   platform: "Intel/AMD x86_64"
   cpu_cores: 8
@@ -41,33 +31,21 @@ compute:
   pre_computation_required: false
   pre_computation_time_minutes: 0
 
-# ============================================================================
-# AI tools declaration
-# ============================================================================
 ai_tools_used:
   - "Claude Sonnet 4.6"
   - "Google Gemini"
   - "Perplexity"
 
 ai_usage_summary: |
-  Used RedRob AI for candidate evaluation telemetry; Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research. No candidate data was sent to external LLMs during scoring.
+  Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research. No candidate data was sent to external LLMs during scoring.
 
-# ============================================================================
-# Approach summary
-# ============================================================================
 methodology_summary: |
   Deterministic 5-signal weighted ranker. JD is parsed into skills/title/industry/
   seniority/experience using regex + keyword matching. Candidates are scored across:
-  Skill Match (35% — FAISS cosine + proficiency-weighted coverage),
-  Career Fit (25% — recency-decayed title/industry match + seniority alignment),
-  Signal Modifier (15% — Redrob activity signals),
-  Education (15% — degree tier × field match),
-  Availability (10% — notice period + open_to_work + relocation).
-  Zero LLM inference in the scoring loop. Runtime ~2–5s for 1000 candidates on CPU.
+  Skill Match (35%), Career Fit (25%), Signal Modifier (15%), Education (15%),
+  Availability (10%). Zero LLM inference in the scoring loop.
+  Runtime ~2-5s for 1000 candidates on CPU.
 
-# ============================================================================
-# Declarations
-# ============================================================================
 declarations:
   read_submission_spec: true
   code_is_original_work: true
