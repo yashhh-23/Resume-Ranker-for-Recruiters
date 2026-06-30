@@ -23,6 +23,10 @@ def parse_candidates_stream(handle):
 
 
 def load_candidates(path: Path):
+    import gzip
+    if path.suffix.lower() == ".gz" or path.name.lower().endswith(".jsonl.gz"):
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            return list(parse_candidates_stream(handle))
     if path.suffix.lower() == ".jsonl":
         with path.open("r", encoding="utf-8") as handle:
             return list(parse_candidates_stream(handle))
@@ -32,18 +36,23 @@ def load_candidates(path: Path):
 
 
 def write_submission(rows, out_path: Path):
+    sorted_rows = sorted(
+        rows,
+        key=lambda r: (-float(r.get("score", 0.0)), str(r.get("candidate_id", "")))
+    )
     with out_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=CSV_HEADER)
         writer.writeheader()
-        for row in rows:
+        for idx, row in enumerate(sorted_rows, start=1):
             writer.writerow(
                 {
                     "candidate_id": row["candidate_id"],
-                    "rank": row["rank"],
-                    "score": f"{row['score']:.4f}",
+                    "rank": idx,
+                    "score": f"{float(row['score']):.4f}",
                     "reasoning": row["reasoning"],
                 }
             )
+    print(f"[METRIC PURGE COMPLETE] Enforced 4-column spec on target destination: {out_path}")
 
 
 def parse_args():

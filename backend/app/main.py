@@ -141,7 +141,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="RRR Resume Ranker Backend",
+    title="Redrob Talent Intelligence Pipeline Engine",
     lifespan=lifespan,
     docs_url="/docs" if os.getenv("ENV", "development") != "production" else None,
     redoc_url="/redoc" if os.getenv("ENV", "development") != "production" else None,
@@ -212,20 +212,16 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(RequestIDMiddleware)
 
-allowed_origins = [
-    origin.strip()
-    for origin in os.getenv(
-        "RRR_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
-    ).split(",")
-    if origin.strip()
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -338,16 +334,27 @@ RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
 
 def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
     import csv
-    with open(filepath, mode="w", newline="", encoding="utf-8-sig") as f:
-        writer = csv.writer(f, lineterminator="\r\n")
-        writer.writerow(["candidate_id", "rank", "score", "reasoning"])
-        for item in ranked:
-            writer.writerow([
-                item.get("candidate_id", ""),
-                item.get("rank", 0),
-                round(item.get("score", 0.0), 4),
-                item.get("reasoning", "")
-            ])
+    
+    # Sort by score descending, then candidate_id ascending
+    sorted_rows = sorted(
+        ranked,
+        key=lambda r: (-float(r.get("score", 0.0)), str(r.get("candidate_id", "")))
+    )
+    
+    export_columns = ["candidate_id", "rank", "score", "reasoning"]
+    with open(filepath, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=export_columns)
+        writer.writeheader()
+        for idx, row in enumerate(sorted_rows, start=1):
+            writer.writerow(
+                {
+                    "candidate_id": row.get("candidate_id", ""),
+                    "rank": idx,
+                    "score": f"{float(row.get('score', 0.0)):.4f}",
+                    "reasoning": row.get("reasoning", ""),
+                }
+            )
+    print(f"[METRIC PURGE COMPLETE] Enforced 4-column spec on target destination: {filepath}")
 
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)

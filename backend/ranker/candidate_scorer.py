@@ -15,7 +15,9 @@ from .embedding_utils import (
 )
 from .signal_scorer import clamp, safe_float, score_availability, score_signal_modifier
 from .validators import validate_candidate
-from .jd_parser import TECH_SKILLS, extract_dynamic_skills_from_jd
+from .jd_parser import TECH_SKILLS, extract_dynamic_skills_from_jd, KNOWN_SKILLS
+
+KNOWN_SKILLS_LOWER = {s.lower() for s in KNOWN_SKILLS}
 
 WEIGHTS = {
     "skill_match": 0.35,
@@ -102,15 +104,28 @@ _time_career_fit = 0.0
 def is_skill_match(r: str, c: str) -> bool:
     r_clean = r.lower().strip()
     c_clean = c.lower().strip()
-    if r_clean in c_clean or c_clean in r_clean:
+    
+    # Exact match
+    if r_clean == c_clean:
         return True
+        
+    # Alias-based match
     r_aliases = SKILL_ALIASES.get(r_clean, {r_clean})
     c_aliases = SKILL_ALIASES.get(c_clean, {c_clean})
     if r_aliases & c_aliases:
         return True
+        
+    # Token-based match: split by non-alphanumeric characters (preserving +, #, -, .)
+    r_tokens = tokenize(r_clean)
+    c_tokens = tokenize(c_clean)
+    if r_tokens & c_tokens:
+        return True
+        
     for alias in r_aliases:
-        if alias in c_clean or c_clean in alias:
+        alias_tokens = tokenize(alias)
+        if alias_tokens & c_tokens:
             return True
+            
     return False
 
 def calibrate_score(score: float) -> float:
@@ -521,11 +536,18 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     if not current_title and career_history:
         current_title = str(career_history[0].get("title") or "").lower()
 
+    target_tokens = jd.get("_cached_target_title_tokens")
+    is_match_target = False
+    if target_title and target_title.lower() != "any":
+        is_match_target = text_match(current_title, target_title, target_tokens=target_tokens) > 0.0
+
     non_domain_tokens = [
         "project manager", "business analyst", "operations manager", "civil", 
         "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
     ]
     has_non_domain_title = any(token in current_title for token in non_domain_tokens)
+    if is_match_target:
+        has_non_domain_title = False
 
     tech_tokens = ["ml", "nlp", "ai", "search", "data science", "backend", "software engineer", "developer", "scientist"]
     is_tech_title = any(token in current_title for token in tech_tokens)
@@ -720,7 +742,115 @@ def score_candidate(
     missing = [r for r, rl in req_zip if not any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
 
     matched_count = len(matched)
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
 
+    # 1. Zero-Skill Evaluation Check (First)
+    matchable_required = [r for r in jd_required_list if r.lower() in KNOWN_SKILLS_LOWER]
+    is_zero_skill = len(matchable_required) > 0 and len(matched) == 0
+    if is_zero_skill:
+        if "zero_skill_match" not in flags:
+            flags.append("zero_skill_match")
+        
+        breakdown = {
+            "skill_match": 0.0,
+            "career_fit": 0.0,
+            "signal_modifier": 0.0,
+            "education": 0.0,
+            "availability": 0.0,
+        }
+        rounded_breakdown = {key: 0.0 for key in breakdown}
+        reasoning_str = build_reasoning(candidate, rounded_breakdown, [], jd)
+        
+        seen = set()
+        missing_dedup = [
+            x for x in missing if not (x.lower() in seen or seen.add(x.lower()))
+        ]
+        missing_preview = ", ".join(missing_dedup[:3]) + (
+            "..." if len(missing_dedup) > 3 else ""
+        )
+        
+        preferred_jd_val = jd.get("_cached_raw_pref")
+        if preferred_jd_val is None:
+            preferred_jd_val = jd.get("preferred_skills") or []
+            jd["_cached_raw_pref"] = preferred_jd_val
+        preferred_jd = list(preferred_jd_val)
+        preferred_jd_lower = [str(p).lower() for p in preferred_jd]
+        preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(is_skill_match(pl, cs) for cs in candidate_skill_names)]
+
+        skill_match_desc = (
+            f"0/{len(jd_required_list)} required skills matched"
+            + (
+                f"; missing: {missing_preview}"
+                if missing_dedup
+                else "; all required skills present"
+            )
+            + (
+                f"; {len(preferred_matched)}/{len(preferred_jd)} preferred skills matched"
+                if preferred_jd
+                else ""
+            )
+        )
+        
+        career_history = candidate.get("career_history") or []
+        min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+        response_rate = safe_float(signals.get("recruiter_response_rate"))
+        github_score = max(0.0, safe_float(signals.get("github_activity_score"), 0.0))
+        open_flag = signals.get("open_to_work_flag", False)
+        reloc = signals.get("willing_to_relocate", False)
+        notice_days = safe_float(signals.get("notice_period_days"), 180.0)
+
+        education_list = candidate.get("education") or []
+        best_degree = "No degree listed"
+        best_tier = "unknown"
+        best_field = "unknown"
+        if education_list:
+            best_edu = max(
+                education_list,
+                key=lambda e: next(
+                    (
+                        v
+                        for k, v in {
+                            "phd": 4,
+                            "master": 3,
+                            "bachelor": 2,
+                            "diploma": 1,
+                        }.items()
+                        if k in str(e.get("degree", "")).lower()
+                    ),
+                    0,
+                ),
+                default={},
+            )
+            best_degree = best_edu.get("degree", "No degree listed")
+            best_tier = best_edu.get("tier", "unknown")
+            best_field = best_edu.get("field_of_study", "unknown")
+
+        education_desc = (
+            f"Best: {best_degree} ({best_field}), {best_tier} tier; {years_exp:.1f}y exp"
+        )
+
+        return {
+            "candidate_id": candidate_id,
+            "score": 0.0,
+            "matched_count": 0,
+            "score_breakdown": rounded_breakdown,
+            "reasoning": reasoning_str,
+            "signal_reasoning": {
+                "skill_match": skill_match_desc,
+                "career_fit": f"{len(career_history)} roles; {years_exp:.1f}y exp vs {min_exp}y min; role relevance: 0.00",
+                "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
+                "education": education_desc,
+                "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
+            },
+            "compliance_flags": flags,
+            "is_suspicious": len(flags) > 0,
+            "profile_completeness": round(
+                safe_float(signals.get("profile_completeness_score", 0.0))
+            ),
+        }
+
+    # 2. Regular Path: Compute sub-scores
     breakdown = {
         "skill_match": score_skill_match(
             candidate_id, jd_similarity, candidate, jd
@@ -730,9 +860,6 @@ def score_candidate(
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
-    
-    profile = candidate.get("profile") or {}
-    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
 
     # Dampen education contribution if career fit is weak
     if breakdown["career_fit"] < 0.30:
@@ -754,11 +881,50 @@ def score_candidate(
     elif years_exp < 5.0:
         breakdown["education"] = min(breakdown["education"], 0.30)
 
+    # 2. Dynamic Experience Range Target Calculation
     min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
+    center_point = (min_experience + max_experience) / 2.0
+    
+    # Smooth Centered Gaussian window decay multiplier calculated smoothly on center point
+    if min_experience > 0:
+        sigma = max(1.0, (max_experience - min_experience) / 2.0)
+        gaussian_decay = math.exp(-((years_exp - center_point) ** 2) / (2 * (sigma ** 2)))
+        breakdown["career_fit"] *= max(0.01, min(1.0, gaussian_decay))
+
+    # Apply experience gap penalty directly to career_fit sub-score
     exp_gap = max(0.0, min_experience - years_exp)
-    if exp_gap > 0:
+    if exp_gap > 0 and min_experience > 0:
         exp_penalty = max(0.6, 1.0 - (exp_gap / min_experience) * 0.3)
         breakdown["career_fit"] *= exp_penalty
+
+    # 3. Apply Penalties Contextually to Career Fit Sub-Score Before Formula Summation
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title:
+        career_history = candidate.get("career_history") or []
+        if career_history:
+            current_title = str(career_history[0].get("title") or "").lower()
+
+    target_title = jd.get("_cached_target_title", (jd.get("target_title") or "").lower())
+    target_tokens = jd.get("_cached_target_title_tokens")
+    is_match_target = False
+    if target_title and target_title != "any":
+        is_match_target = text_match(current_title, target_title, target_tokens=target_tokens) > 0.0
+
+    non_domain_tokens = [
+        "project manager", "business analyst", "operations manager", "civil", 
+        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+    ]
+    is_non_domain_title = any(token in current_title for token in non_domain_tokens)
+    if is_match_target:
+        is_non_domain_title = False
+
+    if is_non_domain_title:
+        breakdown["career_fit"] *= 0.05  # Blunt out-of-domain stuffing immediately
+
+    outside_experience_bounds = min_experience > 0 and (years_exp < min_experience or years_exp > max_experience)
+    if outside_experience_bounds:
+        breakdown["career_fit"] *= 0.10  # Enforce experience boundaries tightly
 
     # Notice period constraints / Availability decay multiplier
     notice_days = safe_float(signals.get("notice_period_days"), 180.0)
@@ -771,8 +937,18 @@ def score_candidate(
     else:
         availability_mult = 0.30
 
-    # Multiplicative Telemetry score
-    final_score = (breakdown["skill_match"] * breakdown["career_fit"]) * breakdown["signal_modifier"] * availability_mult
+    # 4. Enforce the Mandated 35/25/15/15/10 Additive Score Composition
+    raw_final_score = (
+        (0.35 * breakdown["skill_match"]) +
+        (0.25 * breakdown["career_fit"]) +
+        (0.15 * breakdown["signal_modifier"]) +
+        (0.15 * breakdown["education"]) +
+        (0.10 * availability_mult)
+    )
+    final_score = raw_final_score
+
+    if blacklist_penalty:
+        final_score *= 0.10
 
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
         trap_penalty = score_jd_specific_traps(candidate)
@@ -784,130 +960,22 @@ def score_candidate(
     if fraud_timeline:
         final_score = 0.0
 
-    if len(jd_required_list) > 0 and len(matched) == 0:
-        final_score = 0.0
-        if "zero_skill_match" not in flags:
-            flags.append("zero_skill_match")
-
-    # Gaussian experience bounds penalty
-    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
-    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
-    if min_experience > 0:
-        if years_exp < min_experience or years_exp > max_experience:
-            final_score *= 0.10
-
-    # Non-domain title penalty
-    profile = candidate.get("profile") or {}
-    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
-    if not current_title:
-        career_history = candidate.get("career_history") or []
-        if career_history:
-            current_title = str(career_history[0].get("title") or "").lower()
-
-    non_domain_tokens = [
-        "project manager", "business analyst", "operations manager", "civil", 
-        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
-    ]
-    if any(token in current_title for token in non_domain_tokens):
-        final_score *= 0.05
-
-    rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
-
-    profile = candidate.get("profile") or {}
-    years = safe_float(profile.get("years_of_experience"))
-
-    seen = set()
-    missing_dedup = [
-        x for x in missing if not (x.lower() in seen or seen.add(x.lower()))
-    ]
-    missing_preview = ", ".join(missing_dedup[:3]) + (
-        "..." if len(missing_dedup) > 3 else ""
-    )
-
-    preferred_jd_val = jd.get("_cached_raw_pref")
-    if preferred_jd_val is None:
-        preferred_jd_val = jd.get("preferred_skills") or []
-        jd["_cached_raw_pref"] = preferred_jd_val
-    preferred_jd = list(preferred_jd_val)
-    preferred_jd_lower = [str(p).lower() for p in preferred_jd]
-    preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(is_skill_match(pl, cs) for cs in candidate_skill_names)]
-
-    skill_match_desc = (
-        f"{len(matched)}/{len(jd_required_list)} required skills matched"
-        + (
-            f"; missing: {missing_preview}"
-            if missing_dedup
-            else "; all required skills present"
-        )
-        + (
-            f"; {len(preferred_matched)}/{len(preferred_jd)} preferred skills matched"
-            if preferred_jd
-            else ""
-        )
-    )
-
-    career_history = candidate.get("career_history") or []
-    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
-    response_rate = safe_float(signals.get("recruiter_response_rate"))
-    github_score = max(0.0, safe_float(signals.get("github_activity_score"), 0.0))
-    open_flag = signals.get("open_to_work_flag", False)
-    reloc = signals.get("willing_to_relocate", False)
-
-
-    education_list = candidate.get("education") or []
-    best_degree = "No degree listed"
-    best_tier = "unknown"
-    best_field = "unknown"
-    if education_list:
-        best_edu = max(
-            education_list,
-            key=lambda e: next(
-                (
-                    v
-                    for k, v in {
-                        "phd": 4,
-                        "master": 3,
-                        "bachelor": 2,
-                        "diploma": 1,
-                    }.items()
-                    if k in str(e.get("degree", "")).lower()
-                ),
-                0,
-            ),
-            default={},
-        )
-        best_degree = best_edu.get("degree", "No degree listed")
-        best_tier = best_edu.get("tier", "unknown")
-        best_field = best_edu.get("field_of_study", "unknown")
-
-    education_desc = (
-        f"Best: {best_degree} ({best_field}), {best_tier} tier; {years:.1f}y exp"
-    )
-
-    # Use clean, candidate-centric reasoning from build_reasoning ONLY (no warning characters, tags, or debug gates)
-    reasoning_str = build_reasoning(candidate, rounded_breakdown, matched, jd)
-
-    if len(jd_required_list) > 0 and len(matched) == 0:
-        flags.append("zero_skill_match")
-
     return {
         "candidate_id": candidate_id,
         "score": round(clamp(calibrate_score(final_score)), 4),
         "matched_count": len(matched),
-        "score_breakdown": rounded_breakdown,
-        "reasoning": reasoning_str,
+        "score_breakdown": {key: round(value, 4) for key, value in breakdown.items()},
+        "reasoning": build_reasoning(candidate, {key: round(value, 4) for key, value in breakdown.items()}, matched, jd),
         "signal_reasoning": {
-            "skill_match": skill_match_desc,
-            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}" + (f"; Trap penalty: {trap_penalty:.2f}" if trap_penalty > 0 else ""),
-            "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
-            "education": education_desc,
-            "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
+            "skill_match": f"{len(matched)}/{len(jd_required_list)} required skills matched",
+            "career_fit": f"{len(candidate.get('career_history', []))} roles; {years_exp:.1f}y exp vs {min_experience}y min",
+            "signal_modifier": f"Response rate: {safe_float(signals.get('recruiter_response_rate')):.2f}",
+            "education": "Best education evaluated",
+            "availability": f"Notice: {notice_days}d",
         },
         "compliance_flags": flags,
         "is_suspicious": len(flags) > 0,
-        "profile_completeness": round(
-            safe_float(signals.get("profile_completeness_score", 0.0))
-        ),
+        "profile_completeness": round(safe_float(signals.get("profile_completeness_score", 0.0))),
     }
 
 
@@ -926,11 +994,16 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         required = [s.lower() for s in required_list]
         jd["_cached_required_skills"] = required
 
-    if len(required) > 0:
-        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
-        matched_req_count = sum(1 for r in required if any(is_skill_match(r, cs) for cs in candidate_skill_names))
+    # 1. Zero-Skill Evaluation Check (First)
+    candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
+    matchable_required = [r for r in required if r.lower() in KNOWN_SKILLS_LOWER]
+    matched_req_count = 0
+    if len(matchable_required) > 0:
+        matched_req_count = sum(1 for r in matchable_required if any(is_skill_match(r, cs) for cs in candidate_skill_names))
         if matched_req_count == 0:
             return 0.0
+    else:
+        matched_req_count = sum(1 for r in required if any(is_skill_match(r, cs) for cs in candidate_skill_names))
 
     t0 = time.perf_counter()
     cf = score_career_fit(candidate, jd)
@@ -939,10 +1012,78 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     breakdown = {
         "skill_match": score_required_skill_coverage(candidate, jd),
         "career_fit": cf,
-        "signal_modifier": score_signal_modifier(signals, jd),
+        "signal_modifier": score_signal_modifier(signals, jd, matched_count=matched_req_count),
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
+
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+
+    # Dampen education contribution if career fit is weak
+    if breakdown["career_fit"] < 0.30:
+        if matched_req_count <= 1:
+            breakdown["education"] *= 0.40
+            if years_exp < 3.0:
+                breakdown["education"] = min(breakdown["education"], 0.15)
+            elif years_exp < 6.0:
+                breakdown["education"] = min(breakdown["education"], 0.20)
+            else:
+                breakdown["education"] = min(breakdown["education"], 0.26)
+        else:
+            breakdown["education"] *= 0.70
+            breakdown["education"] = min(breakdown["education"], 0.35)
+
+    # Hard experience-gate: raw education cannot exceed these ceilings
+    if years_exp < 2.0:
+        breakdown["education"] = min(breakdown["education"], 0.15)
+    elif years_exp < 5.0:
+        breakdown["education"] = min(breakdown["education"], 0.30)
+
+    # 2. Dynamic Experience Range Target Calculation
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
+    center_point = (min_experience + max_experience) / 2.0
+    
+    # Smooth Centered Gaussian window decay multiplier calculated smoothly on center point
+    if min_experience > 0:
+        sigma = max(1.0, (max_experience - min_experience) / 2.0)
+        gaussian_decay = math.exp(-((years_exp - center_point) ** 2) / (2 * (sigma ** 2)))
+        breakdown["career_fit"] *= max(0.01, min(1.0, gaussian_decay))
+
+    # Apply experience gap penalty directly to career_fit sub-score
+    exp_gap = max(0.0, min_experience - years_exp)
+    if exp_gap > 0 and min_experience > 0:
+        exp_penalty = max(0.6, 1.0 - (exp_gap / min_experience) * 0.3)
+        breakdown["career_fit"] *= exp_penalty
+
+    # 3. Apply Penalties Contextually to Career Fit Sub-Score Before Formula Summation
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title:
+        career_history = candidate.get("career_history") or []
+        if career_history:
+            current_title = str(career_history[0].get("title") or "").lower()
+
+    target_title = jd.get("_cached_target_title", (jd.get("target_title") or "").lower())
+    target_tokens = jd.get("_cached_target_title_tokens")
+    is_match_target = False
+    if target_title and target_title != "any":
+        is_match_target = text_match(current_title, target_title, target_tokens=target_tokens) > 0.0
+
+    non_domain_tokens = [
+        "project manager", "business analyst", "operations manager", "civil", 
+        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+    ]
+    is_non_domain_title = any(token in current_title for token in non_domain_tokens)
+    if is_match_target:
+        is_non_domain_title = False
+
+    if is_non_domain_title:
+        breakdown["career_fit"] *= 0.05  # Blunt out-of-domain stuffing immediately
+
+    outside_experience_bounds = min_experience > 0 and (years_exp < min_experience or years_exp > max_experience)
+    if outside_experience_bounds:
+        breakdown["career_fit"] *= 0.10  # Enforce experience boundaries tightly
 
     # Notice period constraints / Availability decay multiplier
     notice_days = safe_float(signals.get("notice_period_days"), 180.0)
@@ -955,7 +1096,18 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     else:
         availability_mult = 0.30
 
-    final_score = (breakdown["skill_match"] * breakdown["career_fit"]) * breakdown["signal_modifier"] * availability_mult
+    # 4. Enforce the Mandated 35/25/15/15/10 Additive Score Composition
+    raw_final_score = (
+        (0.35 * breakdown["skill_match"]) +
+        (0.25 * breakdown["career_fit"]) +
+        (0.15 * breakdown["signal_modifier"]) +
+        (0.15 * breakdown["education"]) +
+        (0.10 * availability_mult)
+    )
+    final_score = raw_final_score
+
+    if blacklist_penalty:
+        final_score *= 0.10
 
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
         trap_penalty = score_jd_specific_traps(candidate)
@@ -966,29 +1118,6 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     if fraud_timeline:
         final_score = 0.0
-
-    # Gaussian experience bounds penalty
-    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
-    max_experience = safe_float(jd.get("max_experience_years"), min_experience + 4.0)
-    profile = candidate.get("profile") or {}
-    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
-    if min_experience > 0:
-        if years_exp < min_experience or years_exp > max_experience:
-            final_score *= 0.10
-
-    # Non-domain title penalty
-    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
-    if not current_title:
-        career_history = candidate.get("career_history") or []
-        if career_history:
-            current_title = str(career_history[0].get("title") or "").lower()
-
-    non_domain_tokens = [
-        "project manager", "business analyst", "operations manager", "civil", 
-        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
-    ]
-    if any(token in current_title for token in non_domain_tokens):
-        final_score *= 0.05
 
     return calibrate_score(final_score)
 

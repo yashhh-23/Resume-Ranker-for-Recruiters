@@ -30,71 +30,95 @@ PREFERRED_HEADERS = ["preferred", "nice to have", "bonus", "good to have", "desi
 
 import re
 
+KNOWN_SKILLS = [
+    'Accounting', 'Agile', 'Airflow', 'Angular', 'Apache Beam', 'Apache Flink', 'ASR', 'AWS', 'Azure', 'BentoML',
+    'BigQuery', 'BM25', 'CI/CD', 'CNN', 'Computer Vision', 'Content Matching', 'Content Writing', 'CSS',
+    'Data Pipelines', 'Data Science', 'Databricks', 'dbt', 'Deep Learning', 'Diffusion Models', 'Django',
+    'Docker', 'Document Processing', 'Elasticsearch', 'Embeddings', 'ETL', 'Excel', 'FAISS', 'FastAPI',
+    'Feature Engineering', 'Figma', 'Fine-Tuning LLMs', 'Flask', 'Forecasting', 'GANs', 'GCP', 'Go',
+    'GraphQL', 'gRPC', 'Hadoop', 'Haystack', 'HTML', 'Hugging Face Transformers', 'Illustrator',
+    'Image Classification', 'Indexing Algorithms', 'Information Retrieval', 'Information Retrieval Systems',
+    'Java', 'JavaScript', 'Kafka', 'Kubeflow', 'Kubernetes', 'LangChain', 'Learning to Rank', 'LlamaIndex',
+    'LLMs', 'LoRA', 'Machine Learning', 'Marketing', 'Microservices', 'Milvus', 'MLflow', 'MLops',
+    'Model Adaptation', 'MongoDB', 'Natural Language Processing', 'Next.js', 'NLP', 'Node.js', 'Object Detection',
+    'Open-Source ML Libraries', 'OpenCV', 'OpenSearch', 'PEFT', 'pgvector', 'Photoshop', 'Pinecone', 'PostgreSQL',
+    'PowerPoint', 'Project Management', 'Prompt Engineering', 'Python', 'PyTorch', 'Qdrant', 'QLoRA', 'RAG',
+    'Ranking Systems', 'React', 'Recommendation Systems', 'Redis', 'Redux', 'Reinforcement Learning', 'REST APIs',
+    'Rust', 'Sales', 'Salesforce CRM', 'SAP', 'Scikit-Learn', 'Scrum', 'Search & Discovery', 'Search Backend',
+    'Search Infrastructure', 'Semantic Search', 'Sentence Transformers', 'SEO', 'Six Sigma', 'Snowflake', 'Spark',
+    'Speech Recognition', 'Spring Boot', 'SQL', 'Statistical Modeling', 'Tailwind', 'Tally', 'TensorFlow', 'Terraform',
+    'Text Encoders', 'Time Series', 'TTS', 'TypeScript', 'Vector Representations', 'Vector Search', 'Vue.js', 'Weaviate',
+    'Webpack', 'Weights & Biases', 'Workflow Orchestration', 'YOLO'
+]
+
+KNOWN_SKILLS_LOWER = {s.lower(): s for s in KNOWN_SKILLS}
+
 def extract_dynamic_skills_from_jd(jd_text: str) -> list:
     """
-    Scans the job description text dynamically to discover skill tokens 
-    and specialized frameworks without using a hardcoded list.
+    A trap-proof tech recruiter brain. Slices the target section using 
+    flexible pattern boundaries first, then strips punctuation and filters stopwords.
     """
-    # Isolate Zone B (Qualifications) if Markdown headers exist, otherwise use full text
-    target_text = jd_text
-    if "key qualifications" in jd_text.lower():
-        parts = re.split(r'(?i)key qualifications:', jd_text)
-        if len(parts) > 1:
-            target_text = parts[1].split("##")[0] # Read up to the next Markdown section
+    if not jd_text:
+        return []
 
-    # Pattern A: Extract uppercase technical acronyms/frameworks inside or outside parentheses (e.g., LoRA, PEFT, NLP, AI)
-    acronyms = re.findall(r'\b([A-Z][A-Za-z0-9_\-\.#\+]+)\b', target_text)
+    # Step 1: Isolate the section FIRST using a flexible, colon-optional regex
+    target_zone = jd_text
+    if "key qualifications" in jd_text.lower():
+        # Handles 'Key Qualifications:', 'Key Qualifications -', or just 'Key Qualifications'
+        parts = re.split(r'(?i)key qualifications\s*(?::|-)?\s*', jd_text)
+        if len(parts) > 1:
+            # Capture qualifications and any adjacent preferred skills section
+            sub_parts = re.split(r'(####|###|##|\n\n\n)', parts[1])
+            collected = [sub_parts[0]]
+            for idx in range(1, len(sub_parts), 2):
+                header = sub_parts[idx].lower() + (sub_parts[idx+1].lower() if idx+1 < len(sub_parts) else "")
+                if any(x in header for x in ["preferred", "nice", "bonus", "good to", "desired"]):
+                    collected.append(sub_parts[idx])
+                    if idx+1 < len(sub_parts):
+                        collected.append(sub_parts[idx+1])
+                else:
+                    break
+            target_zone = "".join(collected)
+
+    # Step 2: Clean punctuation and strip markdown bolding from the isolated zone
+    clean_zone = target_zone.replace("**", "").replace("__", "").replace("`", "").replace(":", " ")
     
-    # Pattern B: Extract specific noun phrases following action/proficiency triggers
-    trigger_patterns = r'(?i)(?:experience with|proficiency in|depth in|knowledge of|using|infrastructure like|frameworks like)\s*(([a-zA-Z0-9\-\.\+#\s]+?)(?=\s*,|\s*\.|\s*and|\s*\n|\s*\())'
-    phrases = [match[0].strip() for match in re.findall(trigger_patterns, target_text)]
+    # Step 3: Split into standalone string words
+    raw_words = re.split(r'[\s,\/\(\)\-\&]+', clean_zone)
     
-    # Clean and filter out phrases that are too long to be standalone skills
-    valid_skills = [p for p in phrases if len(p.split()) <= 3 and len(p) > 1]
-    valid_skills.extend([t for t in acronyms if len(t) > 1])
-    
-    # Always append general fallback tokens if explicitly in text
-    for fallback in ["python", "machine learning", "nlp", "llm", "embeddings", "numpy", "pandas", "scikit-learn", "sql", "aws", "docker"]:
-        if fallback in jd_text.lower():
-            m = re.search(r'(?i)\b' + re.escape(fallback) + r'\b', target_text)
-            if m:
-                valid_skills.append(m.group(0))
-            else:
-                valid_skills.append(fallback)
-            
-    # Hard Stopword Blacklist for Metadata Structural Terms
-    METADATA_BLACKLIST = {
-        "company", "location", "employment", "type", "experience", 
-        "required", "target", "center", "point", "months", "years",
-        "open", "series", "hybrid", "flexible", "cadence", "relocation",
-        "candidates", "tier-1", "indian", "cities", "pune", "noida",
-        "title", "industry", "field", "salary", "min", "max", "role", "position"
+    # Step 4: Refined Recruitment & Filler Stopword Blacklist
+    NATURAL_LANGUAGE_STOPWORDS = {
+        "to", "time", "from", "with", "for", "and", "the", "this", "that", "your",
+        "our", "will", "have", "here", "upon", "into", "over", "under", "both",
+        "each", "every", "some", "more", "less", "high", "good", "strong", "best", "real",
+        "core", "join", "role", "team", "ideal", "points", "years", "months", "days", 
+        "company", "location", "employment", "type", "experience", "required", "target", 
+        "center", "point", "open", "series", "hybrid", "flexible", "cadence", "relocation", 
+        "candidates", "tier-1", "indian", "cities", "pune", "noida", "bengluru", "bangalore", 
+        "delhi", "mumbai", "overview", "full-time", "part-time", "series a", "series b", "series c",
+        "deep", "technical", "depth", "proficiency", "hands-on", "developing", "custom", 
+        "operators", "scripts", "via", "monitoring", "systems", "utilizing", "background", 
+        "building", "reliable", "automation", "workflows", "tracking", "working", 
+        "knowledge", "distributed", "databases", "cache", "frameworks", "highly", 
+        "preferred", "mindset", "scrappy", "product", "engineering", "attitude", 
+        "preference", "shipping-first", "pure", "academic", "infrastructure", "research"
     }
     
-    # Clean, normalize, and filter against the blacklist
-    cleaned_skills = []
-    for skill in valid_skills:
-        clean_item = skill.strip().lower()
-        if clean_item not in METADATA_BLACKLIST and len(clean_item) > 1:
-            cleaned_skills.append(skill.strip())
+    # Step 5: Gather technical acronyms and core vocabulary, mapping to KNOWN_SKILLS casing if matched
+    extracted_skills = []
+    for word in raw_words:
+        clean_word = word.strip().strip(".").strip("()").lower()
+        if clean_word not in NATURAL_LANGUAGE_STOPWORDS and len(clean_word) > 2:
+            canonical = KNOWN_SKILLS_LOWER.get(clean_word, clean_word)
+            extracted_skills.append(canonical)
             
-    # Remove purely numeric skills
-    cleaned_skills = [s for s in cleaned_skills if not s.strip().isdigit()]
-    
-    # Case-insensitive deduplication, preferring capitalized versions
-    deduped = {}
-    for skill in cleaned_skills:
-        key = skill.lower()
-        if key not in deduped or (skill[0].isupper() and not deduped[key][0].isupper()):
-            deduped[key] = skill
-            
-    return list(deduped.values())
+    return list(set(extracted_skills))
 
 TECH_SKILLS = []
 SOFT_SKILLS = []
 
 TITLE_PATTERNS = [
-    r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist))",
+    r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)\s*(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist|Designer|Consultant|Support|Accountant|Writer|Executive))",
     r"\b(AI Engineer|ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
     r"Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|"
     r"Product Manager|SDE-I|SDE-II|SDE-III|SDE I|SDE II|SDE III|"

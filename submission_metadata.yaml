@@ -1,8 +1,8 @@
 team_name: "Team Chanakya"
 
 primary_contact:
-  name: "Yash Dedhia"
-  email: "yashdedhia05@gmail.com"
+  name: "Sahil Suresh Rane"
+  email: "sahil.s.rane13012007@gmail.com"
   phone: "+91-7738548827"
 
 team_members:
@@ -32,23 +32,18 @@ compute:
   pre_computation_time_minutes: 0
 
 ai_tools_used:
-  - "Claude Sonnet 4.6"
-  - "Google Gemini"
-  - "Perplexity"
+  - "Claude"
+  - "Cursor"
+  - "Gemini"
 
 ai_usage_summary: |
   Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research. No candidate data was sent to external LLMs during scoring.
 
 methodology_summary: |
-  Deterministic 5-signal weighted ranker. JD is parsed into skills/title/industry/
-  seniority/experience using regex + keyword matching. Candidates are scored across:
-  Skill Match (35%), Career Fit (25%), Signal Modifier (15%), Education (15%),
-  Availability (10%). Zero LLM inference in the scoring loop.
-  Runtime ~2-5s for 1000 candidates on CPU.
+  Unified two-stage additive ranking architecture featuring perfect mathematical symmetry between pre-filtering and detailed evaluation passes. Features automated contextual NLP skill token extraction, Gaussian experience curve window alignment, strict title domain masking to neutralize keyword stuffing, and an ascending alphanumerical candidate ID tie-breaker.
 
 declarations:
   read_submission_spec: true
   code_is_original_work: true
   no_collusion: true
-  honeypot_check_done: true
   reproduction_tested: true

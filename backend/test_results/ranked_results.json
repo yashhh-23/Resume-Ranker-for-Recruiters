@@ -1,0 +1,2413 @@
+{
+  "execution_time_seconds": 104.67183409999961,
+  "candidates_processed": 100000,
+  "top_5": [
+    "CAND_0055951",
+    "CAND_0049305",
+    "CAND_0052682",
+    "CAND_0093645",
+    "CAND_0066248"
+  ],
+  "results": [
+    {
+      "candidate_id": "CAND_0055951",
+      "score": 1.0,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3592,
+        "career_fit": 0.5798,
+        "signal_modifier": 0.685,
+        "education": 0.7,
+        "availability": 1.0
+      },
+      "reasoning": "Analytics Engineer with 7.2 yrs; 2 required skill(s) matched: Python, MLflow; top signal availability; response rate 0.78",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 7.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.78",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 60,
+      "rank": 1
+    },
+    {
+      "candidate_id": "CAND_0049305",
+      "score": 0.9711,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.62,
+        "career_fit": 0.6217,
+        "signal_modifier": 0.5927,
+        "education": 0.3,
+        "availability": 0.7667
+      },
+      "reasoning": "Backend Engineer with 4.3 yrs; 6 required skill(s) matched: Docker, MLflow, CI, CD, PyTorch (+1 more); top signal availability; response rate 0.51",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "3 roles; 4.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.51",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 2
+    },
+    {
+      "candidate_id": "CAND_0052682",
+      "score": 0.9636,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4195,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.7768,
+        "education": 0.7,
+        "availability": 0.8667
+      },
+      "reasoning": "NLP Engineer with 6.6 yrs; 3 required skill(s) matched: Python, CI, PyTorch; top signal availability; response rate 0.88",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 6.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.88",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 85,
+      "rank": 3
+    },
+    {
+      "candidate_id": "CAND_0093645",
+      "score": 0.9201,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4206,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6493,
+        "education": 0.7,
+        "availability": 0.8667
+      },
+      "reasoning": "Full Stack Developer with 7.5 yrs; 3 required skill(s) matched: Docker, CI, AWS; top signal availability; response rate 0.80",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "4 roles; 7.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.80",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 76,
+      "rank": 4
+    },
+    {
+      "candidate_id": "CAND_0066248",
+      "score": 0.9099,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4929,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5086,
+        "education": 0.7,
+        "availability": 0.7
+      },
+      "reasoning": "Analytics Engineer with 6.4 yrs; 4 required skill(s) matched: CI, CD, Terraform, MLOps; top signal education; response rate 0.41",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.41",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 74,
+      "rank": 5
+    },
+    {
+      "candidate_id": "CAND_0031303",
+      "score": 0.9085,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.6259,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5791,
+        "education": 0.315,
+        "availability": 0.8333
+      },
+      "reasoning": "DevOps Engineer with 10.0 yrs; 6 required skill(s) matched: CI, CD, PyTorch, AWS, Terraform (+1 more); top signal availability; response rate 0.75",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "3 roles; 10.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.75",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 43,
+      "rank": 6
+    },
+    {
+      "candidate_id": "CAND_0058146",
+      "score": 0.9028,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3551,
+        "career_fit": 0.6401,
+        "signal_modifier": 0.7305,
+        "education": 0.42,
+        "availability": 0.6667
+      },
+      "reasoning": "AI Research Engineer with 5.1 yrs; 2 required skill(s) matched: MLflow, MLOps; top signal signal modifier; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 5.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 78,
+      "rank": 7
+    },
+    {
+      "candidate_id": "CAND_0003917",
+      "score": 0.8997,
+      "matched_count": 7,
+      "score_breakdown": {
+        "skill_match": 0.6729,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5772,
+        "education": 0.315,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Data Engineer with 7.3 yrs; 7 required skill(s) matched: Kubernetes, MLflow, CI, CD, AWS (+2 more); top signal availability; response rate 0.56",
+      "signal_reasoning": {
+        "skill_match": "7/11 required skills matched",
+        "career_fit": "3 roles; 7.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.56",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 74,
+      "rank": 8
+    },
+    {
+      "candidate_id": "CAND_0017577",
+      "score": 0.8963,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.525,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6163,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "NET Developer with 7.5 yrs; 5 required skill(s) matched: Kubernetes, Docker, CI, CD, Terraform; top signal availability; response rate 0.76",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 7.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.76",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 59,
+      "rank": 9
+    },
+    {
+      "candidate_id": "CAND_0041166",
+      "score": 0.8937,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5427,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5958,
+        "education": 0.525,
+        "availability": 0.8333
+      },
+      "reasoning": "Backend Engineer with 7.0 yrs; 5 required skill(s) matched: MLflow, CI, CD, MLOps, pipelines; top signal availability; response rate 0.62",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "3 roles; 7.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.62",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 10
+    },
+    {
+      "candidate_id": "CAND_0015397",
+      "score": 0.8893,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4858,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.4073,
+        "education": 0.7,
+        "availability": 0.7
+      },
+      "reasoning": "Full Stack Developer with 9.2 yrs; 4 required skill(s) matched: Kubernetes, MLflow, AWS, Terraform; top signal education; response rate 0.25",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 9.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.25",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 42,
+      "rank": 11
+    },
+    {
+      "candidate_id": "CAND_0011923",
+      "score": 0.8882,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.491,
+        "career_fit": 0.6141,
+        "signal_modifier": 0.5338,
+        "education": 0.3,
+        "availability": 0.6667
+      },
+      "reasoning": "AI Research Engineer with 4.0 yrs; 4 required skill(s) matched: MLflow, CI, Terraform, MLOps; top signal availability; response rate 0.27",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 4.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.27",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 92,
+      "rank": 12
+    },
+    {
+      "candidate_id": "CAND_0038375",
+      "score": 0.8775,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5636,
+        "career_fit": 0.345,
+        "signal_modifier": 0.6337,
+        "education": 0.315,
+        "availability": 0.8667
+      },
+      "reasoning": "DevOps Engineer with 7.8 yrs; 5 required skill(s) matched: Kubernetes, CI, CD, AWS, MLOps; top signal availability; response rate 0.82",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 7.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.82",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 88,
+      "rank": 13
+    },
+    {
+      "candidate_id": "CAND_0037433",
+      "score": 0.8747,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4867,
+        "career_fit": 0.6267,
+        "signal_modifier": 0.6574,
+        "education": 0.126,
+        "availability": 0.6667
+      },
+      "reasoning": "Software Engineer with 6.6 yrs; 4 required skill(s) matched: Python, CI, CD, pipelines; top signal availability; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 84,
+      "rank": 14
+    },
+    {
+      "candidate_id": "CAND_0072489",
+      "score": 0.8736,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4271,
+        "career_fit": 0.5136,
+        "signal_modifier": 0.6738,
+        "education": 0.3,
+        "availability": 0.8333
+      },
+      "reasoning": "Computer Vision Engineer with 4.4 yrs; 3 required skill(s) matched: MLflow, PyTorch, MLOps; top signal availability; response rate 0.66",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 4.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.66",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 83,
+      "rank": 15
+    },
+    {
+      "candidate_id": "CAND_0016894",
+      "score": 0.8734,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.6121,
+        "career_fit": 0.363,
+        "signal_modifier": 0.6264,
+        "education": 0.3,
+        "availability": 0.8333
+      },
+      "reasoning": "Software Engineer with 4.5 yrs; 6 required skill(s) matched: Python, Kubernetes, CI, Terraform, MLOps (+1 more); top signal availability; response rate 0.64",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "1 roles; 4.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.64",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 79,
+      "rank": 16
+    },
+    {
+      "candidate_id": "CAND_0049538",
+      "score": 0.8727,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3219,
+        "career_fit": 0.5736,
+        "signal_modifier": 0.6971,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "Applied ML Engineer with 5.8 yrs; 2 required skill(s) matched: MLflow, PyTorch; top signal availability; response rate 0.72",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 5.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.72",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 53,
+      "rank": 17
+    },
+    {
+      "candidate_id": "CAND_0033179",
+      "score": 0.8722,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5563,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6824,
+        "education": 0.21,
+        "availability": 1.0
+      },
+      "reasoning": "AI Research Engineer with 6.9 yrs; 5 required skill(s) matched: Docker, MLflow, CI, PyTorch, MLOps; top signal availability; response rate 0.84",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 6.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.84",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 92,
+      "rank": 18
+    },
+    {
+      "candidate_id": "CAND_0045846",
+      "score": 0.8703,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4879,
+        "career_fit": 0.652,
+        "signal_modifier": 0.5086,
+        "education": 0.35,
+        "availability": 0.6333
+      },
+      "reasoning": "Software Engineer with 5.2 yrs; 4 required skill(s) matched: Docker, CI, CD, AWS; top signal career fit; response rate 0.42",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.42",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 71,
+      "rank": 19
+    },
+    {
+      "candidate_id": "CAND_0058517",
+      "score": 0.8696,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.487,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5374,
+        "education": 0.7,
+        "availability": 0.8333
+      },
+      "reasoning": "Computer Vision Engineer with 5.1 yrs; 4 required skill(s) matched: MLflow, CI, Terraform, MLOps; top signal availability; response rate 0.36",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.36",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 20
+    },
+    {
+      "candidate_id": "CAND_0043676",
+      "score": 0.8692,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3224,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.7287,
+        "education": 0.7,
+        "availability": 1.0
+      },
+      "reasoning": "Senior Software Engineer (ML) with 6.1 yrs; 2 required skill(s) matched: MLflow, CI; top signal availability; response rate 0.65",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 6.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.65",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 76,
+      "rank": 21
+    },
+    {
+      "candidate_id": "CAND_0033670",
+      "score": 0.8678,
+      "matched_count": 7,
+      "score_breakdown": {
+        "skill_match": 0.6745,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5073,
+        "education": 0.42,
+        "availability": 0.9333
+      },
+      "reasoning": "Cloud Engineer with 9.7 yrs; 7 required skill(s) matched: MLflow, CI, CD, AWS, Terraform (+2 more); top signal availability; response rate 0.36",
+      "signal_reasoning": {
+        "skill_match": "7/11 required skills matched",
+        "career_fit": "5 roles; 9.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.36",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 22
+    },
+    {
+      "candidate_id": "CAND_0070979",
+      "score": 0.8662,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4843,
+        "career_fit": 0.596,
+        "signal_modifier": 0.555,
+        "education": 0.126,
+        "availability": 0.8667
+      },
+      "reasoning": "Backend Engineer with 4.2 yrs; 4 required skill(s) matched: Kubernetes, MLflow, PyTorch, MLOps; top signal availability; response rate 0.60",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 4.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.60",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 52,
+      "rank": 23
+    },
+    {
+      "candidate_id": "CAND_0050454",
+      "score": 0.8648,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3549,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6397,
+        "education": 0.7,
+        "availability": 1.0
+      },
+      "reasoning": "AI Engineer with 6.8 yrs; 2 required skill(s) matched: CI, PyTorch; top signal availability; response rate 0.77",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 6.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.77",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 78,
+      "rank": 24
+    },
+    {
+      "candidate_id": "CAND_0018704",
+      "score": 0.8632,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4438,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5611,
+        "education": 0.7,
+        "availability": 0.8333
+      },
+      "reasoning": "Full Stack Developer with 8.9 yrs; 4 required skill(s) matched: CI, CD, AWS, pipelines; top signal availability; response rate 0.52",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "5 roles; 8.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.52",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 40,
+      "rank": 25
+    },
+    {
+      "candidate_id": "CAND_0079235",
+      "score": 0.862,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4223,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5318,
+        "education": 0.7,
+        "availability": 0.7
+      },
+      "reasoning": "Cloud Engineer with 8.6 yrs; 3 required skill(s) matched: MLflow, CI, CD; top signal education; response rate 0.55",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "5 roles; 8.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.55",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 74,
+      "rank": 26
+    },
+    {
+      "candidate_id": "CAND_0037327",
+      "score": 0.859,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.592,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.588,
+        "education": 0.315,
+        "availability": 0.6667
+      },
+      "reasoning": "Java Developer with 6.8 yrs; 6 required skill(s) matched: Python, Kubernetes, MLflow, CI, CD (+1 more); top signal availability; response rate 0.71",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "3 roles; 6.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.71",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 43,
+      "rank": 27
+    },
+    {
+      "candidate_id": "CAND_0089498",
+      "score": 0.8555,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4252,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5817,
+        "education": 0.7,
+        "availability": 0.6667
+      },
+      "reasoning": "AI Specialist with 5.8 yrs; 3 required skill(s) matched: Python, CI, PyTorch; top signal education; response rate 0.40",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 5.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.40",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 73,
+      "rank": 28
+    },
+    {
+      "candidate_id": "CAND_0091254",
+      "score": 0.8548,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.496,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5893,
+        "education": 0.525,
+        "availability": 0.8333
+      },
+      "reasoning": "AI Research Engineer with 5.2 yrs; 4 required skill(s) matched: Python, CI, PyTorch, MLOps; top signal availability; response rate 0.53",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.53",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 67,
+      "rank": 29
+    },
+    {
+      "candidate_id": "CAND_0020708",
+      "score": 0.8546,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3262,
+        "career_fit": 0.5618,
+        "signal_modifier": 0.7724,
+        "education": 0.3,
+        "availability": 0.8667
+      },
+      "reasoning": "Search Engineer with 4.2 yrs; 2 required skill(s) matched: Python, CI; top signal availability; response rate 0.84",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "1 roles; 4.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.84",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 89,
+      "rank": 30
+    },
+    {
+      "candidate_id": "CAND_0069617",
+      "score": 0.8537,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5374,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.4607,
+        "education": 0.42,
+        "availability": 0.8667
+      },
+      "reasoning": "NET Developer with 6.8 yrs; 5 required skill(s) matched: Kubernetes, Docker, CI, AWS, MLOps; top signal availability; response rate 0.26",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "3 roles; 6.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.26",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 84,
+      "rank": 31
+    },
+    {
+      "candidate_id": "CAND_0074731",
+      "score": 0.8518,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4844,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.607,
+        "education": 0.525,
+        "availability": 0.9667
+      },
+      "reasoning": "Data Scientist with 6.6 yrs; 4 required skill(s) matched: Python, MLflow, PyTorch, MLOps; top signal availability; response rate 0.58",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 6.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.58",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 63,
+      "rank": 32
+    },
+    {
+      "candidate_id": "CAND_0056845",
+      "score": 0.8514,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4901,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5646,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "Backend Engineer with 5.4 yrs; 4 required skill(s) matched: Kubernetes, MLflow, PyTorch, MLOps; top signal availability; response rate 0.56",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 5.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.56",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 56,
+      "rank": 33
+    },
+    {
+      "candidate_id": "CAND_0011687",
+      "score": 0.849,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.2876,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.7496,
+        "education": 0.7,
+        "availability": 0.8667
+      },
+      "reasoning": "Senior NLP Engineer with 7.8 yrs; 2 required skill(s) matched: PyTorch, MLOps; top signal availability; response rate 0.89",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "2 roles; 7.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.89",
+        "education": "Best education evaluated",
+        "availability": "Notice: 15.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 65,
+      "rank": 34
+    },
+    {
+      "candidate_id": "CAND_0046132",
+      "score": 0.8488,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.497,
+        "career_fit": 0.3564,
+        "signal_modifier": 0.699,
+        "education": 0.3,
+        "availability": 0.8667
+      },
+      "reasoning": "AI Research Engineer with 4.3 yrs; 4 required skill(s) matched: MLflow, CI, PyTorch, MLOps; top signal availability; response rate 0.94",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 4.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.94",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 95,
+      "rank": 35
+    },
+    {
+      "candidate_id": "CAND_0088972",
+      "score": 0.8481,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.492,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5368,
+        "education": 0.7,
+        "availability": 0.9333
+      },
+      "reasoning": "Software Engineer with 5.6 yrs; 4 required skill(s) matched: Kubernetes, MLflow, CI, pipelines; top signal availability; response rate 0.28",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.28",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 81,
+      "rank": 36
+    },
+    {
+      "candidate_id": "CAND_0046231",
+      "score": 0.8463,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3556,
+        "career_fit": 0.597,
+        "signal_modifier": 0.6337,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "Backend Engineer with 7.4 yrs; 2 required skill(s) matched: Terraform, MLOps; top signal availability; response rate 0.76",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 7.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.76",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 72,
+      "rank": 37
+    },
+    {
+      "candidate_id": "CAND_0098921",
+      "score": 0.8407,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.557,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5668,
+        "education": 0.42,
+        "availability": 0.6667
+      },
+      "reasoning": "DevOps Engineer with 6.2 yrs; 5 required skill(s) matched: Python, Docker, CI, CD, Terraform; top signal availability; response rate 0.70",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "4 roles; 6.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.70",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 56,
+      "rank": 38
+    },
+    {
+      "candidate_id": "CAND_0046425",
+      "score": 0.837,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5478,
+        "career_fit": 0.3531,
+        "signal_modifier": 0.5502,
+        "education": 0.3,
+        "availability": 0.8667
+      },
+      "reasoning": "Senior Software Engineer with 4.2 yrs; 5 required skill(s) matched: Docker, CI, CD, Terraform, MLOps; top signal availability; response rate 0.59",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 4.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.59",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 47,
+      "rank": 39
+    },
+    {
+      "candidate_id": "CAND_0002793",
+      "score": 0.8363,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4045,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.7183,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "AI Specialist with 5.5 yrs; 3 required skill(s) matched: Kubernetes, MLflow, MLOps; top signal signal modifier; response rate 0.77",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 5.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.77",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 47,
+      "rank": 40
+    },
+    {
+      "candidate_id": "CAND_0027284",
+      "score": 0.8356,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3683,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5211,
+        "education": 0.7,
+        "availability": 0.7
+      },
+      "reasoning": "Software Engineer with 6.0 yrs; 2 required skill(s) matched: CI, CD; top signal education; response rate 0.39",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "2 roles; 6.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.39",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 87,
+      "rank": 41
+    },
+    {
+      "candidate_id": "CAND_0076453",
+      "score": 0.8338,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5288,
+        "career_fit": 0.3201,
+        "signal_modifier": 0.6402,
+        "education": 0.3,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Software Engineer with 3.2 yrs; 5 required skill(s) matched: Kubernetes, CI, Terraform, MLOps, pipelines; top signal availability; response rate 0.73",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 3.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.73",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 73,
+      "rank": 42
+    },
+    {
+      "candidate_id": "CAND_0016268",
+      "score": 0.8331,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.531,
+        "career_fit": 0.303,
+        "signal_modifier": 0.6611,
+        "education": 0.3,
+        "availability": 0.8333
+      },
+      "reasoning": "Computer Vision Engineer with 3.6 yrs; 5 required skill(s) matched: MLflow, CI, CD, PyTorch, pipelines; top signal availability; response rate 0.74",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 3.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.74",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 63,
+      "rank": 43
+    },
+    {
+      "candidate_id": "CAND_0092208",
+      "score": 0.8331,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.494,
+        "career_fit": 0.6065,
+        "signal_modifier": 0.4581,
+        "education": 0.35,
+        "availability": 0.6333
+      },
+      "reasoning": "Senior Data Engineer with 6.1 yrs; 4 required skill(s) matched: Python, Kubernetes, CI, CD; top signal availability; response rate 0.27",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.27",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 56,
+      "rank": 44
+    },
+    {
+      "candidate_id": "CAND_0089889",
+      "score": 0.8326,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.6136,
+        "career_fit": 0.3564,
+        "signal_modifier": 0.6451,
+        "education": 0.3,
+        "availability": 0.8
+      },
+      "reasoning": "Data Scientist with 4.3 yrs; 6 required skill(s) matched: Python, Kubernetes, MLflow, CI, PyTorch (+1 more); top signal availability; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "1 roles; 4.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 53,
+      "rank": 45
+    },
+    {
+      "candidate_id": "CAND_0058324",
+      "score": 0.8324,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4386,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5796,
+        "education": 0.525,
+        "availability": 0.8667
+      },
+      "reasoning": "Cloud Engineer with 9.4 yrs; 3 required skill(s) matched: CI, CD, pipelines; top signal availability; response rate 0.63",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "4 roles; 9.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.63",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 57,
+      "rank": 46
+    },
+    {
+      "candidate_id": "CAND_0033649",
+      "score": 0.8321,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4914,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6368,
+        "education": 0.42,
+        "availability": 0.9667
+      },
+      "reasoning": "Data Scientist with 5.3 yrs; 4 required skill(s) matched: Kubernetes, MLflow, PyTorch, MLOps; top signal availability; response rate 0.77",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 5.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.77",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 69,
+      "rank": 47
+    },
+    {
+      "candidate_id": "CAND_0024928",
+      "score": 0.8301,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4874,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5918,
+        "education": 0.525,
+        "availability": 0.8333
+      },
+      "reasoning": "DevOps Engineer with 5.6 yrs; 4 required skill(s) matched: Python, Kubernetes, Docker, Terraform; top signal availability; response rate 0.75",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "4 roles; 5.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.75",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 68,
+      "rank": 48
+    },
+    {
+      "candidate_id": "CAND_0073314",
+      "score": 0.8298,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4052,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.7258,
+        "education": 0.525,
+        "availability": 0.9667
+      },
+      "reasoning": "Senior Software Engineer (ML) with 5.2 yrs; 3 required skill(s) matched: MLflow, PyTorch, MLOps; top signal availability; response rate 0.84",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 5.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.84",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 94,
+      "rank": 49
+    },
+    {
+      "candidate_id": "CAND_0015493",
+      "score": 0.8289,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4929,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5596,
+        "education": 0.35,
+        "availability": 0.8667
+      },
+      "reasoning": "Data Scientist with 6.4 yrs; 4 required skill(s) matched: CI, PyTorch, AWS, MLOps; top signal availability; response rate 0.30",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.30",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 90,
+      "rank": 50
+    },
+    {
+      "candidate_id": "CAND_0076021",
+      "score": 0.8282,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.411,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5735,
+        "education": 0.525,
+        "availability": 0.7
+      },
+      "reasoning": "Mobile Developer with 5.1 yrs; 3 required skill(s) matched: CI, CD, AWS; top signal availability; response rate 0.51",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 5.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.51",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 72,
+      "rank": 51
+    },
+    {
+      "candidate_id": "CAND_0027657",
+      "score": 0.827,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3249,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5962,
+        "education": 0.7,
+        "availability": 0.7
+      },
+      "reasoning": "Mobile Developer with 8.6 yrs; 2 required skill(s) matched: Docker, pipelines; top signal education; response rate 0.73",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "4 roles; 8.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.73",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 61,
+      "rank": 52
+    },
+    {
+      "candidate_id": "CAND_0008486",
+      "score": 0.8254,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5524,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5439,
+        "education": 0.35,
+        "availability": 0.8333
+      },
+      "reasoning": "Software Engineer with 7.9 yrs; 5 required skill(s) matched: MLflow, CI, CD, Terraform, pipelines; top signal availability; response rate 0.59",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "3 roles; 7.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.59",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 51,
+      "rank": 53
+    },
+    {
+      "candidate_id": "CAND_0049635",
+      "score": 0.8252,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5562,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5408,
+        "education": 0.21,
+        "availability": 0.8667
+      },
+      "reasoning": "Mobile Developer with 7.5 yrs; 5 required skill(s) matched: Docker, MLflow, CI, CD, pipelines; top signal availability; response rate 0.67",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 7.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.67",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 38,
+      "rank": 54
+    },
+    {
+      "candidate_id": "CAND_0018182",
+      "score": 0.8245,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4088,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6726,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "NET Developer with 5.2 yrs; 3 required skill(s) matched: MLflow, AWS, Terraform; top signal availability; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 5.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 87,
+      "rank": 55
+    },
+    {
+      "candidate_id": "CAND_0094482",
+      "score": 0.8243,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.3913,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6995,
+        "education": 0.7,
+        "availability": 0.9333
+      },
+      "reasoning": "Junior ML Engineer with 6.4 yrs; 3 required skill(s) matched: CI, PyTorch, MLOps; top signal availability; response rate 0.85",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 6.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.85",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 98,
+      "rank": 56
+    },
+    {
+      "candidate_id": "CAND_0007574",
+      "score": 0.821,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5314,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5386,
+        "education": 0.315,
+        "availability": 0.8667
+      },
+      "reasoning": "QA Engineer with 8.8 yrs; 5 required skill(s) matched: Docker, MLflow, CI, CD, pipelines; top signal availability; response rate 0.53",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "5 roles; 8.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.53",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 84,
+      "rank": 57
+    },
+    {
+      "candidate_id": "CAND_0017178",
+      "score": 0.8173,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4878,
+        "career_fit": 0.3531,
+        "signal_modifier": 0.6305,
+        "education": 0.3,
+        "availability": 0.7
+      },
+      "reasoning": "ML Engineer with 4.2 yrs; 4 required skill(s) matched: CI, CD, MLOps, pipelines; top signal availability; response rate 0.85",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 4.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.85",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 52,
+      "rank": 58
+    },
+    {
+      "candidate_id": "CAND_0015987",
+      "score": 0.8169,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4887,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5072,
+        "education": 0.7,
+        "availability": 0.8
+      },
+      "reasoning": "Data Engineer with 6.9 yrs; 4 required skill(s) matched: Python, Kubernetes, MLflow, MLOps; top signal availability; response rate 0.30",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.30",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 58,
+      "rank": 59
+    },
+    {
+      "candidate_id": "CAND_0061550",
+      "score": 0.8152,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3542,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6248,
+        "education": 0.7,
+        "availability": 0.8333
+      },
+      "reasoning": "ML Engineer with 5.3 yrs; 2 required skill(s) matched: CI, PyTorch; top signal availability; response rate 0.60",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 5.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.60",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 76,
+      "rank": 60
+    },
+    {
+      "candidate_id": "CAND_0030031",
+      "score": 0.815,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.3945,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6769,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "AI Engineer with 5.7 yrs; 3 required skill(s) matched: Python, CI, PyTorch; top signal availability; response rate 0.94",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 5.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.94",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 81,
+      "rank": 61
+    },
+    {
+      "candidate_id": "CAND_0079976",
+      "score": 0.8141,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3385,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5823,
+        "education": 0.7,
+        "availability": 0.8667
+      },
+      "reasoning": "QA Engineer with 9.4 yrs; 2 required skill(s) matched: Terraform, pipelines; top signal availability; response rate 0.64",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 9.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.64",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 81,
+      "rank": 62
+    },
+    {
+      "candidate_id": "CAND_0008239",
+      "score": 0.8138,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4893,
+        "career_fit": 0.3465,
+        "signal_modifier": 0.6276,
+        "education": 0.3,
+        "availability": 1.0
+      },
+      "reasoning": "AI Engineer with 4.0 yrs; 4 required skill(s) matched: Python, MLflow, CI, PyTorch; top signal availability; response rate 0.73",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "1 roles; 4.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.73",
+        "education": "Best education evaluated",
+        "availability": "Notice: 15.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 96,
+      "rank": 63
+    },
+    {
+      "candidate_id": "CAND_0050876",
+      "score": 0.8138,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.478,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.745,
+        "education": 0.42,
+        "availability": 0.8
+      },
+      "reasoning": "Applied ML Engineer with 6.0 yrs; 4 required skill(s) matched: Python, CI, PyTorch, MLOps; top signal availability; response rate 0.67",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.67",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 82,
+      "rank": 64
+    },
+    {
+      "candidate_id": "CAND_0031033",
+      "score": 0.8132,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4891,
+        "career_fit": 0.345,
+        "signal_modifier": 0.4948,
+        "education": 0.7,
+        "availability": 0.8
+      },
+      "reasoning": "Senior Data Engineer with 6.0 yrs; 4 required skill(s) matched: Python, MLflow, MLOps, pipelines; top signal availability; response rate 0.27",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.27",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 48,
+      "rank": 65
+    },
+    {
+      "candidate_id": "CAND_0033713",
+      "score": 0.8125,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4983,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.63,
+        "education": 0.35,
+        "availability": 0.8333
+      },
+      "reasoning": "Software Engineer with 6.9 yrs; 4 required skill(s) matched: Python, MLflow, CI, MLOps; top signal availability; response rate 0.69",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 6.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.69",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 65,
+      "rank": 66
+    },
+    {
+      "candidate_id": "CAND_0025187",
+      "score": 0.8111,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5509,
+        "career_fit": 0.312,
+        "signal_modifier": 0.5325,
+        "education": 0.3,
+        "availability": 0.7
+      },
+      "reasoning": "Data Engineer with 3.9 yrs; 5 required skill(s) matched: MLflow, CI, CD, AWS, MLOps; top signal availability; response rate 0.39",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 3.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.39",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 45,
+      "rank": 67
+    },
+    {
+      "candidate_id": "CAND_0018442",
+      "score": 0.8106,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4265,
+        "career_fit": 0.5457,
+        "signal_modifier": 0.6554,
+        "education": 0.21,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Data Engineer with 4.2 yrs; 3 required skill(s) matched: CI, PyTorch, AWS; top signal availability; response rate 0.80",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 4.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.80",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 90,
+      "rank": 68
+    },
+    {
+      "candidate_id": "CAND_0021565",
+      "score": 0.8104,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4723,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5098,
+        "education": 0.525,
+        "availability": 0.6667
+      },
+      "reasoning": "Full Stack Developer with 9.6 yrs; 4 required skill(s) matched: Docker, CI, CD, AWS; top signal availability; response rate 0.42",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 9.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.42",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 50,
+      "rank": 69
+    },
+    {
+      "candidate_id": "CAND_0070653",
+      "score": 0.8101,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4882,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5489,
+        "education": 0.315,
+        "availability": 0.7
+      },
+      "reasoning": "AI Specialist with 5.0 yrs; 4 required skill(s) matched: Python, CI, PyTorch, MLOps; top signal availability; response rate 0.36",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.36",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 70,
+      "rank": 70
+    },
+    {
+      "candidate_id": "CAND_0021152",
+      "score": 0.8094,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4338,
+        "career_fit": 0.597,
+        "signal_modifier": 0.5491,
+        "education": 0.21,
+        "availability": 0.8
+      },
+      "reasoning": "Backend Engineer with 6.3 yrs; 3 required skill(s) matched: Python, MLflow, AWS; top signal availability; response rate 0.68",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 6.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.68",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 76,
+      "rank": 71
+    },
+    {
+      "candidate_id": "CAND_0050944",
+      "score": 0.809,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.3614,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6306,
+        "education": 0.525,
+        "availability": 0.8667
+      },
+      "reasoning": "Java Developer with 9.3 yrs; 3 required skill(s) matched: MLflow, CI, CD; top signal availability; response rate 0.83",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "4 roles; 9.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.83",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 72
+    },
+    {
+      "candidate_id": "CAND_0059684",
+      "score": 0.8083,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4901,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.4618,
+        "education": 0.525,
+        "availability": 0.6667
+      },
+      "reasoning": "Backend Engineer with 6.8 yrs; 4 required skill(s) matched: Kubernetes, MLflow, CI, CD; top signal availability; response rate 0.19",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 6.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.19",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 54,
+      "rank": 73
+    },
+    {
+      "candidate_id": "CAND_0073224",
+      "score": 0.8083,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3605,
+        "career_fit": 0.5557,
+        "signal_modifier": 0.5621,
+        "education": 0.3,
+        "availability": 0.7
+      },
+      "reasoning": "Data Engineer with 4.4 yrs; 2 required skill(s) matched: Python, MLOps; top signal availability; response rate 0.56",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "4 roles; 4.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.56",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 49,
+      "rank": 74
+    },
+    {
+      "candidate_id": "CAND_0096104",
+      "score": 0.8076,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.3839,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5738,
+        "education": 0.525,
+        "availability": 0.8667
+      },
+      "reasoning": "AI Specialist with 7.0 yrs; 3 required skill(s) matched: CI, CD, MLOps; top signal availability; response rate 0.33",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 7.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.33",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 74,
+      "rank": 75
+    },
+    {
+      "candidate_id": "CAND_0004555",
+      "score": 0.8074,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.3919,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6463,
+        "education": 0.7,
+        "availability": 0.8
+      },
+      "reasoning": "Senior Software Engineer (ML) with 5.0 yrs; 3 required skill(s) matched: Docker, CI, PyTorch; top signal availability; response rate 0.71",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 5.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.71",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 70,
+      "rank": 76
+    },
+    {
+      "candidate_id": "CAND_0074832",
+      "score": 0.8071,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.426,
+        "career_fit": 0.345,
+        "signal_modifier": 0.6368,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "DevOps Engineer with 6.4 yrs; 3 required skill(s) matched: AWS, Terraform, MLOps; top signal availability; response rate 0.66",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 6.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.66",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 76,
+      "rank": 77
+    },
+    {
+      "candidate_id": "CAND_0081846",
+      "score": 0.8064,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.2785,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6412,
+        "education": 0.7,
+        "availability": 1.0
+      },
+      "reasoning": "Lead AI Engineer with 6.7 yrs; 3 required skill(s) matched: Python, CI, PyTorch; top signal availability; response rate 0.73",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 6.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.73",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 96,
+      "rank": 78
+    },
+    {
+      "candidate_id": "CAND_0076643",
+      "score": 0.8062,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5632,
+        "career_fit": 0.345,
+        "signal_modifier": 0.6076,
+        "education": 0.126,
+        "availability": 0.7
+      },
+      "reasoning": "DevOps Engineer with 8.8 yrs; 5 required skill(s) matched: Docker, CI, CD, PyTorch, Terraform; top signal availability; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "3 roles; 8.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 80,
+      "rank": 79
+    },
+    {
+      "candidate_id": "CAND_0008066",
+      "score": 0.8057,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4271,
+        "career_fit": 0.5619,
+        "signal_modifier": 0.6117,
+        "education": 0.21,
+        "availability": 0.6667
+      },
+      "reasoning": "Software Engineer with 4.1 yrs; 3 required skill(s) matched: MLflow, CI, CD; top signal availability; response rate 0.82",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 4.1y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.82",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 82,
+      "rank": 80
+    },
+    {
+      "candidate_id": "CAND_0081030",
+      "score": 0.8057,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4134,
+        "career_fit": 0.5708,
+        "signal_modifier": 0.5387,
+        "education": 0.3,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Software Engineer with 2.0 yrs; 3 required skill(s) matched: Docker, CI, PyTorch; top signal availability; response rate 0.56",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 2.0y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.56",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 90,
+      "rank": 81
+    },
+    {
+      "candidate_id": "CAND_0017722",
+      "score": 0.8053,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4243,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6058,
+        "education": 0.525,
+        "availability": 0.6667
+      },
+      "reasoning": "Data Scientist with 5.7 yrs; 3 required skill(s) matched: MLflow, CI, PyTorch; top signal availability; response rate 0.60",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 5.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.60",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 59,
+      "rank": 82
+    },
+    {
+      "candidate_id": "CAND_0082322",
+      "score": 0.8048,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4923,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.4178,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "Full Stack Developer with 6.9 yrs; 4 required skill(s) matched: CI, CD, AWS, MLOps; top signal availability; response rate 0.33",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 6.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.33",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 38,
+      "rank": 83
+    },
+    {
+      "candidate_id": "CAND_0026431",
+      "score": 0.8046,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5502,
+        "career_fit": 0.282,
+        "signal_modifier": 0.5702,
+        "education": 0.294,
+        "availability": 0.8333
+      },
+      "reasoning": "Cloud Engineer with 2.9 yrs; 5 required skill(s) matched: CI, CD, Terraform, MLOps, pipelines; top signal availability; response rate 0.71",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 2.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.71",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 87,
+      "rank": 84
+    },
+    {
+      "candidate_id": "CAND_0070514",
+      "score": 0.8046,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4224,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.713,
+        "education": 0.42,
+        "availability": 0.9667
+      },
+      "reasoning": "AI Specialist with 5.5 yrs; 3 required skill(s) matched: Python, MLflow, MLOps; top signal availability; response rate 0.80",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 5.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.80",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 79,
+      "rank": 85
+    },
+    {
+      "candidate_id": "CAND_0048556",
+      "score": 0.8044,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5404,
+        "career_fit": 0.3432,
+        "signal_modifier": 0.5742,
+        "education": 0.21,
+        "availability": 1.0
+      },
+      "reasoning": "Software Engineer with 3.9 yrs; 5 required skill(s) matched: Python, CI, CD, AWS, MLOps; top signal availability; response rate 0.68",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "2 roles; 3.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.68",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 86,
+      "rank": 86
+    },
+    {
+      "candidate_id": "CAND_0064629",
+      "score": 0.803,
+      "matched_count": 6,
+      "score_breakdown": {
+        "skill_match": 0.6133,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5306,
+        "education": 0.21,
+        "availability": 0.8
+      },
+      "reasoning": "Data Analyst with 6.9 yrs; 6 required skill(s) matched: Docker, MLflow, CI, PyTorch, Terraform (+1 more); top signal availability; response rate 0.50",
+      "signal_reasoning": {
+        "skill_match": "6/11 required skills matched",
+        "career_fit": "3 roles; 6.9y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.50",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 88,
+      "rank": 87
+    },
+    {
+      "candidate_id": "CAND_0041913",
+      "score": 0.8018,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4857,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6339,
+        "education": 0.21,
+        "availability": 1.0
+      },
+      "reasoning": "Software Engineer with 7.8 yrs; 4 required skill(s) matched: CI, AWS, MLOps, pipelines; top signal availability; response rate 0.79",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 7.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.79",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 79,
+      "rank": 88
+    },
+    {
+      "candidate_id": "CAND_0056194",
+      "score": 0.8018,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.36,
+        "career_fit": 0.5805,
+        "signal_modifier": 0.6352,
+        "education": 0.3,
+        "availability": 0.9667
+      },
+      "reasoning": "Senior Software Engineer with 4.5 yrs; 2 required skill(s) matched: Python, CI; top signal availability; response rate 0.71",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "2 roles; 4.5y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.71",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 40,
+      "rank": 89
+    },
+    {
+      "candidate_id": "CAND_0054703",
+      "score": 0.8011,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4948,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5913,
+        "education": 0.42,
+        "availability": 0.9667
+      },
+      "reasoning": "Computer Vision Engineer with 6.8 yrs; 4 required skill(s) matched: Python, MLflow, MLOps, pipelines; top signal availability; response rate 0.41",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "4 roles; 6.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.41",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 88,
+      "rank": 90
+    },
+    {
+      "candidate_id": "CAND_0031515",
+      "score": 0.8004,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4956,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6061,
+        "education": 0.21,
+        "availability": 0.8333
+      },
+      "reasoning": "Software Engineer with 8.4 yrs; 4 required skill(s) matched: MLflow, CI, Terraform, MLOps; top signal availability; response rate 0.64",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "4 roles; 8.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.64",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 83,
+      "rank": 91
+    },
+    {
+      "candidate_id": "CAND_0003791",
+      "score": 0.8002,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4307,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.6803,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "ML Engineer with 6.6 yrs; 3 required skill(s) matched: Python, PyTorch, MLOps; top signal availability; response rate 0.66",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 6.6y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.66",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 94,
+      "rank": 92
+    },
+    {
+      "candidate_id": "CAND_0049703",
+      "score": 0.7995,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4289,
+        "career_fit": 0.345,
+        "signal_modifier": 0.6065,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Data Engineer with 6.7 yrs; 3 required skill(s) matched: CI, CD, pipelines; top signal availability; response rate 0.77",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 6.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.77",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 53,
+      "rank": 93
+    },
+    {
+      "candidate_id": "CAND_0095023",
+      "score": 0.799,
+      "matched_count": 5,
+      "score_breakdown": {
+        "skill_match": 0.5558,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5952,
+        "education": 0.21,
+        "availability": 0.8333
+      },
+      "reasoning": "Software Engineer with 7.8 yrs; 5 required skill(s) matched: Kubernetes, Docker, CI, CD, MLOps; top signal availability; response rate 0.63",
+      "signal_reasoning": {
+        "skill_match": "5/11 required skills matched",
+        "career_fit": "3 roles; 7.8y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.63",
+        "education": "Best education evaluated",
+        "availability": "Notice: 60.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 86,
+      "rank": 94
+    },
+    {
+      "candidate_id": "CAND_0095528",
+      "score": 0.799,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4664,
+        "career_fit": 0.3795,
+        "signal_modifier": 0.5936,
+        "education": 0.42,
+        "availability": 0.8333
+      },
+      "reasoning": "Senior Data Scientist with 5.3 yrs; 4 required skill(s) matched: Python, CI, PyTorch, MLOps; top signal availability; response rate 0.55",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "2 roles; 5.3y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.55",
+        "education": "Best education evaluated",
+        "availability": "Notice: 45.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 78,
+      "rank": 95
+    },
+    {
+      "candidate_id": "CAND_0051886",
+      "score": 0.7983,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4299,
+        "career_fit": 0.345,
+        "signal_modifier": 0.6009,
+        "education": 0.42,
+        "availability": 1.0
+      },
+      "reasoning": "DevOps Engineer with 8.2 yrs; 3 required skill(s) matched: CI, CD, AWS; top signal availability; response rate 0.74",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "4 roles; 8.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.74",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 34,
+      "rank": 96
+    },
+    {
+      "candidate_id": "CAND_0089440",
+      "score": 0.7983,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4171,
+        "career_fit": 0.345,
+        "signal_modifier": 0.5253,
+        "education": 0.525,
+        "availability": 0.7
+      },
+      "reasoning": "Frontend Engineer with 8.2 yrs; 3 required skill(s) matched: Docker, CI, Terraform; top signal availability; response rate 0.49",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "3 roles; 8.2y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.49",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 61,
+      "rank": 97
+    },
+    {
+      "candidate_id": "CAND_0025939",
+      "score": 0.7981,
+      "matched_count": 3,
+      "score_breakdown": {
+        "skill_match": 0.4197,
+        "career_fit": 0.6135,
+        "signal_modifier": 0.563,
+        "education": 0.3,
+        "availability": 0.6333
+      },
+      "reasoning": "Data Scientist with 4.4 yrs; 3 required skill(s) matched: MLflow, CI, MLOps; top signal availability; response rate 0.58",
+      "signal_reasoning": {
+        "skill_match": "3/11 required skills matched",
+        "career_fit": "2 roles; 4.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.58",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 58,
+      "rank": 98
+    },
+    {
+      "candidate_id": "CAND_0077067",
+      "score": 0.7979,
+      "matched_count": 2,
+      "score_breakdown": {
+        "skill_match": 0.3485,
+        "career_fit": 0.6672,
+        "signal_modifier": 0.239,
+        "education": 0.7,
+        "availability": 0.8
+      },
+      "reasoning": "AI Specialist with 5.4 yrs; 2 required skill(s) matched: Python, MLflow; top signal availability; response rate 0.83",
+      "signal_reasoning": {
+        "skill_match": "2/11 required skills matched",
+        "career_fit": "3 roles; 5.4y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.83",
+        "education": "Best education evaluated",
+        "availability": "Notice: 90.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 56,
+      "rank": 99
+    },
+    {
+      "candidate_id": "CAND_0022254",
+      "score": 0.7976,
+      "matched_count": 4,
+      "score_breakdown": {
+        "skill_match": 0.4808,
+        "career_fit": 0.345,
+        "signal_modifier": 0.4797,
+        "education": 0.42,
+        "availability": 0.7
+      },
+      "reasoning": "Senior Data Engineer with 5.7 yrs; 4 required skill(s) matched: Docker, MLflow, CI, CD; top signal availability; response rate 0.37",
+      "signal_reasoning": {
+        "skill_match": "4/11 required skills matched",
+        "career_fit": "3 roles; 5.7y exp vs 0.0y min",
+        "signal_modifier": "Response rate: 0.37",
+        "education": "Best education evaluated",
+        "availability": "Notice: 30.0d"
+      },
+      "compliance_flags": [],
+      "is_suspicious": false,
+      "profile_completeness": 48,
+      "rank": 100
+    }
+  ]
+}
