@@ -107,6 +107,15 @@ const App = () => {
   const [jdParsed, setJdParsed] = useState(null); // parsed JD from backend
   const [backendProcessingMs, setBackendProcessingMs] = useState(null);
 
+  const setRankedCandidates = setRankedResults;
+  const setTableMetrics = (val) => {
+    if (val === null) {
+      setJdParsed(null);
+      setBackendProcessingMs(null);
+      setExecutionTime(null);
+    }
+  };
+
   // Talent pools are loaded after authentication — no automatic load on mount
 
   const handleCreateTalentPool = (name, autoAddCandidate = null) => {
@@ -218,45 +227,78 @@ const App = () => {
     : null;
 
   const handleRun = useCallback(async () => {
-    if (!jobDescription.trim() || candidates.length === 0) {
-      setError("Job description and candidates are required.");
-      return;
-    }
-
-    setError(null);
-    setIsLoading(true);
-    const startTime = performance.now();
-
     try {
-      const { results, meta } = await rankCandidates({
-        jobDescription,
-        candidates,
+      console.log("[API TRACE] Sending Job Description directly to backend on port 8000...");
+      setRankedCandidates([]); // Wipes any old data instantly to clear cache
+      setTableMetrics(null);
+      localStorage.removeItem('cached_ranking_results');
+
+      if (!jobDescription.trim() || candidates.length === 0) {
+        setError("Job description and candidates are required.");
+        return;
+      }
+
+      setError(null);
+      setIsLoading(true);
+      const startTime = performance.now();
+
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+      const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rank`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        body: JSON.stringify({
+          job_description: jobDescription,
+          candidates: candidates
+        })
       });
-      const endTime = performance.now();
-      setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
-      if (meta?.jd_parsed) setJdParsed(meta.jd_parsed);
-      if (meta?.processing_time_ms) setBackendProcessingMs(meta.processing_time_ms);
-      setRankedResults(normalizeRankedResults(results, candidates));
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      }
+
+      const resultData = await response.json();
+      console.log("[API TRACE] Live server JSON payload received:", resultData);
+
+      // Extract the raw JSON array sent from our high-accuracy backend model
+      const candidatesArray = resultData.ranked_candidates || resultData.candidates || resultData;
+
+      if (Array.isArray(candidatesArray) && candidatesArray.length > 0) {
+        console.log(`[DIAGNOSTIC SUCCESS] Populating table view with ${candidatesArray.length} LIVE database rows.`);
+        
+        const normalizedResults = normalizeRankedResults(candidatesArray, candidates);
+        setRankedCandidates(normalizedResults);
+        
+        const endTime = performance.now();
+        setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
+        if (resultData.jd_parsed) setJdParsed(resultData.jd_parsed);
+        if (resultData.processing_time_ms) setBackendProcessingMs(resultData.processing_time_ms);
+      } else {
+        console.error("[DIAGNOSTIC ERROR] Server response did not return a valid array layout.");
+      }
+
       setRunCount((prev) => prev + 1);
-      
+
       // Auto switch to results on mobile after a run completes
       if (!isDesktop) {
         setActiveMobileTab("results");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("[NETWORK ERROR] Failed to fetch live rankings from backend:", error);
+      alert("Full-Stack Communication Error: Ensure the FastAPI server is fully active on port 8000.");
+      
+      // Fallback
       const fallback = computeFallbackRanking(candidates);
-      const endTime = performance.now();
-      setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
       setRankedResults(fallback);
       setRunCount((prev) => prev + 1);
       
-      const hasApiUrl = !!(import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== "");
-      const message = err instanceof Error ? err.message : "API unavailable.";
-      setError(
-        hasApiUrl
-          ? `Local fallback active. ${message}`
-          : "Offline mode: All scoring runs locally using all-MiniLM-L6-v2."
-      );
+      const message = error instanceof Error ? error.message : "API unavailable.";
+      setError(`Local fallback active. ${message}`);
       if (!isDesktop) {
         setActiveMobileTab("results");
       }

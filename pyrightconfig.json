@@ -1,0 +1,10 @@
+{
+  "venvPath": "c:\\Users\\Win10\\Desktop\\RRR\\backend",
+  "venv": ".venv",
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": ["."]
+    }
+  ]
+}

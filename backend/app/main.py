@@ -13,8 +13,8 @@ from contextlib import asynccontextmanager
 import torch
 from threadpoolctl import threadpool_limits
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -128,9 +128,9 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Accept", "Authorization", "X-Request-ID"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -229,6 +229,19 @@ def _build_rank_response(
 RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
 
 
+def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
+    import csv
+    with open(filepath, mode="w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f, lineterminator="\r\n")
+        writer.writerow(["candidate_id", "rank", "score", "reasoning"])
+        for item in ranked:
+            writer.writerow([
+                item.get("candidate_id", ""),
+                item.get("rank", 0),
+                round(item.get("score", 0.0), 4),
+                item.get("reasoning", "")
+            ])
+
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)
 async def rank(request: Request, req: RankRequest):
@@ -313,6 +326,22 @@ async def rank_upload(
 
     return _build_rank_response(
         ranked, skipped, original_len, len(valid_candidates), elapsed_ms, jd, truncated
+    )
+
+
+@app.get("/download")
+async def download(file: str = Query(...)):
+    import re
+    if not re.match(r"^submission_\d+\.csv$", file):
+        raise HTTPException(status_code=400, detail="Invalid filename format")
+
+    if not os.path.exists(file):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(
+        path=file,
+        media_type="text/csv",
+        filename=file
     )
 
 
