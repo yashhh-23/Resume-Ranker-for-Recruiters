@@ -1,25 +1,60 @@
+# Redrob Hackathon — Submission Metadata
+# ============================================================================
+# Team identity
+# ============================================================================
 team_name: "Team Chanakya"
-members:
+
+primary_contact:
+  name: "Yash Dedhia"
+  email: "yashdedhia05@gmail.com"
+  phone: "+91-7738548827"
+
+team_members:
   - name: "Yash Dedhia"
     email: "yashdedhia05@gmail.com"
     role: "Full Stack + ML"
-
   - name: "Sahil Rane"
     email: "sahil.s.rane13012007@gmail.com"
     role: "Frontend development"
-
   - name: "Shubham Pawar"
     email: "shubhmapawar@gmail.com"
     role: "Documentation"
 
-github_url: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
-huggingface_sandbox_link: "https://huggingface.co/spaces/yashhh-23/redrob-ranker>"
-reproduce_command: "python rank.py --candidates ./data/sample_candidates.json --out ./submission.csv"
-compute_specs:
-  cpu: "Intel/AMD x86_64"
-  ram: "16 GB"
-  gpu: "None (CPU-only)"
-ai_tools_declaration: "Used RedRob AI for candidate evaluation telemetry; Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research; Cursor IDE for refactoring. No candidate data was sent to external LLMs during scoring."
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
+sandbox_link: "https://huggingface.co/spaces/yashhh-23/redrob-ranker"
+reproduce_command: "python rank.py --candidates ./dataset/candidates.jsonl --out ./submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "Intel/AMD x86_64"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Windows/Linux"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Claude Sonnet 4.6"
+  - "Google Gemini"
+  - "Perplexity"
+
+ai_usage_summary: |
+  Used RedRob AI for candidate evaluation telemetry; Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research. No candidate data was sent to external LLMs during scoring.
+
+# ============================================================================
+# Approach summary
+# ============================================================================
 methodology_summary: |
   Deterministic 5-signal weighted ranker. JD is parsed into skills/title/industry/
   seniority/experience using regex + keyword matching. Candidates are scored across:
@@ -29,6 +64,10 @@ methodology_summary: |
   Education (15% — degree tier × field match),
   Availability (10% — notice period + open_to_work + relocation).
   Zero LLM inference in the scoring loop. Runtime ~2–5s for 1000 candidates on CPU.
+
+# ============================================================================
+# Declarations
+# ============================================================================
 declarations:
   read_submission_spec: true
   code_is_original_work: true
