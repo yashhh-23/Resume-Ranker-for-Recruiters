@@ -1,8 +1,10 @@
 import os
 
 import asyncio
+import csv
 import json
 import logging
+import re
 import time
 import traceback
 import uuid
@@ -15,8 +17,6 @@ from threadpoolctl import threadpool_limits
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import JSONResponse, FileResponse
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -48,12 +48,10 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
     path_obj = Path(path)
     resolved_path = path_obj
     if not resolved_path.exists():
-        # check parent directory
         alt_path = Path("..") / path_obj
         if alt_path.exists():
             resolved_path = alt_path
         else:
-            # check in dataset
             alt_path2 = Path("dataset") / path_obj
             if alt_path2.exists():
                 resolved_path = alt_path2
@@ -69,7 +67,7 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
                         resolved_path = path_obj
 
     print(f"[INGESTION AUDIT] Loading candidates from: {resolved_path.absolute()}")
-    
+
     if not resolved_path.exists():
         print(f"[INGESTION AUDIT] Warning: File {resolved_path} does not exist. Falling back to sample candidates.")
         fallback_path = Path("dataset/sample_candidates.json")
@@ -79,7 +77,7 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
             fallback_path = Path("../backend/dataset/sample_candidates.json")
         if not fallback_path.exists():
             fallback_path = Path("../dataset/sample_candidates.json")
-            
+
         if fallback_path.exists():
             resolved_path = fallback_path
             print(f"[INGESTION AUDIT] Falling back to: {resolved_path.absolute()}")
@@ -87,7 +85,6 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
             print("[INGESTION AUDIT] Critical: Fallback candidates file not found!")
             return []
 
-    # If it is a gzip compressed file
     if resolved_path.suffix.lower() == ".gz" or resolved_path.name.lower().endswith(".jsonl.gz"):
         candidates = []
         try:
@@ -104,7 +101,6 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
             print(f"[INGESTION AUDIT] Error reading gz file: {e}")
             return []
 
-    # If it is a regular JSONL file
     if resolved_path.suffix.lower() == ".jsonl":
         candidates = []
         with open(resolved_path, "r", encoding="utf-8") as f:
@@ -117,7 +113,6 @@ def load_candidates(path: str = "candidates.jsonl.gz"):
                         continue
         return candidates
 
-    # If it is a regular JSON file
     with open(resolved_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data if isinstance(data, list) else [data]
@@ -176,7 +171,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-
     logging.error(f"Unhandled error on {request.url.path}: {traceback.format_exc()}")
     return JSONResponse(
         status_code=500,
@@ -214,11 +208,12 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(RequestIDMiddleware)
 
+# FIX (Bug 4): include Vercel production URL in default allowed origins
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
         "RRR_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
+        "https://rrr-resume-ranker-recruiter-fronten.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
     ).split(",")
     if origin.strip()
 ]
@@ -234,9 +229,11 @@ app.add_middleware(
 )
 
 
+# FIX (Bug 3): single clean RankRequest — no duplicate `candidates` field
 class RankRequest(BaseModel):
     model_config = {"extra": "ignore"}
-    jd_text: str
+    jd_text: Optional[str] = None
+    job_description: Optional[str] = None
     candidates_path: Optional[str] = ""
     candidates: Optional[List[Any]] = None
 
@@ -247,8 +244,6 @@ class RankRequest(BaseModel):
             if "job_description" in data and "jd_text" not in data:
                 data["jd_text"] = data["job_description"]
         return data
-    job_description: str
-    candidates: List[Dict[str, Any]]
 
 
 @app.get("/")
@@ -341,25 +336,19 @@ RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
 
 
 def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
-    import csv
-
-    # Sort by rank ascending (or score desc as tiebreak), cap at exactly 100 rows
     sorted_rows = sorted(
         ranked,
         key=lambda r: (int(r.get("rank", 9999)), -float(r.get("score", 0.0)))
     )[:100]
 
-    # Fix 1 & 3: header is candidateid (no underscore), locked column order
     export_columns = ["candidateid", "rank", "score", "reasoning"]
 
     with open(filepath, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=export_columns)
         writer.writeheader()
         for idx, row in enumerate(sorted_rows, start=1):
-            # Fix 2: strip underscores from ID token (CAND_0081846 → CAND0081846)
             raw_id = str(row.get("candidate_id", ""))
             clean_id = raw_id.replace("_", "")
-
             writer.writerow({
                 "candidateid": clean_id,
                 "rank": idx,
@@ -371,22 +360,22 @@ def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
     print(f"[SUBMISSION CSV] Columns: {export_columns}")
     print(f"[SUBMISSION CSV] Rows: {len(sorted_rows)}")
 
+
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)
 async def rank_candidates_endpoint(request: Request, req: RankRequest):
-    if not req.jd_text.strip():
-        raise HTTPException(status_code=400, detail="jd_text is required")
+    jd_text = req.jd_text or req.job_description or ""
+    if not jd_text.strip():
+        raise HTTPException(status_code=400, detail="jd_text or job_description is required")
 
-    # FORCE the execution path parameter to the production file
     production_file = "candidates.jsonl.gz"
-    
+
     import sys
     if "pytest" in sys.modules:
         print("[FORCE INGESTION AUDIT] Pytest detected. Bypassing production file load to use request payload.")
         candidates_data = req.candidates if req.candidates else load_candidates(req.candidates_path or "dataset/sample_candidates.json")
     else:
         print(f"[FORCE INGESTION AUDIT] Loading 100,000 records from: {production_file}")
-        # Read the data from the production file directly
         candidates_data = load_candidates(production_file)
 
     if not candidates_data:
@@ -400,28 +389,35 @@ async def rank_candidates_endpoint(request: Request, req: RankRequest):
 
     t0 = time.perf_counter()
     valid_candidates, skipped = sanitize_candidates(candidates_data)
-    
-    # Automatically discover target keywords based on the uploaded job description
+
     from ranker import extract_dynamic_skills_from_jd
-    target_skills = extract_dynamic_skills_from_jd(req.jd_text)
+    target_skills = extract_dynamic_skills_from_jd(jd_text)
     print(f"[UNIVERSAL ENGINE] Dynamically extracted skill requirements: {target_skills}")
 
-    jd = parse_jd_text(req.jd_text)
+    jd = parse_jd_text(jd_text)
     jd["required_skills"] = target_skills
     jd["raw_required_skills"] = target_skills
     jd["skill_weights"] = {s: 1.0 for s in target_skills}
-    # Force rebuild of cached values
     jd["_cached_required_skills"] = [s.lower() for s in target_skills]
     jd["_cached_raw_req"] = target_skills
     jd["_cached_req_zip"] = [(r, r.lower()) for r in target_skills]
-    
-    # Ensure limit is explicitly passed as 100
+
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    return _build_rank_response(
+    # FIX (Bugs 1 & 2): write CSV and return { status, filePath } so frontend can download
+    file_name = f"submission_{int(time.time() * 1000)}.csv"
+    _save_to_csv(ranked, file_name)
+
+    meta = _build_rank_response(
         ranked, skipped, len(candidates_data), len(valid_candidates), elapsed_ms, jd
     )
+
+    return JSONResponse(content={
+        "status": "success",
+        "filePath": file_name,
+        "meta": meta,
+    })
 
 
 @app.post("/rank/upload")
@@ -451,7 +447,7 @@ async def rank_upload(
             candidates = parsed if isinstance(parsed, list) else [parsed]
         except json.JSONDecodeError:
             raise HTTPException(status_code=422, detail="Invalid JSON in uploaded file")
-    else:  # .jsonl
+    else:
         candidates = []
         for line in content_str.splitlines():
             line = line.strip()
@@ -477,8 +473,7 @@ async def rank_upload(
 
     t0 = time.perf_counter()
     valid_candidates, skipped = sanitize_candidates(candidates)
-    
-    # Automatically discover target keywords based on the uploaded job description
+
     from ranker import extract_dynamic_skills_from_jd
     target_skills = extract_dynamic_skills_from_jd(job_description)
     print(f"[UNIVERSAL ENGINE] Dynamically extracted skill requirements: {target_skills}")
@@ -487,7 +482,6 @@ async def rank_upload(
     jd["required_skills"] = target_skills
     jd["raw_required_skills"] = target_skills
     jd["skill_weights"] = {s: 1.0 for s in target_skills}
-    # Force rebuild of cached values
     jd["_cached_required_skills"] = [s.lower() for s in target_skills]
     jd["_cached_raw_req"] = target_skills
     jd["_cached_req_zip"] = [(r, r.lower()) for r in target_skills]
@@ -502,7 +496,6 @@ async def rank_upload(
 
 @app.get("/download")
 async def download(file: str = Query(...)):
-    import re
     if not re.match(r"^submission_\d+\.csv$", file):
         raise HTTPException(status_code=400, detail="Invalid filename format")
 
