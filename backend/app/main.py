@@ -16,7 +16,7 @@ import torch
 from threadpoolctl import threadpool_limits
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -43,7 +43,6 @@ import gzip
 from pathlib import Path
 
 def load_candidates(path: str = "candidates.jsonl.gz"):
-    # Force the primary database path target to the production file
     path = "candidates.jsonl.gz"
     path_obj = Path(path)
     resolved_path = path_obj
@@ -206,9 +205,26 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# FIX: Short-circuit all OPTIONS preflight requests BEFORE the rate limiter
+# touches them. Without this, SlowAPI processes preflight and returns 400.
+class CORSPreflightMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            origin = request.headers.get("origin", "")
+            response = Response(status_code=200)
+            response.headers["Access-Control-Allow-Origin"] = origin or "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Max-Age"] = "86400"
+            return response
+        return await call_next(request)
+
+
+app.add_middleware(CORSPreflightMiddleware)
 app.add_middleware(RequestIDMiddleware)
 
-# FIX (Bug 4): include Vercel production URL in default allowed origins
+# Include Vercel production URL in default allowed origins
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -229,7 +245,6 @@ app.add_middleware(
 )
 
 
-# FIX (Bug 3): single clean RankRequest — no duplicate `candidates` field
 class RankRequest(BaseModel):
     model_config = {"extra": "ignore"}
     jd_text: Optional[str] = None
@@ -405,7 +420,6 @@ async def rank_candidates_endpoint(request: Request, req: RankRequest):
     ranked = rank_candidates(valid_candidates, jd, limit=100)
     elapsed_ms = round((time.perf_counter() - t0) * 1000)
 
-    # FIX (Bugs 1 & 2): write CSV and return { status, filePath } so frontend can download
     file_name = f"submission_{int(time.time() * 1000)}.csv"
     _save_to_csv(ranked, file_name)
 
