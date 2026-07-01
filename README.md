@@ -5,7 +5,7 @@
 
 [![RedRob Hackathon](https://img.shields.io/badge/Hackathon-RedRob%202026-ff3b30?style=for-the-badge)](https://redrob.io)
 [![Local Host](https://img.shields.io/badge/Local%20Run-Canonical-4f46e5?style=for-the-badge)](http://localhost:5173)
-[![CI Build](https://img.shields.io/github/actions/workflow/status/yashhh-23/Resume-Ranker-for-Recruiters/test-rank.yml?branch=main&label=CI%20Build&style=for-the-badge&logo=github-actions)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters/actions/workflows/test-rank.yml)
+[![CI Build](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters/actions/workflows/test-rank.yml/badge.svg?branch=main)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters/actions/workflows/test-rank.yml)
 [![Language](https://img.shields.io/badge/Language-Python%20%7C%20JS-3776AB?style=for-the-badge&logo=python)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](https://github.com/yashhh-23/Resume-Ranker-for-Recruiters)
 
