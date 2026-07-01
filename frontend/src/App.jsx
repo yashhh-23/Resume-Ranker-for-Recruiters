@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, useCallback, lazy, Suspense, useRef } from "react";
-import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from "react";
 import CryptoJS from "crypto-js";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
@@ -231,66 +230,6 @@ const App = () => {
     : null;
 
   const handleRun = useCallback(async () => {
-    try {
-      console.log("[API TRACE] Sending Job Description directly to backend on port 8000...");
-      setRankedCandidates([]); // Wipes any old data instantly to clear cache
-      setTableMetrics(null);
-      localStorage.removeItem('cached_ranking_results');
-
-      if (!jobDescription.trim() || candidates.length === 0) {
-        setError("Job description and candidates are required.");
-        return;
-      }
-
-      setError(null);
-      setIsLoading(true);
-      const startTime = performance.now();
-
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const jdText = jobDescription;
-      const candidatesFile = "dataset/sample_candidates.json";
-
-      console.log("[API TRACE] Emitting validation payload over the wire...");
-
-      const payload = {
-        jd_text: jdText,
-        candidates_path: candidatesFile || "",
-        candidates: [] // Empty array to explicitly satisfy any strict array checks
-      };
-
-      const response = await fetch(`${baseUrl.replace(/\/$/, "")}/rank`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-      }
-
-      const resultData = await response.json();
-      console.log("[API TRACE] Live server JSON payload received:", resultData);
-
-      // Extract the raw JSON array sent from our high-accuracy backend model
-      const candidatesArray = resultData.ranked_candidates || resultData.candidates || resultData;
-
-      if (Array.isArray(candidatesArray)) {
-        const normalizedResults = normalizeRankedResults(candidatesArray, candidates);
-        setRankedCandidates(normalizedResults);
-        
-        const endTime = performance.now();
-        setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
-        if (resultData.jd_parsed) setJdParsed(resultData.jd_parsed);
-        if (resultData.processing_time_ms) setBackendProcessingMs(resultData.processing_time_ms);
-      } else {
-        console.error("[DIAGNOSTIC ERROR] Server response did not return a valid array layout.");
-      }
-
     if (!jobDescription.trim() || candidates.length === 0) {
       setError("Job description and candidates are required.");
       return;
@@ -325,20 +264,17 @@ const App = () => {
       setRankedResults(fallback);
       setRunCount((prev) => prev + 1);
       
-      const message = error instanceof Error ? error.message : "API unavailable.";
-      setError(`Local fallback active. ${message}`);
       const hasApiUrl = !!(import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== "");
-      const message = err instanceof Error ? err.message : "API unavailable.";
+      const msg = error instanceof Error ? error.message : "API unavailable.";
       setError(
         hasApiUrl
-          ? `Local fallback active. ${message}`
+          ? `Local fallback active. ${msg}`
           : "Offline mode: All scoring runs locally using all-MiniLM-L6-v2."
       );
       if (!isDesktop) {
         setActiveMobileTab("results");
       }
     } finally {
-      // Yield control to let React paint the heavy render update first
       // Yield control to let React paint the heavy render update first (prevents blank visual lag)
       setTimeout(() => {
         setIsLoading(false);
@@ -655,9 +591,6 @@ const App = () => {
         >
           <div
             id="guide-scoring-modal-dialog"
-          onClick={() => setShowWeightsInfo(false)}
-        >
-          <div
             className="w-full max-w-lg bg-slate-950 border border-slate-800 shadow-2xl p-6 font-mono rounded-none"
             onClick={(e) => e.stopPropagation()}
           >

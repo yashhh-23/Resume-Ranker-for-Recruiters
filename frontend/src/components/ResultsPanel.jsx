@@ -259,7 +259,6 @@ const ResultsPanel = ({
   return (
     <div className="flex-1 flex flex-col border-b border-borderline bg-canvas min-h-0 overflow-hidden">
       <div id="guide-target-results-header" className="px-4 py-2 border-b border-borderline/80 flex flex-col gap-2">
-      <div className="px-4 py-2 border-b border-borderline/80 flex flex-col gap-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <p className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-mono leading-none">

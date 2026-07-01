@@ -3,61 +3,6 @@ import { validateSubmission } from "../utils/validation";
 import { exportSubmissionCsv } from "../utils/exportCsv";
 import { exportSubmissionXlsx } from "../utils/exportXlsx";
 
-// Serialize ranked results into challenge-format CSV and trigger download
-const exportSubmissionCsv = (rankedResults) => {
-  if (!rankedResults || rankedResults.length === 0) return;
-
-  const escapeField = (value) => {
-    const str = String(value ?? "");
-    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
-  };
-
-  const hasFlags = rankedResults.some(r => r.compliance_flags != null);
-  const hasSuspicious = rankedResults.some(r => r.is_suspicious != null);
-  const headerParts = ["candidate_id", "rank", "score", "reasoning"];
-  if (hasFlags) headerParts.push("compliance_flags");
-  if (hasSuspicious) headerParts.push("is_suspicious");
-  const header = headerParts.join(",");
-
-  const rows = rankedResults.map((r, i) => {
-    const rank = r.rank === "-" || r.rank == null ? i + 1 : r.rank;
-    const row = [
-      escapeField(r.candidate_id),
-      escapeField(rank),
-      escapeField(r.score),
-      escapeField(r.reasoning),
-    ];
-    if (hasFlags) {
-      const flags = Array.isArray(r.compliance_flags)
-        ? r.compliance_flags.join("; ")
-        : (r.compliance_flags ?? "");
-      row.push(escapeField(flags));
-      row.push(escapeField(r.is_suspicious ?? false));
-    }
-    if (hasSuspicious) {
-      row.push(escapeField(r.is_suspicious ? "YES" : "NO"));
-    }
-    return row.join(",");
-  });
-
-  const encoder = new TextEncoder();
-  const BOM     = new Uint8Array([0xEF, 0xBB, 0xBF]); // raw UTF-8 BOM bytes
-  const csvContent = [header, ...rows].join("\r\n");
-  const encoded = encoder.encode(csvContent);
-  const blob    = new Blob([BOM, encoded], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.setAttribute("download", "submission.csv");
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
-};
-
 const ComplianceTray = ({ rankedResults, trayHeight }) => {
   const validation = useMemo(() => validateSubmission(rankedResults), [rankedResults]);
   const isReady = rankedResults.length > 0;

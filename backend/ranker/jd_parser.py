@@ -50,6 +50,7 @@ KNOWN_SKILLS = [
     'Speech Recognition', 'Spring Boot', 'SQL', 'Statistical Modeling', 'Tailwind', 'Tally', 'TensorFlow', 'Terraform',
     'Text Encoders', 'Time Series', 'TTS', 'TypeScript', 'Vector Representations', 'Vector Search', 'Vue.js', 'Weaviate',
     'Webpack', 'Weights & Biases', 'Workflow Orchestration', 'YOLO'
+]
 TECH_SKILLS = [
     "Python",
     "SQL",
@@ -221,7 +222,6 @@ def extract_dynamic_skills_from_jd(jd_text: str) -> list:
             
     return list(set(extracted_skills))
 
-TECH_SKILLS = []
 SOFT_SKILLS = []
 
 TITLE_PATTERNS = [
@@ -515,7 +515,6 @@ def segment_jd_text(text: str) -> Dict[str, str]:
 
 
 def parse_jd_text(text: str) -> Dict[str, Any]:
-def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
     

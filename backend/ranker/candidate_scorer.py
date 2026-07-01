@@ -140,7 +140,6 @@ def calibrate_score(score: float) -> float:
 
 
 def text_match(value: Any, target: Any, target_tokens: Optional[frozenset] = None) -> float:
-def text_match(value: Any, target: Any, target_tokens: frozenset = None) -> float:
     source = tokenize(value)
     wanted = target_tokens if target_tokens is not None else tokenize(target)
     if not source or not wanted:
@@ -519,10 +518,6 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
                 if candidate_level > best_level:
                     best_level = candidate_level
                     best_cs = cs
-        
-        if best_level > 0.0 and best_cs:
-            # Academic skill down-weight
-                
         # FIX 3: Academic skill down-weight — if skill only appears in education
         # blocks (thesis/coursework) and NOT in any career_history description,
         # treat it as academic acquaintance rather than operational capability.
@@ -602,32 +597,6 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         coverage *= 0.10
 
     return clamp(coverage)
-                best_level *= 0.4  # academic acquaintance, not operational skill
-
-        if best_level == 0.0 and weight >= 2.0:
-            missing_tier1_count += 1
-            
-        matched_score += best_level * weight
-        total_possible_score += 1.10 * weight
-
-    # Normalize by max possible score per weighted skill to keep max coverage at 1.0
-    base_coverage = matched_score / total_possible_score if total_possible_score > 0 else 0.0
-    
-    if missing_tier1_count > 0:
-        base_coverage *= (0.80 ** missing_tier1_count)
-
-    preferred = jd.get("_cached_preferred_skills")
-    if preferred is None:
-        preferred = [s.lower() for s in jd.get("preferred_skills", [])]
-        jd["_cached_preferred_skills"] = preferred
-    if preferred:
-        candidate_skills_lower = _get_candidate_skill_names(candidate.get("skills") or [])
-        pref_matched = sum(
-            1 for p in preferred if any(is_skill_match(p, cs) for cs in candidate_skills_lower)
-        )
-        preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
-        return clamp(base_coverage + preferred_bonus)
-    return clamp(base_coverage)
 
 
 def score_skill_match(
@@ -635,8 +604,6 @@ def score_skill_match(
     jd_similarity: float,
     candidate: Optional[Dict[str, Any]] = None,
     jd: Optional[Dict[str, Any]] = None,
-    candidate: Dict[str, Any] = None,
-    jd: Dict[str, Any] = None,
 ) -> float:
     raw_cos = jd_similarity
     # Threshold semantic similarity to heavily penalize out-of-domain resumes (like Mobile Devs)
@@ -1305,14 +1272,6 @@ def score_candidate(
         "candidate_id": candidate_id,
         "score": round(clamp(calibrate_score(final_score)), 4),
         "matched_count": len(matched),
-        "score_breakdown": {key: round(value, 4) for key, value in breakdown.items()},
-        "reasoning": build_reasoning(candidate, {key: round(value, 4) for key, value in breakdown.items()}, matched, jd),
-        "signal_reasoning": {
-            "skill_match": f"{len(matched)}/{len(jd_required_list)} required skills matched",
-            "career_fit": f"{len(candidate.get('career_history', []))} roles; {years_exp:.1f}y exp vs {min_experience}y min",
-            "signal_modifier": f"Response rate: {safe_float(signals.get('recruiter_response_rate')):.2f}",
-            "education": "Best education evaluated",
-            "availability": f"Notice: {notice_days}d",
         "score_breakdown": rounded_breakdown,
         "reasoning": reasoning_str,
         "signal_reasoning": {
@@ -1389,9 +1348,7 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
 
-    # Dampen education contribution if career fit is weak
     if breakdown["career_fit"] < 0.30:
-        if matched_req_count <= 1:
         if matched_count <= 1:
             breakdown["education"] *= 0.40
             if years_exp < 3.0:

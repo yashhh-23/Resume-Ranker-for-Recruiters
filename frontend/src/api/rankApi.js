@@ -113,15 +113,6 @@ export const rankCandidates = async ({ jobDescription, candidates }) => {
   }
 
   const { results, meta } = normalizeResults(parsedResults);
-  }
-
-  const contentType = response.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
-    throw new Error("Server returned non-JSON response.");
-  }
-
-  const data = await response.json();
-  const { results, meta } = normalizeResults(data);
 
   if (!Array.isArray(results) || results.length === 0) {
     throw new Error("Rank API returned an empty result set.");
