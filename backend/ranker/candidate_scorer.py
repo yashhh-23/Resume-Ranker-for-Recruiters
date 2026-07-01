@@ -66,6 +66,7 @@ COMPOUND_SKILLS = [
     "google cloud",
 ]
 
+PREMIUM_SECURITY_TOKENS = {"istio", "vault", "hashicorp vault", "prismacloud", "prisma cloud", "cloudformation", "gitlab ci"}
 
 import functools
 
@@ -398,8 +399,9 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         if best_level > 0.0:
             matched_tier1_count += 1
             
-        tier1_score += best_level * 1.0
-        tier1_possible += 1.10 * 1.0
+        skill_weight = 2.5 if r.lower() in PREMIUM_SECURITY_TOKENS else 1.0
+        tier1_score += best_level * skill_weight
+        tier1_possible += 1.10 * skill_weight
 
     tier2_score = 0.0
     tier2_possible = 0.0
@@ -437,8 +439,9 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
             if in_education and not in_career:
                 best_level *= 0.4
                 
-        tier2_score += best_level * 0.4
-        tier2_possible += 1.10 * 0.4
+        skill_weight = 2.5 * 0.4 if p.lower() in PREMIUM_SECURITY_TOKENS else 0.4
+        tier2_score += best_level * skill_weight
+        tier2_possible += 1.10 * skill_weight
 
     total_score = tier1_score + tier2_score
     total_possible = tier1_possible + tier2_possible
@@ -945,6 +948,34 @@ def score_candidate(
         (0.15 * breakdown["education"]) +
         (0.10 * availability_mult)
     )
+
+    # Safe multi-key fallback extraction to capture the active title string properly
+    if isinstance(profile, dict):
+        current_title = (profile.get("title") or profile.get("role") or profile.get("current_title") or profile.get("designation") or "")
+    else:
+        # Safe object attribute fallback if candidate profiles are passed as objects
+        current_title = getattr(profile, "title", getattr(profile, "role", getattr(profile, "current_title", "")))
+    current_title = str(current_title).lower()
+
+    # Detect domain using the guaranteed in-scope JD required-skills list
+    # gate_tokens is an isolated local copy — original jd_required_list is NOT mutated
+    infra_keywords = {"devops", "terraform", "kubernetes", "istio", "vault", "ansible", "cloud", "sre", "infrastructure", "security"}
+    gate_tokens = [str(s).lower() for s in jd_required_list]  # Isolated — does not shadow jd_required_list
+    is_infrastructure_jd = any(kw in gate_tokens for kw in infra_keywords)
+
+    VALID_INFRA_TITLES = ["devops", "cloud", "sre", "site reliability", "infrastructure", "systems engineer", "platform engineer", "security engineer", "devsecops"]
+    EXPLICIT_NON_INFRA = ["writer", "content", "qa", "quality assurance", "mobile", "frontend", "front-end", "designer"]
+
+    title_multiplier = 1.0
+    if is_infrastructure_jd:
+        if any(bad_title in current_title for bad_title in EXPLICIT_NON_INFRA):
+            title_multiplier = 0.01  # Ruthlessly collapse non-infrastructure roles
+        elif not any(good_title in current_title for good_title in VALID_INFRA_TITLES):
+            title_multiplier = 0.05  # Standard dampener for generalist software developers
+        else:
+            title_multiplier = 1.0  # Keep real cloud/devops specialists at 100% full weight
+
+    raw_final_score *= title_multiplier
     final_score = raw_final_score
 
     if blacklist_penalty:
@@ -1070,16 +1101,28 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     if target_title and target_title != "any":
         is_match_target = text_match(current_title, target_title, target_tokens=target_tokens) > 0.0
 
-    non_domain_tokens = [
-        "project manager", "business analyst", "operations manager", "civil", 
-        "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
-    ]
-    is_non_domain_title = any(token in current_title for token in non_domain_tokens)
-    if is_match_target:
-        is_non_domain_title = False
+    # Strict SRE / DevOps Clamping for DevOps JDs to prevent non-infrastructure titles hijacking leaderboard
+    is_infra_jd = any(t in target_title for t in ["devops", "cloud", "sre", "site reliability", "infrastructure", "systems engineer", "platform engineer", "security engineer", "devsecops"])
+    if is_infra_jd:
+        VALID_INFRA_TITLES = ["devops", "cloud", "sre", "site reliability", "infrastructure", "systems engineer", "platform engineer", "security engineer", "devsecops"]
+        EXPLICIT_NON_INFRA = ["writer", "content", "qa", "quality assurance", "mobile", "frontend", "front-end", "designer"]
+        title_multiplier = 1.0
+        if any(bad_title in current_title for bad_title in EXPLICIT_NON_INFRA):
+            title_multiplier *= 0.01  # Ruthlessly collapse non-infrastructure profiles down the stack
+        elif not any(good_title in current_title for good_title in VALID_INFRA_TITLES):
+            title_multiplier *= 0.05  # Standard penalty for adjacent generalist developers
+        breakdown["career_fit"] *= title_multiplier
+    else:
+        non_domain_tokens = [
+            "project manager", "business analyst", "operations manager", "civil", 
+            "mechanical", "accountant", "hr", "marketing", "graphic designer", "customer support"
+        ]
+        is_non_domain_title = any(token in current_title for token in non_domain_tokens)
+        if is_match_target:
+            is_non_domain_title = False
 
-    if is_non_domain_title:
-        breakdown["career_fit"] *= 0.05  # Blunt out-of-domain stuffing immediately
+        if is_non_domain_title:
+            breakdown["career_fit"] *= 0.05  # Blunt out-of-domain stuffing immediately
 
     outside_experience_bounds = min_experience > 0 and (years_exp < min_experience or years_exp > max_experience)
     if outside_experience_bounds:
@@ -1104,6 +1147,34 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         (0.15 * breakdown["education"]) +
         (0.10 * availability_mult)
     )
+
+    # Safe multi-key fallback extraction to capture the active title string properly
+    if isinstance(profile, dict):
+        current_title = (profile.get("title") or profile.get("role") or profile.get("current_title") or profile.get("designation") or "")
+    else:
+        # Safe object attribute fallback if candidate profiles are passed as objects
+        current_title = getattr(profile, "title", getattr(profile, "role", getattr(profile, "current_title", "")))
+    current_title = str(current_title).lower()
+
+    # Detect domain using the guaranteed in-scope JD required-skills list
+    # gate_tokens_fast is an isolated local copy — original 'required' list is NOT mutated
+    infra_keywords = {"devops", "terraform", "kubernetes", "istio", "vault", "ansible", "cloud", "sre", "infrastructure", "security"}
+    gate_tokens_fast = [str(s).lower() for s in required]  # Isolated — does not shadow 'required'
+    is_infrastructure_jd = any(kw in gate_tokens_fast for kw in infra_keywords)
+
+    VALID_INFRA_TITLES = ["devops", "cloud", "sre", "site reliability", "infrastructure", "systems engineer", "platform engineer", "security engineer", "devsecops"]
+    EXPLICIT_NON_INFRA = ["writer", "content", "qa", "quality assurance", "mobile", "frontend", "front-end", "designer"]
+
+    title_multiplier = 1.0
+    if is_infrastructure_jd:
+        if any(bad_title in current_title for bad_title in EXPLICIT_NON_INFRA):
+            title_multiplier = 0.01  # Ruthlessly collapse non-infrastructure roles
+        elif not any(good_title in current_title for good_title in VALID_INFRA_TITLES):
+            title_multiplier = 0.05  # Standard dampener for generalist software developers
+        else:
+            title_multiplier = 1.0  # Keep real cloud/devops specialists at 100% full weight
+
+    raw_final_score *= title_multiplier
     final_score = raw_final_score
 
     if blacklist_penalty:

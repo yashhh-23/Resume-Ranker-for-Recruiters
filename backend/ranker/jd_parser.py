@@ -14,6 +14,7 @@ DEFAULT_JD = {
     "salary_min": 0.0,
     "salary_max": 0.0,
     "seniority_level": "mid",
+    "jd_text": "",
 }
 
 INDUSTRY_KEYWORDS = {
@@ -64,8 +65,8 @@ def extract_dynamic_skills_from_jd(jd_text: str) -> list:
     # Step 1: Isolate the section FIRST using a flexible, colon-optional regex
     target_zone = jd_text
     if "key qualifications" in jd_text.lower():
-        # Handles 'Key Qualifications:', 'Key Qualifications -', or just 'Key Qualifications'
-        parts = re.split(r'(?i)key qualifications\s*(?::|-)?\s*', jd_text)
+        # Wrap characters cleanly inside a bracket class [:\-]* to match any combination safely
+        parts = re.split(r'(?i)key qualifications\s*[:\-]*', jd_text)
         if len(parts) > 1:
             # Capture qualifications and any adjacent preferred skills section
             sub_parts = re.split(r'(####|###|##|\n\n\n)', parts[1])
@@ -507,6 +508,7 @@ def parse_jd_text(text: str) -> Dict[str, Any]:
         "salary_max": salary_max,
         "seniority_level": _extract_seniority(text),
         "skill_weights": skill_weights,
+        "jd_text": text,
     }
 
 
