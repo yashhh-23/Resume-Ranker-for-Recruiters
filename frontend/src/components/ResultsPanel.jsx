@@ -3,6 +3,7 @@ import CandidateCard from "./CandidateCard";
 import { detectTimelineAnomaly } from "../utils/scoreUtils";
 import { exportPdfReport, exportWordReport } from "../utils/reportGenerator";
 import { exportSubmissionCsv } from "../utils/exportCsv";
+import { exportSubmissionXlsx } from "../utils/exportXlsx";
 import LoadingPhaseDisplay from "./LoadingPhaseDisplay";
 import TalentPoolSidebar from "./TalentPoolSidebar";
 import ResultsControls from "./ResultsControls";
@@ -347,16 +348,26 @@ const ResultsPanel = ({
                     {activeList.length} matching
                   </span>
 
-                  {/* CSV Export */}
+                  {/* CSV & XLSX Export */}
                   {activeTab === "shortlist" && (
-                    <button
-                      type="button"
-                      disabled={rankedResults.length === 0}
-                      onClick={() => exportSubmissionCsv(rankedResults)}
-                      className="text-[10px] bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
-                    >
-                      CSV
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        disabled={rankedResults.length === 0}
+                        onClick={() => exportSubmissionCsv(rankedResults)}
+                        className="text-[10px] bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
+                      >
+                        CSV
+                      </button>
+                      <button
+                        type="button"
+                        disabled={rankedResults.length === 0}
+                        onClick={() => exportSubmissionXlsx(rankedResults)}
+                        className="text-[10px] bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 text-blue-400 font-bold px-2 py-1 rounded-none flex items-center gap-1 transition-all duration-200 font-mono"
+                      >
+                        ↓ XLSX
+                      </button>
+                    </>
                   )}
 
                   <button

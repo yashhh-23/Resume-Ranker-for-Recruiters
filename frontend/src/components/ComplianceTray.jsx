@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { validateSubmission } from "../utils/validation";
 import { exportSubmissionCsv } from "../utils/exportCsv";
+import { exportSubmissionXlsx } from "../utils/exportXlsx";
 
 // Serialize ranked results into challenge-format CSV and trigger download
 const exportSubmissionCsv = (rankedResults) => {
@@ -118,14 +119,24 @@ const ComplianceTray = ({ rankedResults, trayHeight }) => {
               {isReady ? "Live" : "Idle"}
             </div>
             {isReady && (
-              <button
-                type="button"
-                onClick={() => exportSubmissionCsv(rankedResults)}
-                className="flex items-center gap-1 px-2.5 py-0.5 bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-mono text-[9px] uppercase tracking-wider transition-all duration-200 rounded-none h-[24px]"
-                title="Export ranked results as submission.csv"
-              >
-                Export CSV
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => exportSubmissionCsv(rankedResults)}
+                  className="flex items-center gap-1 px-2.5 py-0.5 bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/50 text-emerald font-mono text-[9px] uppercase tracking-wider transition-all duration-200 rounded-none h-[24px]"
+                  title="Export ranked results as submission.csv"
+                >
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={() => exportSubmissionXlsx(rankedResults)}
+                  className="flex items-center gap-1 px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 text-blue-400 font-mono text-[9px] uppercase tracking-wider transition-all duration-200 rounded-none h-[24px]"
+                  title="Export ranked results as submission.xlsx"
+                >
+                  ↓ XLSX
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -148,14 +159,24 @@ const ComplianceTray = ({ rankedResults, trayHeight }) => {
             {isReady ? "Live" : "Idle"}
           </div>
           {isReady && (
-            <button
-              type="button"
-              onClick={() => exportSubmissionCsv(rankedResults)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/60 text-emerald font-mono text-[10px] uppercase tracking-wider transition-all duration-200 rounded-none font-bold h-[26px]"
-              title="Export ranked results as submission.csv"
-            >
-              Export CSV
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => exportSubmissionCsv(rankedResults)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-emerald/10 border border-emerald/30 hover:bg-emerald/20 hover:border-emerald/60 text-emerald font-mono text-[10px] uppercase tracking-wider transition-all duration-200 rounded-none font-bold h-[26px]"
+                title="Export ranked results as submission.csv"
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => exportSubmissionXlsx(rankedResults)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 text-blue-400 font-mono text-[10px] uppercase tracking-wider transition-all duration-200 rounded-none font-bold h-[26px]"
+                title="Export ranked results as submission.xlsx"
+              >
+                ↓ XLSX
+              </button>
+            </div>
           )}
         </div>
       </div>
