@@ -334,27 +334,34 @@ RANK_RATE_LIMIT = os.getenv("RANK_RATE_LIMIT", "30/minute")
 
 def _save_to_csv(ranked: List[Dict[str, Any]], filepath: str):
     import csv
-    
-    # Sort by score descending, then candidate_id ascending
+
+    # Sort by rank ascending (or score desc as tiebreak), cap at exactly 100 rows
     sorted_rows = sorted(
         ranked,
-        key=lambda r: (-float(r.get("score", 0.0)), str(r.get("candidate_id", "")))
-    )
-    
-    export_columns = ["candidate_id", "rank", "score", "reasoning"]
+        key=lambda r: (int(r.get("rank", 9999)), -float(r.get("score", 0.0)))
+    )[:100]
+
+    # Fix 1 & 3: header is candidateid (no underscore), locked column order
+    export_columns = ["candidateid", "rank", "score", "reasoning"]
+
     with open(filepath, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=export_columns)
         writer.writeheader()
         for idx, row in enumerate(sorted_rows, start=1):
-            writer.writerow(
-                {
-                    "candidate_id": row.get("candidate_id", ""),
-                    "rank": idx,
-                    "score": f"{float(row.get('score', 0.0)):.4f}",
-                    "reasoning": row.get("reasoning", ""),
-                }
-            )
-    print(f"[METRIC PURGE COMPLETE] Enforced 4-column spec on target destination: {filepath}")
+            # Fix 2: strip underscores from ID token (CAND_0081846 → CAND0081846)
+            raw_id = str(row.get("candidate_id", ""))
+            clean_id = raw_id.replace("_", "")
+
+            writer.writerow({
+                "candidateid": clean_id,
+                "rank": idx,
+                "score": f"{float(row.get('score', 0.0)):.4f}",
+                "reasoning": row.get("reasoning", ""),
+            })
+
+    print(f"[SUBMISSION CSV] Written to: {filepath}")
+    print(f"[SUBMISSION CSV] Columns: {export_columns}")
+    print(f"[SUBMISSION CSV] Rows: {len(sorted_rows)}")
 
 @app.post("/rank")
 @limiter.limit(RANK_RATE_LIMIT)
