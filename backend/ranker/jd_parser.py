@@ -50,6 +50,112 @@ KNOWN_SKILLS = [
     'Speech Recognition', 'Spring Boot', 'SQL', 'Statistical Modeling', 'Tailwind', 'Tally', 'TensorFlow', 'Terraform',
     'Text Encoders', 'Time Series', 'TTS', 'TypeScript', 'Vector Representations', 'Vector Search', 'Vue.js', 'Weaviate',
     'Webpack', 'Weights & Biases', 'Workflow Orchestration', 'YOLO'
+TECH_SKILLS = [
+    "Python",
+    "SQL",
+    "Spark",
+    "PySpark",
+    "Airflow",
+    "Apache Beam",
+    "Kafka",
+    "AWS",
+    "GCP",
+    "Azure",
+    "Snowflake",
+    "BigQuery",
+    "Docker",
+    "Kubernetes",
+    "MLflow",
+    "NLP",
+    "TensorFlow",
+    "PyTorch",
+    "Scikit-learn",
+    "LLM",
+    "Fine-tuning LLMs",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Java",
+    "TypeScript",
+    "Angular",
+    "Apache Flink",
+    "BM25",
+    "BentoML",
+    "CI/CD",
+    "CNN",
+    "CSS",
+    "Computer Vision",
+    "Data Pipelines",
+    "Data Science",
+    "Databricks",
+    "Deep Learning",
+    "Django",
+    "ETL",
+    "Elasticsearch",
+    "Embeddings",
+    "FAISS",
+    "FastAPI",
+    "Feature Engineering",
+    "Flask",
+    "Forecasting",
+    "GANs",
+    "Go",
+    "GraphQL",
+    "HTML",
+    "Hadoop",
+    "Haystack",
+    "Hugging Face Transformers",
+    "Image Classification",
+    "Information Retrieval",
+    "JavaScript",
+    "Kubeflow",
+    "LangChain",
+    "LoRA",
+    "MLOps",
+    "Machine Learning",
+    "Microservices",
+    "Milvus",
+    "MongoDB",
+    "Object Detection",
+    "OpenCV",
+    "OpenSearch",
+    "PEFT",
+    "Pinecone",
+    "PostgreSQL",
+    "Prompt Engineering",
+    "Qdrant",
+    "REST APIs",
+    "Recommendation Systems",
+    "Redis",
+    "Redux",
+    "Reinforcement Learning",
+    "Rust",
+    "SEO",
+    "Sentence Transformers",
+    "Speech Recognition",
+    "Spring Boot",
+    "Statistical Modeling",
+    "TTS",
+    "Tailwind",
+    "Terraform",
+    "Vector Search",
+    "Vue.js",
+    "Weaviate",
+    "Webpack",
+    "Weights & Biases",
+    "YOLO",
+    "dbt",
+    "gRPC",
+    "GitHub Actions",
+    "Polars",
+    "DuckDB",
+    "OpenAI API",
+    "Prisma",
+    "Ray",
+    "LlamaIndex",
+    "AI",
+    "GenAI",
+    "Artificial Intelligence",
 ]
 
 KNOWN_SKILLS_LOWER = {s.lower(): s for s in KNOWN_SKILLS}
@@ -120,6 +226,7 @@ SOFT_SKILLS = []
 
 TITLE_PATTERNS = [
     r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)\s*(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist|Designer|Consultant|Support|Accountant|Writer|Executive))",
+    r"(?:looking for|hiring|role[:\s]+|position[:\s]+|job title[:\s]+)(?:an?\s+)?([A-Z][A-Za-z /+-]*(?:Engineer|Developer|Scientist|Analyst|Manager|Architect|Specialist))",
     r"\b(AI Engineer|ML Engineer|Machine Learning Engineer|Data Engineer|Backend Engineer|"
     r"Frontend Engineer|Full Stack Developer|Data Scientist|Business Analyst|"
     r"Product Manager|SDE-I|SDE-II|SDE-III|SDE I|SDE II|SDE III|"
@@ -226,6 +333,13 @@ def _extract_experience_bounds(text: str) -> tuple[float, float]:
     )
     if range_match:
         return float(range_match.group(1)), float(range_match.group(2))
+def _extract_experience(text: str) -> int:
+    # Try to find a range first: "2-5 years", "3 to 7 years", or "5–9 years" (en-dash/em-dash)
+    range_match = re.search(
+        r"(\d+)\s*(?:-|–|—|to)\s*(\d+)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE
+    )
+    if range_match:
+        return int(range_match.group(1))  # use lower bound as min_experience
     # Fallback to single number
     single_match = re.search(r"(\d+(?:\.\d+)?)\+?\s*(?:years?|yrs?)", text, flags=re.IGNORECASE)
     if single_match:
@@ -401,6 +515,7 @@ def segment_jd_text(text: str) -> Dict[str, str]:
 
 
 def parse_jd_text(text: str) -> Dict[str, Any]:
+def parse_jd_text(text: str) -> Dict[str, object]:
     """Parse JD text into the stable dict expected by the scorer."""
     text = (text or "")[:MAX_JD_CHARS]
     
@@ -413,6 +528,9 @@ def parse_jd_text(text: str) -> Dict[str, Any]:
             continue
         cleaned_lines.append(line)
     text = "\n".join(cleaned_lines)
+
+    required = _split_skill_lines(_extract_section_lines(text, REQUIRED_HEADERS))
+    preferred = _split_skill_lines(_extract_section_lines(text, PREFERRED_HEADERS))
 
     # Segment JD
     zones = segment_jd_text(text)
@@ -486,6 +604,7 @@ def parse_jd_text(text: str) -> Dict[str, Any]:
     )
     salary_min, salary_max = _extract_salary_range(text)
     min_exp, max_exp = _extract_experience_bounds(text)
+    min_exp = _extract_experience(text)
     
     # Assertions for JD Input Validation
     if len(required) > 15:
@@ -493,6 +612,11 @@ def parse_jd_text(text: str) -> Dict[str, Any]:
     for skill in required:
         if skill.strip().isdigit():
             raise ValueError(f"Validation failed: purely numeric skill token found '{skill}'.")
+    # min_exp defaults to 0 when not found — this is a valid state;
+    # the scorer handles min_experience_years=0 gracefully (skips exp scoring)
+
+    # Extract skill weights based on JD text
+    skill_weights = _extract_skill_weights(text, required)
 
     return {
         "required_skills": required,

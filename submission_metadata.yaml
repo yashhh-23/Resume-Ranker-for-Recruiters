@@ -12,6 +12,11 @@ team_members:
   - name: "Sahil Rane"
     email: "sahil.s.rane13012007@gmail.com"
     role: "Frontend development"
+
+  - name: "Sahil Rane"
+    email: "sahil.s.rane13012007@gmail.com"
+    role: "Frontend development"
+
   - name: "Shubham Pawar"
     email: "shubhmapawar@gmail.com"
     role: "Documentation"
@@ -39,6 +44,14 @@ ai_tools_used:
 ai_usage_summary: |
   Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research. No candidate data was sent to external LLMs during scoring.
 
+github_url: "https://github.com/yashhh-23/Resume-Ranker-for-Recruiters"
+huggingface_sandbox_link: "https://huggingface.co/spaces/<YOUR_HF_SPACE_URL>"
+reproduce_command: "python rank.py --candidates ./data/sample_candidates.json --out ./submission.csv"
+compute_specs:
+  cpu: "Intel/AMD x86_64"
+  ram: "16 GB"
+  gpu: "None (CPU-only)"
+ai_tools_declaration: "Used RedRob AI for candidate evaluation telemetry; Claude Sonnet 4.6 for UI development; Google Gemini & Perplexity for backend optimization and research; Cursor IDE for refactoring. No candidate data was sent to external LLMs during scoring."
 methodology_summary: |
   Unified two-stage additive ranking architecture featuring perfect mathematical symmetry between pre-filtering and detailed evaluation passes. Features automated contextual NLP skill token extraction, Gaussian experience curve window alignment, strict title domain masking to neutralize keyword stuffing, and an ascending alphanumerical candidate ID tie-breaker.
 

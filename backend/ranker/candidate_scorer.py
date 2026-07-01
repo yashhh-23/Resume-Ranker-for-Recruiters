@@ -111,6 +111,8 @@ def is_skill_match(r: str, c: str) -> bool:
         return True
         
     # Alias-based match
+    if r_clean in c_clean or c_clean in r_clean:
+        return True
     r_aliases = SKILL_ALIASES.get(r_clean, {r_clean})
     c_aliases = SKILL_ALIASES.get(c_clean, {c_clean})
     if r_aliases & c_aliases:
@@ -127,6 +129,9 @@ def is_skill_match(r: str, c: str) -> bool:
         if alias_tokens & c_tokens:
             return True
             
+    for alias in r_aliases:
+        if alias in c_clean or c_clean in alias:
+            return True
     return False
 
 def calibrate_score(score: float) -> float:
@@ -135,6 +140,7 @@ def calibrate_score(score: float) -> float:
 
 
 def text_match(value: Any, target: Any, target_tokens: Optional[frozenset] = None) -> float:
+def text_match(value: Any, target: Any, target_tokens: frozenset = None) -> float:
     source = tokenize(value)
     wanted = target_tokens if target_tokens is not None else tokenize(target)
     if not source or not wanted:
@@ -362,7 +368,138 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
     tier1_possible = 0.0
     matched_tier1_count = 0
 
+def _gaussian_exp_fit(actual: float, target_min: float, target_max: float = None) -> float:
+    """Returns 0.01–1.0 experience fit score using a Gaussian bell curve.
+    
+    Centered on (target_min + target_max) / 2 with asymmetric penalty
+    for candidates below target_min.
+    """
+    target_max = target_max or (target_min + 3.0)
+    optimal = (target_min + target_max) / 2.0
+    spread = (target_max - target_min) if target_max != target_min else 2.0
+    sigma = spread / 1.5
+    score = math.exp(-((actual - optimal) ** 2) / (2 * (sigma ** 2)))
+    if actual < target_min:
+        # Extra asymmetric penalty for under-experience
+        score *= (actual / max(target_min, 0.1)) ** 2
+    return max(0.01, min(1.0, score))
+
+
+# ---------------------------------------------------------------------------
+# FIX 2 — Non-Tech Title Cluster Guard (taxonomy layer)
+# Catches field-mismatched titles that slip through text_match() token
+# overlap (e.g. "Mechanical Engineer" for an ML JD shares "engineer").
+# Only fires for tech JDs. Deterministic keyword set — no LLM.
+# ---------------------------------------------------------------------------
+NON_TECH_TITLE_CLUSTERS = {
+    "mechanical", "civil", "structural", "chemical", "hr", "human resource",
+    "marketing", "sales", "finance", "legal", "accountant", "nurse",
+    "doctor", "teacher", "designer", "architect",
+}
+TECH_TITLE_KEYWORDS = {
+    "software", "data", "ml", "ai", "engineer", "developer", "analyst",
+    "scientist", "backend", "frontend", "fullstack", "devops", "platform",
+    "machine", "deep", "nlp", "research",
+}
+
+
+def apply_pass_1_bouncer(candidate: Dict[str, Any], jd: Dict[str, Any] = None) -> tuple[bool, bool]:
+    """Pass-1 bouncer: fraud detection + JD-derived title mismatch penalty.
+    
+    Instead of a hardcoded blacklist, compares candidate title against JD
+    target_title using text_match() for domain-agnostic filtering.
+    Also applies a taxonomy cluster guard (Fix 2) for tech JDs.
+    """
+    fraudulent_timeline = False
+    blacklist_penalty = False
+    jd = jd or {}
+
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience", 0.0))
+    career_history = candidate.get("career_history") or []
+    
+    total_duration_months = 0.0
+    for role in career_history:
+        dur = role.get("duration_months")
+        if dur is not None:
+            total_duration_months += safe_float(dur, 0.0)
+        else:
+            start = role.get("start_date")
+            end = role.get("end_date")
+            if start:
+                try:
+                    s_date = datetime.fromisoformat(str(start)).date()
+                    e_date = datetime.fromisoformat(str(end)).date() if end else date.today()
+                    total_duration_months += max(0, (e_date.year - s_date.year) * 12 + e_date.month - s_date.month)
+                except ValueError:
+                    pass
+    
+    if years_exp * 12 > total_duration_months and total_duration_months > 0:
+        fraudulent_timeline = True
+
+    # JD-derived title mismatch: compare candidate title against JD target_title
+    current_title = str(profile.get("current_title") or profile.get("headline") or "").lower()
+    if not current_title and career_history:
+        current_title = str(career_history[0].get("title") or "").lower()
+
+    target_title = jd.get("_cached_target_title", (jd.get("target_title") or "").lower())
+    if target_title and target_title != "any" and current_title:
+        target_tokens = jd.get("_cached_target_title_tokens")
+        title_overlap = text_match(current_title, target_title, target_tokens=target_tokens)
+        if title_overlap == 0.0:
+            blacklist_penalty = True
+
+    # FIX 2: Taxonomy cluster guard — catch non-tech titles that slip through
+    # token overlap (e.g. "Mechanical Engineer" shares "engineer" with "ML Engineer")
+    is_tech_jd = jd.get("_cached_is_tech_field", False)
+    if is_tech_jd and current_title and not blacklist_penalty:
+        if any(k in current_title for k in NON_TECH_TITLE_CLUSTERS):
+            if not any(t in current_title for t in TECH_TITLE_KEYWORDS):
+                blacklist_penalty = True
+
+    for skill in candidate.get("skills") or []:
+        dur = safe_float(skill.get("duration_months"), 0.0)
+        prof = str(skill.get("proficiency") or "").lower()
+        if dur == 0.0 and prof in ("expert", "advanced"):
+            skill["proficiency"] = "beginner"
+
+    return fraudulent_timeline, blacklist_penalty
+
+def _get_skill_cross_field_multiplier(skill_name: str, career_history: list) -> float:
+    if not skill_name:
+        return 0.3
+    skill_lower = skill_name.lower()
+    for role in career_history:
+        desc = str(role.get("description") or "").lower()
+        if skill_lower in desc:
+            return 1.0
+    return 0.3
+
+def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
+    required = jd.get("_cached_required_skills")
+    if required is None:
+        required_list = jd.get("raw_required_skills")
+        if not required_list:
+            required_list = jd.get("required_skills", [])
+        required = [s.lower() for s in required_list]
+        jd["_cached_required_skills"] = required
+    if not required:
+        target_title = jd.get("target_title", "")
+        if target_title and target_title.lower() != "any":
+            title_score = text_match(target_title, candidate.get("profile", {}).get("current_title", ""))
+            return clamp(title_score)
+        return 0.5  # no hard requirements = neutral score
+
+    skill_weights = jd.get("skill_weights", {})
+    skill_weights_lower = {k.lower(): v for k, v in skill_weights.items()}
+
+    career_history = candidate.get("career_history") or []
+    education_list = candidate.get("education") or []
+    matched_score = 0.0
+    total_possible_score = 0.0
+    missing_tier1_count = 0
     for r in required:
+        weight = skill_weights_lower.get(r, 1.0)
         best_level = 0.0
         best_cs = ""
         for s in candidate.get("skills") or []:
@@ -385,6 +522,11 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         
         if best_level > 0.0 and best_cs:
             # Academic skill down-weight
+                
+        # FIX 3: Academic skill down-weight — if skill only appears in education
+        # blocks (thesis/coursework) and NOT in any career_history description,
+        # treat it as academic acquaintance rather than operational capability.
+        if best_level > 0.0 and best_cs:
             in_career = any(
                 best_cs in str(role.get("description", "")).lower()
                 for role in career_history
@@ -460,6 +602,32 @@ def score_required_skill_coverage(candidate: dict, jd: dict) -> float:
         coverage *= 0.10
 
     return clamp(coverage)
+                best_level *= 0.4  # academic acquaintance, not operational skill
+
+        if best_level == 0.0 and weight >= 2.0:
+            missing_tier1_count += 1
+            
+        matched_score += best_level * weight
+        total_possible_score += 1.10 * weight
+
+    # Normalize by max possible score per weighted skill to keep max coverage at 1.0
+    base_coverage = matched_score / total_possible_score if total_possible_score > 0 else 0.0
+    
+    if missing_tier1_count > 0:
+        base_coverage *= (0.80 ** missing_tier1_count)
+
+    preferred = jd.get("_cached_preferred_skills")
+    if preferred is None:
+        preferred = [s.lower() for s in jd.get("preferred_skills", [])]
+        jd["_cached_preferred_skills"] = preferred
+    if preferred:
+        candidate_skills_lower = _get_candidate_skill_names(candidate.get("skills") or [])
+        pref_matched = sum(
+            1 for p in preferred if any(is_skill_match(p, cs) for cs in candidate_skills_lower)
+        )
+        preferred_bonus = clamp(pref_matched / len(preferred)) * 0.15  # max 15% bonus
+        return clamp(base_coverage + preferred_bonus)
+    return clamp(base_coverage)
 
 
 def score_skill_match(
@@ -467,6 +635,8 @@ def score_skill_match(
     jd_similarity: float,
     candidate: Optional[Dict[str, Any]] = None,
     jd: Optional[Dict[str, Any]] = None,
+    candidate: Dict[str, Any] = None,
+    jd: Dict[str, Any] = None,
 ) -> float:
     raw_cos = jd_similarity
     # Threshold semantic similarity to heavily penalize out-of-domain resumes (like Mobile Devs)
@@ -528,6 +698,11 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
     min_experience = float(jd.get("_cached_min_experience") or safe_float(jd.get("min_experience_years"), 0.0))
     profile = candidate.get("profile") or {}
     seniority = str(jd.get("_cached_seniority") or jd.get("seniority_level") or "mid")
+    target_title = jd.get("_cached_target_title", jd.get("target_title") or "")
+    target_industry = jd.get("_cached_target_industry", jd.get("target_industry") or "")
+    min_experience = jd.get("_cached_min_experience", safe_float(jd.get("min_experience_years"), 0.0))
+    profile = candidate.get("profile") or {}
+    seniority = jd.get("_cached_seniority", jd.get("seniority_level", "mid"))
     years_exp = safe_float(profile.get("years_of_experience"))
     seniority_align = _seniority_score(years_exp, seniority)
 
@@ -600,6 +775,7 @@ def score_career_fit(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
         cf_score *= 1.1
 
     return clamp(cf_score)
+    return clamp(role_score * 0.6 + gated_exp_score * 0.25 + seniority_align * 0.15)
 
 
 def score_education(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float:
@@ -753,6 +929,13 @@ def score_candidate(
 
     req_zip_val = jd.get("_cached_req_zip")
     req_zip = list(req_zip_val) if req_zip_val is not None else []
+    jd_required_list = jd.get("_cached_raw_req")
+    if jd_required_list is None:
+        jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
+        jd["_cached_raw_req"] = jd_required_list
+        jd["_cached_req_zip"] = [(r, r.lower()) for r in jd_required_list]
+
+    req_zip = jd.get("_cached_req_zip", [])
     matched = [r for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
     missing = [r for r, rl in req_zip if not any(is_skill_match(rl, cs) for cs in candidate_skill_names)]
 
@@ -866,6 +1049,7 @@ def score_candidate(
         }
 
     # 2. Regular Path: Compute sub-scores
+
     breakdown = {
         "skill_match": score_skill_match(
             candidate_id, jd_similarity, candidate, jd
@@ -875,6 +1059,36 @@ def score_candidate(
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
+    
+    # Read experience ONCE, used in both dampening and experience-gating below
+    profile = candidate.get("profile") or {}
+    years_exp = safe_float(profile.get("years_of_experience"), 0.0)
+
+    # Dampen education contribution if career fit is weak
+    if breakdown["career_fit"] < 0.30:
+        if matched_count <= 1:
+            breakdown["education"] *= 0.40
+            if years_exp < 3.0:
+                breakdown["education"] = min(breakdown["education"], 0.15)
+            elif years_exp < 6.0:
+                breakdown["education"] = min(breakdown["education"], 0.20)
+            else:
+                breakdown["education"] = min(breakdown["education"], 0.26)
+        else:
+            breakdown["education"] *= 0.70
+            breakdown["education"] = min(breakdown["education"], 0.35)
+
+    # Hard experience-gate: raw education cannot exceed these ceilings
+    if years_exp < 2.0:
+        breakdown["education"] = min(breakdown["education"], 0.15)
+    elif years_exp < 5.0:
+        breakdown["education"] = min(breakdown["education"], 0.30)
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    exp_gap = max(0.0, min_experience - years_exp)
+    if exp_gap > 0:
+        exp_penalty = max(0.6, 1.0 - (exp_gap / min_experience) * 0.3)
+        breakdown["career_fit"] *= exp_penalty
 
     # Dampen education contribution if career fit is weak
     if breakdown["career_fit"] < 0.30:
@@ -906,6 +1120,50 @@ def score_candidate(
         sigma = max(1.0, (max_experience - min_experience) / 2.0)
         gaussian_decay = math.exp(-((years_exp - center_point) ** 2) / (2 * (sigma ** 2)))
         breakdown["career_fit"] *= max(0.01, min(1.0, gaussian_decay))
+    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+
+    # Skill count gate
+    if len(matched) == 0:
+        final_score *= 0.50
+    elif len(matched) == 1:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.85
+        else:
+            final_score *= 0.70
+    elif len(matched) == 2:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.95
+        else:
+            final_score *= 0.85
+
+    final_score += (len(matched) * 0.06)
+    
+    if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
+        trap_penalty = score_jd_specific_traps(candidate)
+    else:
+        trap_penalty = 0.0
+        
+    final_score = max(0.0, final_score - trap_penalty)
+
+    if blacklist_penalty:
+        final_score *= 0.2
+    if fraud_timeline:
+        final_score = 0.0
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    if min_experience > 0 and years_exp < min_experience:
+        if years_exp < min_experience * 0.75:
+            final_score *= 0.70
+        else:
+            final_score *= 0.85
+        
+    if breakdown["career_fit"] < 0.35:
+        final_score *= 0.50
+
+    rounded_breakdown = {key: round(value, 4) for key, value in breakdown.items()}
+
+    profile = candidate.get("profile") or {}
+    years = safe_float(profile.get("years_of_experience"))
 
     # Apply experience gap penalty directly to career_fit sub-score
     exp_gap = max(0.0, min_experience - years_exp)
@@ -936,12 +1194,20 @@ def score_candidate(
 
     if is_non_domain_title:
         breakdown["career_fit"] *= 0.05  # Blunt out-of-domain stuffing immediately
+    preferred_jd = jd.get("_cached_raw_pref", jd.get("preferred_skills", []))
+    jd["_cached_raw_pref"] = preferred_jd
+    preferred_jd_lower = [p.lower() for p in preferred_jd]
+    preferred_matched = [p for p, pl in zip(preferred_jd, preferred_jd_lower) if any(is_skill_match(pl, cs) for cs in candidate_skill_names)]
 
     outside_experience_bounds = min_experience > 0 and (years_exp < min_experience or years_exp > max_experience)
     if outside_experience_bounds:
         breakdown["career_fit"] *= 0.10  # Enforce experience boundaries tightly
 
     # Notice period constraints / Availability decay multiplier
+    career_history = candidate.get("career_history") or []
+    min_exp = safe_float(jd.get("min_experience_years"), 0.0)
+    response_rate = safe_float(signals.get("recruiter_response_rate"))
+    github_score = max(0.0, safe_float(signals.get("github_activity_score"), 0.0))
     notice_days = safe_float(signals.get("notice_period_days"), 180.0)
     if notice_days <= 30.0:
         availability_mult = 1.0
@@ -953,6 +1219,9 @@ def score_candidate(
         availability_mult = 0.30
 
     breakdown["availability"] *= availability_mult
+    flags, deduped_skills = validate_candidate(candidate)
+    if deduped_skills is not None:
+        candidate["skills"] = deduped_skills
 
     # 4. Enforce the Mandated 35/25/15/15/10 Additive Score Composition
     raw_final_score = (
@@ -1004,6 +1273,33 @@ def score_candidate(
 
     if fraud_timeline:
         final_score = 0.0
+    reasoning_str = build_reasoning(candidate, rounded_breakdown, matched, jd)
+    try:
+        encoding = sys.stdout.encoding if sys.stdout else None
+    except Exception:
+        encoding = None
+    WARNING_CHAR = "⚠" if encoding and "utf" in encoding.lower() else "[!]"
+
+    if len(matched) == 0:
+        reasoning_str += f" | {WARNING_CHAR} 0 skills matched"
+        flags.append("zero_skill_match")
+
+    tags = []
+    if len(matched) >= len(jd_required_list) * 0.5 and years_exp < min_experience:
+        tags.append(f"{WARNING_CHAR} Under-experienced but high-skill match")
+    if tags:
+        reasoning_str += " | " + " | ".join(tags)
+
+    if flags:
+        flag_summary = "; ".join(flags[:2]) + ("..." if len(flags) > 2 else "")
+        reasoning_str += f" | {WARNING_CHAR} Flags: {flag_summary}"
+        
+    if breakdown["career_fit"] < 0.35:
+        reasoning_str += f" | {WARNING_CHAR} role title mismatch"
+
+    if matched_count < 2:
+        final_score *= 0.50
+        reasoning_str += f" | {WARNING_CHAR} Skill gate applied: <2 required skills matched"
 
     return {
         "candidate_id": candidate_id,
@@ -1017,6 +1313,14 @@ def score_candidate(
             "signal_modifier": f"Response rate: {safe_float(signals.get('recruiter_response_rate')):.2f}",
             "education": "Best education evaluated",
             "availability": f"Notice: {notice_days}d",
+        "score_breakdown": rounded_breakdown,
+        "reasoning": reasoning_str,
+        "signal_reasoning": {
+            "skill_match": skill_match_desc,
+            "career_fit": f"{len(career_history)} roles; {years:.1f}y exp vs {min_exp}y min; role relevance: {rounded_breakdown['career_fit']:.2f}" + (f"; Trap penalty: {trap_penalty:.2f}" if trap_penalty > 0 else ""),
+            "signal_modifier": f"Response rate: {response_rate:.2f}; GitHub: {github_score:.0f}/100",
+            "education": education_desc,
+            "availability": f"Notice: {notice_days}d; Open: {open_flag}; Relocate: {reloc}",
         },
         "compliance_flags": flags,
         "is_suspicious": len(flags) > 0,
@@ -1065,9 +1369,22 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
         "skill_match": score_required_skill_coverage(candidate, jd),
         "career_fit": cf,
         "signal_modifier": score_signal_modifier(signals, jd, matched_count=matched_req_count),
+        "signal_modifier": score_signal_modifier(signals, jd),
         "education": score_education(candidate, jd),
         "availability": score_availability(signals),
     }
+
+    jd_required_list = jd.get("_cached_raw_req")
+    if jd_required_list is None:
+        jd_required_list = jd.get("raw_required_skills", jd.get("required_skills", []))
+        jd["_cached_raw_req"] = jd_required_list
+        jd["_cached_req_zip"] = [(r, r.lower()) for r in jd_required_list]
+
+    req_zip = jd.get("_cached_req_zip", [])
+    matched_count = 0
+    if req_zip:
+        candidate_skill_names = _get_candidate_skill_names(candidate.get("skills") or [])
+        matched_count = sum(1 for r, rl in req_zip if any(is_skill_match(rl, cs) for cs in candidate_skill_names))
 
     profile = candidate.get("profile") or {}
     years_exp = safe_float(profile.get("years_of_experience"), 0.0)
@@ -1075,6 +1392,7 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
     # Dampen education contribution if career fit is weak
     if breakdown["career_fit"] < 0.30:
         if matched_req_count <= 1:
+        if matched_count <= 1:
             breakdown["education"] *= 0.40
             if years_exp < 3.0:
                 breakdown["education"] = min(breakdown["education"], 0.15)
@@ -1202,6 +1520,27 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     if blacklist_penalty:
         final_score *= 0.10
+    final_score = sum(breakdown[key] * WEIGHTS[key] for key in WEIGHTS)
+
+    if matched_count == 0:
+        final_score *= 0.30
+    elif matched_count == 1:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.75
+        else:
+            final_score *= 0.60
+    elif matched_count == 2:
+        if breakdown["career_fit"] >= 0.35:
+            final_score *= 0.90
+        else:
+            final_score *= 0.80
+    elif matched_count == 3:
+        final_score *= 0.95
+            
+    final_score += (matched_count * 0.05)
+
+    if breakdown["career_fit"] < 0.08:
+        final_score *= 0.7
 
     if (jd.get("target_field") or "").lower() in ("computer science", "machine learning", "ai", "nlp"):
         trap_penalty = score_jd_specific_traps(candidate)
@@ -1212,6 +1551,15 @@ def fast_score_candidate(candidate: Dict[str, Any], jd: Dict[str, Any]) -> float
 
     if fraud_timeline:
         final_score = 0.0
+
+    if blacklist_penalty:
+        final_score *= 0.2
+    if fraud_timeline:
+        final_score = 0.0
+
+    min_experience = safe_float(jd.get("min_experience_years"), 0.0)
+    if min_experience > 0 and years_exp < min_experience:
+        final_score *= 0.30
 
     return calibrate_score(final_score)
 
@@ -1259,6 +1607,25 @@ def rank_candidates(
         sim_map = dict(zip(candidate_ids, np.clip(similarities, -1.0, 1.0)))
     else:
         sim_map = {}
+
+    scored = [
+        score_candidate(candidate, jd, float(sim_map.get(str(candidate.get("candidate_id") or candidate.get("id") or ""), 0.0)))
+        for candidate in top_candidates
+    ]
+    from functools import cmp_to_key
+
+    def compare_candidates(a, b):
+        if abs(a["score"] - b["score"]) < 0.015:
+            if a["matched_count"] != b["matched_count"]:
+                return b["matched_count"] - a["matched_count"]
+        if a["score"] != b["score"]:
+            return -1 if a["score"] > b["score"] else 1
+        ida = str(a.get("candidate_id", ""))
+        idb = str(b.get("candidate_id", ""))
+        if ida == idb: return 0
+        return -1 if ida < idb else 1
+
+    scored.sort(key=cmp_to_key(compare_candidates))
 
     scored = [
         score_candidate(candidate, jd, float(sim_map.get(str(candidate.get("candidate_id") or candidate.get("id") or ""), 0.0)))
