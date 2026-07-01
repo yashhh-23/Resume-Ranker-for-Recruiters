@@ -15,6 +15,8 @@ from threadpoolctl import threadpool_limits
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -215,6 +217,13 @@ app.add_middleware(RequestIDMiddleware)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "RRR_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
+    ).split(",")
+    if origin.strip()
 ]
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -225,6 +234,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Accept", "Authorization", "X-Request-ID"],
 )
 
 
@@ -241,6 +254,8 @@ class RankRequest(BaseModel):
             if "job_description" in data and "jd_text" not in data:
                 data["jd_text"] = data["job_description"]
         return data
+    job_description: str
+    candidates: List[Dict[str, Any]]
 
 
 @app.get("/")

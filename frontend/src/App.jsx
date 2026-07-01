@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback, lazy, Suspense, useRef } from "react";
+import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from "react";
 import CryptoJS from "crypto-js";
 import InputPanel from "./components/InputPanel";
 import ResultsPanel from "./components/ResultsPanel";
@@ -290,6 +291,25 @@ const App = () => {
         console.error("[DIAGNOSTIC ERROR] Server response did not return a valid array layout.");
       }
 
+    if (!jobDescription.trim() || candidates.length === 0) {
+      setError("Job description and candidates are required.");
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+    const startTime = performance.now();
+
+    try {
+      const { results, meta } = await rankCandidates({
+        jobDescription,
+        candidates,
+      });
+      const endTime = performance.now();
+      setExecutionTime(((endTime - startTime) / 1000).toFixed(2));
+      if (meta?.jd_parsed) setJdParsed(meta.jd_parsed);
+      if (meta?.processing_time_ms) setBackendProcessingMs(meta.processing_time_ms);
+      setRankedResults(normalizeRankedResults(results, candidates));
       setRunCount((prev) => prev + 1);
 
       // Auto switch to results on mobile after a run completes
@@ -307,11 +327,19 @@ const App = () => {
       
       const message = error instanceof Error ? error.message : "API unavailable.";
       setError(`Local fallback active. ${message}`);
+      const hasApiUrl = !!(import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== "");
+      const message = err instanceof Error ? err.message : "API unavailable.";
+      setError(
+        hasApiUrl
+          ? `Local fallback active. ${message}`
+          : "Offline mode: All scoring runs locally using all-MiniLM-L6-v2."
+      );
       if (!isDesktop) {
         setActiveMobileTab("results");
       }
     } finally {
       // Yield control to let React paint the heavy render update first
+      // Yield control to let React paint the heavy render update first (prevents blank visual lag)
       setTimeout(() => {
         setIsLoading(false);
       }, 60);
@@ -627,6 +655,9 @@ const App = () => {
         >
           <div
             id="guide-scoring-modal-dialog"
+          onClick={() => setShowWeightsInfo(false)}
+        >
+          <div
             className="w-full max-w-lg bg-slate-950 border border-slate-800 shadow-2xl p-6 font-mono rounded-none"
             onClick={(e) => e.stopPropagation()}
           >
